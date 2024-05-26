@@ -22,7 +22,7 @@ const LoginPage = () => {
       console.log("Response:", response.data);
       // Rediriger ou afficher un message de succès selon les besoins
 
-      sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("token", response.data);
       console.log("Login successful");
       // Rediriger l'utilisateur vers une page appropriée après la connexion réussie
     } catch (error) {

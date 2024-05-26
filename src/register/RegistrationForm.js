@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-// import { Redirect } from 'react-router-dom';
 import { Form, Button, Alert, Container } from "react-bootstrap";
 import { useAxios } from "../hooks/useAxios";
-import { useToken } from "../hooks/useToken";
-import { Link, Redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { buttonStyles } from "../styles";
 
 const RegistrationForm = () => {
@@ -20,7 +18,7 @@ const RegistrationForm = () => {
   const [passwordsMatch, setPasswordsMatch] = useState(true); // Ajout d'un état pour indiquer si les mots de passe correspondent
   const [registrationSuccess, setRegistrationSuccess] = useState(false); // État pour suivre si l'enregistrement a réussi
   const [passwordComplexityError, setPasswordComplexityError] = useState(false); // État pour suivre si le mot de passe ne satisfait pas la complexité
-  // const [redirect, setRedirect] = useState(false);
+  const [error, setError] = useState(""); // État pour suivre les erreurs d'inscription
 
   const axios = useAxios();
 
@@ -30,9 +28,10 @@ const RegistrationForm = () => {
     setPasswordsMatch(true); // Réinitialiser l'état des mots de passe correspondants lorsque l'utilisateur modifie le champ de confirmation de mot de passe
     setRegistrationSuccess(false); // Réinitialiser l'état de la réussite de l'enregistrement à false lorsqu'une modification est apportée
     setPasswordComplexityError(false); // Réinitialiser l'état d'erreur de complexité du mot de passe
+    setError(""); // Réinitialiser les erreurs d'inscription lorsque l'utilisateur modifie les champs
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     // Vérifier si les mots de passe correspondent
@@ -48,20 +47,24 @@ const RegistrationForm = () => {
       return;
     }
 
-    try {
-      const response = await axios.post("/api/client/register", formData);
-      console.log("Inscription réussie :", response.data);
-      sessionStorage.setItem("token", response.token);
-      //localStorage.setItem("token", response.data.token);
-      setRegistrationSuccess(true);
-      // setRedirect(true); // Définir l'état de redirection sur true
-    } catch (error) {
-      console.error("Erreur lors de l'inscription :", error);
-    }
+    axios
+      .post("/api/client/register", formData)
+      .then((response) => {
+        console.log("Inscription réussie :", response);
+        sessionStorage.setItem("token", response.data);
+        setRegistrationSuccess(true);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de l'inscription :", error);
+        setError(
+          error.response && error.response.data
+            ? error.response.data.message
+            : "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+        );
+      });
   };
 
   return (
-    // <{redirect && <Redirect to="/login" />}>
     <Container className="mt-3">
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="formUserName">
@@ -117,7 +120,6 @@ const RegistrationForm = () => {
             required
             isInvalid={!passwordsMatch} // Marquer le champ comme invalide si les mots de passe ne correspondent pas
           />
-          {/* Afficher un message d'erreur si les mots de passe ne correspondent pas */}
           {!passwordsMatch && (
             <Form.Control.Feedback type="invalid">
               Les mots de passe ne correspondent pas
@@ -164,19 +166,20 @@ const RegistrationForm = () => {
           <Form.Check
             required
             label="Accepter les termes et conditions"
-            feedback="You must agree before submitting."
+            feedback="Vous devez accepter avant de soumettre."
             feedbackType="invalid"
           />
         </Form.Group>
         <Button variant="light" type="submit" style={buttonStyles}>
           S'inscrire
         </Button>
-        {registrationSuccess && ( // Afficher le message de succès uniquement si l'enregistrement a réussi
+        {registrationSuccess && (
           <Alert variant="success">
             Enregistrement terminé avec succès !{" "}
             <Link to="/login">Se connecter</Link>
           </Alert>
         )}
+        {error && <Alert variant="danger">{error}</Alert>}
       </Form>
     </Container>
   );
