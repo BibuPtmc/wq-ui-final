@@ -1,15 +1,18 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useAxios } from "./hooks/useAxios";
-import { useToken } from "./hooks/useToken";
 import { buttonStyles } from "./styles";
+import { useAuth } from "./hooks/authProvider"; // Importez le hook useAuth
 
 const LoginPage = () => {
   const axios = useAxios();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { setIsLoggedIn } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -19,12 +22,16 @@ const LoginPage = () => {
         userName: userName,
         password: password,
       });
-      console.log("Response:", response.data);
-      // Rediriger ou afficher un message de succès selon les besoins
+      console.log("Response:", response);
 
       sessionStorage.setItem("token", response.data);
       console.log("Login successful");
-      // Rediriger l'utilisateur vers une page appropriée après la connexion réussie
+
+      // Mettez à jour l'état de connexion après une connexion réussie
+      setIsLoggedIn(true);
+
+      // Redirigez l'utilisateur vers la page d'accueil
+      navigate("/");
     } catch (error) {
       if (error.response.status === 401) {
         setError("Nom d'utilisateur ou mot de passe incorrect.");

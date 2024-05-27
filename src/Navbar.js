@@ -2,18 +2,15 @@ import React, { useState } from "react";
 import { Navbar, Nav, Button } from "react-bootstrap";
 import Logo from "./image/log.webp"; // Importez votre composant Logo depuis son emplacement
 import { buttonStyles } from "./styles";
+import { useAuth } from "./hooks/authProvider";
 
 const NavBar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // État pour suivre si l'utilisateur est connecté
-
-  const handleLogin = () => {
-    // Logique de connexion
-    setIsLoggedIn(true);
-  };
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
 
   const handleLogout = () => {
     // Logique de déconnexion
     setIsLoggedIn(false);
+    sessionStorage.removeItem("token");
   };
 
   return (

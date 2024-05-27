@@ -11,30 +11,37 @@ import { ContactUs } from "./ContactPage";
 import LoginPage from "./LoginPage";
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
+import { AuthProvider } from "./hooks/authProvider";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
 
 const App = () => {
   return (
-    <Router>
-      <div
-        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-      >
-        <div style={{ flex: 1 }}>
-          <NavBar />
-          <Routes>
-            <Route exact path="/" element={<HomePage />} />
-            <Route path="/register" element={<RegistrationForm />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/registerCat" element={<RegisterCat />} />
-            <Route path="/foundCats" element={<FoundCats />} />
-          </Routes>
+    <AuthProvider>
+      <Router>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <NavBar />
+            <Routes>
+              <Route exact path="/" element={<HomePage />} />
+              <Route path="/register" element={<RegistrationForm />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/registerCat" element={<RegisterCat />} />
+              <Route path="/foundCats" element={<FoundCats />} />
+            </Routes>
+          </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 };
 
