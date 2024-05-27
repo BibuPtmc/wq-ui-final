@@ -9,6 +9,7 @@ import FoundCats from "./FoundCats";
 import HomePage from "./HomePage";
 import { ContactUs } from "./ContactPage";
 import LoginPage from "./LoginPage";
+import ProfilePage from "./ProfilePage";
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import { AuthProvider } from "./hooks/authProvider";
@@ -36,6 +37,7 @@ const App = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registerCat" element={<RegisterCat />} />
               <Route path="/foundCats" element={<FoundCats />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </div>
           <Footer />

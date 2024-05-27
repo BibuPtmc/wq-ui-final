@@ -34,8 +34,8 @@ const NavBar = () => {
           <Nav.Link href="/contact">Contactez-nous</Nav.Link>
           <Nav.Link href="/registerCat">Signaler</Nav.Link>
           <Nav.Link href="#lost">Perdu</Nav.Link>
-          <Nav.Link href="/foundCatts">Trouvé</Nav.Link>
-          <Nav.Link href="#profile">Espace perso</Nav.Link>
+          <Nav.Link href="/foundCats">Trouvé</Nav.Link>
+          <Nav.Link href="/profile">Espace perso</Nav.Link>
         </Nav>
         <Nav>
           {isLoggedIn ? (
