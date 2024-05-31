@@ -1,40 +1,53 @@
-import React, { useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
 
 const ProfilePage = () => {
   const axios = useAxios();
-  const { user, loading } = useAuth();
-  var connectedUser;
-  // Vérifier si l'utilisateur est connecté
-  if (!sessionStorage.getItem("token")) {
-    return <p>User not logged in</p>;
-  } else {
-    axios.get("users/me").then(function (userGet) {
-      connectedUser = userGet;
-    });
-  }
+  const { user, loading: authLoading } = useAuth();
+  const [connectedUser, setConnectedUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const isLoggedIn = !!user; // Vérifier si l'utilisateur est connecté en fonction de la présence de l'utilisateur
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!sessionStorage.getItem("token")) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get("auth/me");
+        setConnectedUser(response);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [axios]);
 
   const handleDeleteAccount = async () => {
     const userId = user?.userId;
 
     try {
-      const response = await axios.delete(`/delete?id=${userId}`);
-      alert(response.data); // Message de succès
+      const response = await axios.delete(`auth/delete?id=${userId}`);
+      alert(response); // Message de succès
       // Rediriger l'utilisateur après la suppression du compte, par exemple vers la page de connexion
       // window.location.href = '/login';
     } catch (error) {
-      alert("Error deleting account: " + error.response.data); // Message d'erreur
+      alert("Error deleting account: " + error.response); // Message d'erreur
     }
   };
 
-  if (loading || !connectedUser) {
-    console.log(loading);
-
+  if (authLoading || loading) {
     return <p>Loading...</p>;
+  }
+
+  if (!connectedUser) {
+    return <p>User not logged in</p>;
   }
 
   return (
@@ -89,7 +102,10 @@ const ProfilePage = () => {
                   <Col md={6}>
                     <Form.Group controlId="formAddress">
                       <Form.Label>Adresse</Form.Label>
-                      <Form.Control type="text" defaultValue={user.address} />
+                      <Form.Control
+                        type="text"
+                        defaultValue={connectedUser.address}
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
@@ -97,7 +113,7 @@ const ProfilePage = () => {
                   <Col md={6}>
                     <Form.Group controlId="formGender">
                       <Form.Label>Sexe</Form.Label>
-                      <Form.Select defaultValue={user.gender}>
+                      <Form.Select defaultValue={connectedUser.gender}>
                         <option>Homme</option>
                         <option>Femme</option>
                       </Form.Select>
@@ -106,7 +122,10 @@ const ProfilePage = () => {
                   <Col md={6}>
                     <Form.Group controlId="formBirthDate">
                       <Form.Label>Date de naissance</Form.Label>
-                      <Form.Control type="date" defaultValue={user.birthDay} />
+                      <Form.Control
+                        type="date"
+                        defaultValue={connectedUser.birthDay}
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
@@ -178,11 +197,11 @@ const ProfilePage = () => {
                   margin: "0 auto 10px",
                 }}
               >
-                {user.firstName.charAt(0)}
-                {user.lastName.charAt(0)}
+                {connectedUser.firstName.charAt(0)}
+                {connectedUser.lastName.charAt(0)}
               </div>
               <Card.Title>
-                {user.firstName} {user.lastName}
+                {connectedUser.firstName} {connectedUser.lastName}
               </Card.Title>
               <Card.Text>Particulier</Card.Text>
               <Button variant="danger" onClick={handleDeleteAccount}>

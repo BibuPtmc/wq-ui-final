@@ -13,6 +13,9 @@ const RegistrationForm = () => {
     firstName: "",
     lastName: "",
     birthDay: "",
+    phone: "",
+    address: "",
+    gender: "",
   });
 
   const [passwordsMatch, setPasswordsMatch] = useState(true); // Ajout d'un état pour indiquer si les mots de passe correspondent
@@ -167,6 +170,42 @@ const RegistrationForm = () => {
             onChange={handleChange}
             required
           />
+        </Form.Group>
+        <Form.Group controlId="formPhone">
+          <Form.Label>Numéro de téléphone</Form.Label>
+          <Form.Control
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Entrez le numéro de téléphone"
+          />
+        </Form.Group>
+
+        <Form.Group controlId="formAddress">
+          <Form.Label>Adresse</Form.Label>
+          <Form.Control
+            type="text"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="Entrez l'adresse"
+          />
+        </Form.Group>
+
+        <Form.Group controlId="formGender">
+          <Form.Label>Genre</Form.Label>
+          <Form.Select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+            required
+          >
+            <option>Sélectionnez le genre</option>
+            <option value="Homme">Homme</option>
+            <option value="Femme">Femme</option>
+            <option value="Autre">Autre</option>
+          </Form.Select>
         </Form.Group>
 
         <Form.Group className="mb-3">

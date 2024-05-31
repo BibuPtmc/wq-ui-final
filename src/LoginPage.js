@@ -17,35 +17,49 @@ const LoginPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    try {
-      const response = await axios.post("/auth/login", {
+    axios
+      .post("/auth/login", {
         email: email,
         password: password,
+      })
+      .then((response) => {
+        console.log("Response:", response);
+        const token = response.token;
+
+        sessionStorage.setItem("token", token);
+
+        axios
+          .get("/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((userDataResponse) => {
+            const userData = userDataResponse;
+            console.log("User Data:", userData);
+
+            console.log(sessionStorage);
+
+            console.log("Login successful");
+
+            setIsLoggedIn(true);
+            sessionStorage.setItem("user", JSON.stringify(userData));
+
+            navigate("/");
+          })
+          .catch((error) => {
+            console.error("Error fetching user data:", error);
+            setError(
+              "An error occurred while fetching user data. Please try again later."
+            );
+          });
+      })
+      .catch((error) => {
+        console.error("Error logging in:", error);
+        if (error.response && error.response.status === 401) {
+          setError("Email or password is incorrect.");
+        } else {
+          setError("An unexpected error occurred. Please try again later.");
+        }
       });
-
-      console.log("Response:", response);
-      const token = response.token;
-      console.log("TOKEN:", token);
-
-      sessionStorage.setItem("token", token);
-      console.log(sessionStorage.getItem("token"));
-
-      console.log(sessionStorage);
-
-      console.log("Login successful");
-
-      // Mettez à jour l'état de connexion après une connexion réussie
-      setIsLoggedIn(true);
-
-      // Redirigez l'utilisateur vers la page d'accueil
-      navigate("/");
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setError("Email ou mot de passe incorrect.");
-      } else {
-        setError("Une erreur s'est produite lors de la connexion.");
-      }
-    }
   };
 
   return (
