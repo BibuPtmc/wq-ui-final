@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useAxios } from "./hooks/useAxios";
 import { Card, Button, Container, Row, Col } from "react-bootstrap";
 
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
+  const axios = useAxios();
 
   useEffect(() => {
     // Effectuer une requête pour récupérer les chats trouvés

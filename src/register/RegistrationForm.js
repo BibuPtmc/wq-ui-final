@@ -48,11 +48,18 @@ const RegistrationForm = () => {
     }
 
     axios
-      .post("/api/client/register", formData)
+      .post("/auth/signup", formData)
       .then((response) => {
-        console.log("Inscription réussie :", response);
-        sessionStorage.setItem("token", response.data);
-        setRegistrationSuccess(true);
+        // Ajout d'un journal pour afficher la réponse complète
+        console.log("Réponse de l'API :", response);
+        // Accès au token dans la réponse
+        const token = response.token;
+        if (token) {
+          sessionStorage.setItem("token", token);
+          setRegistrationSuccess(true);
+        } else {
+          setError("Token non trouvé dans la réponse de l'API");
+        }
       })
       .catch((error) => {
         console.error("Erreur lors de l'inscription :", error);

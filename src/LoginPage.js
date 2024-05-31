@@ -4,11 +4,11 @@ import { Form, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useAxios } from "./hooks/useAxios";
 import { buttonStyles } from "./styles";
-import { useAuth } from "./hooks/authProvider"; // Importez le hook useAuth
+import { useAuth } from "./hooks/authProvider";
 
 const LoginPage = () => {
   const axios = useAxios();
-  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -18,13 +18,20 @@ const LoginPage = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.post("/api/login", {
-        userName: userName,
+      const response = await axios.post("/auth/login", {
+        email: email,
         password: password,
       });
-      console.log("Response:", response);
 
-      sessionStorage.setItem("token", response.data);
+      console.log("Response:", response);
+      const token = response.token;
+      console.log("TOKEN:", token);
+
+      sessionStorage.setItem("token", token);
+      console.log(sessionStorage.getItem("token"));
+
+      console.log(sessionStorage);
+
       console.log("Login successful");
 
       // Mettez à jour l'état de connexion après une connexion réussie
@@ -33,8 +40,8 @@ const LoginPage = () => {
       // Redirigez l'utilisateur vers la page d'accueil
       navigate("/");
     } catch (error) {
-      if (error.response.status === 401) {
-        setError("Nom d'utilisateur ou mot de passe incorrect.");
+      if (error.response && error.response.status === 401) {
+        setError("Email ou mot de passe incorrect.");
       } else {
         setError("Une erreur s'est produite lors de la connexion.");
       }
@@ -45,13 +52,13 @@ const LoginPage = () => {
     <div className="container">
       <h1>Login</h1>
       <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="formBasicUsername">
-          <Form.Label>Username</Form.Label>
+        <Form.Group controlId="formBasicEmail">
+          <Form.Label>Email</Form.Label>
           <Form.Control
-            type="text"
-            placeholder="Enter username"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
+            type="email"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </Form.Group>
 

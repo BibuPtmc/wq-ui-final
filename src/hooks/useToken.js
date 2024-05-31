@@ -1,7 +1,7 @@
-import { jwtDecode } from "jwt-decode"
+import { jwtDecode } from "jwt-decode";
 
 export const useToken = () => {
-    const token = sessionStorage.getItem('token')
-    if(!token) return null
-    return jwtDecode(token)
-}
+  const token = sessionStorage.getItem("token");
+  if (!token) return null;
+  return jwtDecode(token);
+};

@@ -3,14 +3,18 @@ import { Navbar, Nav, Button } from "react-bootstrap";
 import Logo from "./image/log.webp"; // Importez votre composant Logo depuis son emplacement
 import { buttonStyles } from "./styles";
 import { useAuth } from "./hooks/authProvider";
+import { useNavigate } from "react-router-dom";
 
 const NavBar = () => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     // Logique de déconnexion
     setIsLoggedIn(false);
     sessionStorage.removeItem("token");
+    alert("Vous avez été déconnecté avec succès.");
+    navigate("/");
   };
 
   return (
