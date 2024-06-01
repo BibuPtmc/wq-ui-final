@@ -7,7 +7,7 @@ import { buttonStyles } from "./styles";
 import { useAuth } from "./hooks/authProvider";
 
 const LoginPage = () => {
-  const axios = useAxios();
+  var axios = useAxios();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,29 +28,11 @@ const LoginPage = () => {
 
         sessionStorage.setItem("token", token);
 
-        axios
-          .get("/auth/me", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((userDataResponse) => {
-            const userData = userDataResponse;
-            console.log("User Data:", userData);
+        console.log(sessionStorage);
+        console.log("Login successful");
 
-            console.log(sessionStorage);
-
-            console.log("Login successful");
-
-            setIsLoggedIn(true);
-            sessionStorage.setItem("user", JSON.stringify(userData));
-
-            navigate("/");
-          })
-          .catch((error) => {
-            console.error("Error fetching user data:", error);
-            setError(
-              "An error occurred while fetching user data. Please try again later."
-            );
-          });
+        setIsLoggedIn(true);
+        navigate("/");
       })
       .catch((error) => {
         console.error("Error logging in:", error);

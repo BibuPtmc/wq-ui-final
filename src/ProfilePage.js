@@ -17,7 +17,10 @@ const ProfilePage = () => {
       }
 
       try {
-        const response = await axios.get("auth/me");
+        var headers = sessionStorage.getItem("token")
+          ? { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+          : {};
+        const response = await axios.get("users/me", { headers: headers });
         setConnectedUser(response);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -26,8 +29,10 @@ const ProfilePage = () => {
       }
     };
 
-    fetchUserData();
-  }, [axios]);
+    if (loading) {
+      fetchUserData();
+    }
+  }, [axios, loading]);
 
   const handleDeleteAccount = async () => {
     const userId = user?.userId;
