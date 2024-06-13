@@ -5,7 +5,7 @@ import { useAuth } from "./hooks/authProvider";
 
 const ProfilePage = () => {
   const axios = useAxios();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, setIsLoggedIn } = useAuth();
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,13 +35,15 @@ const ProfilePage = () => {
   }, [axios, loading]);
 
   const handleDeleteAccount = async () => {
-    const userId = user?.userId;
-
     try {
-      const response = await axios.delete(`auth/delete?id=${userId}`);
+      const response = await axios.delete(
+        `auth/delete?id=${connectedUser.userId}`
+      );
       alert(response); // Message de succès
+      sessionStorage.removeItem("token");
+      setIsLoggedIn(false);
       // Rediriger l'utilisateur après la suppression du compte, par exemple vers la page de connexion
-      // window.location.href = '/login';
+      window.location.href = "/login";
     } catch (error) {
       alert("Error deleting account: " + error.response); // Message d'erreur
     }
