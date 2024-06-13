@@ -1,13 +1,19 @@
+import { config } from "@fortawesome/fontawesome-svg-core";
 import axios from "axios";
+import { AuthProvider } from "./authProvider";
 
 export function useAxios() {
-  const headers = sessionStorage.getItem("token")
+  var headers = sessionStorage.getItem("token")
     ? { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
     : {};
 
   const axiosInstance = axios.create({
     baseURL: process.env.REACT_APP_API,
     headers: headers,
+  });
+  axiosInstance.interceptors.request.use((config) => {
+    config.headers["Authorization"] = headers.Authorization;
+    return config;
   });
 
   axiosInstance.interceptors.response.use(

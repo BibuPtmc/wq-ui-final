@@ -16,7 +16,7 @@ const HomePage = () => {
             style={{ maxHeight: "630px", objectFit: "cover" }}
           />
           <Carousel.Caption>
-            <h3>Whisker Quest</h3>
+            <h1>Whisker Quest</h1>
           </Carousel.Caption>
         </Carousel.Item>
         <Carousel.Item>
@@ -27,7 +27,7 @@ const HomePage = () => {
             style={{ maxHeight: "630px", objectFit: "cover" }}
           />
           <Carousel.Caption>
-            <h3>Whisker Quest</h3>
+            <h1>Whisker Quest</h1>
           </Carousel.Caption>
         </Carousel.Item>
         <Carousel.Item>
@@ -38,7 +38,7 @@ const HomePage = () => {
             style={{ maxHeight: "630px", objectFit: "cover" }}
           />
           <Carousel.Caption>
-            <h3>Whisker Quest</h3>
+            <h1>Whisker Quest</h1>
           </Carousel.Caption>
         </Carousel.Item>
       </Carousel>

@@ -7,7 +7,7 @@ import { buttonStyles } from "./styles";
 import { useAuth } from "./hooks/authProvider";
 
 const LoginPage = () => {
-  const axios = useAxios();
+  var axios = useAxios();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,35 +17,31 @@ const LoginPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    try {
-      const response = await axios.post("/auth/login", {
+    axios
+      .post("/auth/login", {
         email: email,
         password: password,
+      })
+      .then((response) => {
+        console.log("Response:", response);
+        const token = response.token;
+
+        sessionStorage.setItem("token", token);
+
+        console.log(sessionStorage);
+        console.log("Login successful");
+
+        setIsLoggedIn(true);
+        navigate("/");
+      })
+      .catch((error) => {
+        console.error("Error logging in:", error);
+        if (error.response && error.response.status === 401) {
+          setError("Email or password is incorrect.");
+        } else {
+          setError("An unexpected error occurred. Please try again later.");
+        }
       });
-
-      console.log("Response:", response);
-      const token = response.token;
-      console.log("TOKEN:", token);
-
-      sessionStorage.setItem("token", token);
-      console.log(sessionStorage.getItem("token"));
-
-      console.log(sessionStorage);
-
-      console.log("Login successful");
-
-      // Mettez à jour l'état de connexion après une connexion réussie
-      setIsLoggedIn(true);
-
-      // Redirigez l'utilisateur vers la page d'accueil
-      navigate("/");
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setError("Email ou mot de passe incorrect.");
-      } else {
-        setError("Une erreur s'est produite lors de la connexion.");
-      }
-    }
   };
 
   return (

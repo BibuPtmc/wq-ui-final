@@ -12,6 +12,7 @@
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "bundle-js": "^1.0.3",
+    "cors": "^2.8.5",
     "devtool": "^2.3.1",
     "devtools": "^8.35.1",
     "font-awesome": "^4.7.0",
