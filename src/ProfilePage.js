@@ -70,7 +70,7 @@ const ProfilePage = () => {
   const handleDeleteAccount = async () => {
     try {
       const response = await axios.delete(
-        `auth/delete?id=${connectedUser.userId}`
+        `users/delete?id=${connectedUser.userId}`
       );
       alert(response); // Message de succès
       sessionStorage.removeItem("token");
@@ -78,7 +78,7 @@ const ProfilePage = () => {
       // Rediriger l'utilisateur après la suppression du compte, par exemple vers la page de connexion
       window.location.href = "/login";
     } catch (error) {
-      alert("Error deleting account: " + error.response); // Message d'erreur
+      alert("Error deleting account: " + error.message); // Message d'erreur
     }
   };
 

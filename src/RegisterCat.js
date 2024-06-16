@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { Form, Button, Container } from "react-bootstrap";
-import axios from "axios";
+import { Form, Button, Container, Alert } from "react-bootstrap";
+import { useAxios } from "./hooks/useAxios";
+import Select from "react-select";
 import { buttonStyles } from "./styles";
+import catBreeds from "./CatBreeds";
 
 function RegisterCat() {
+  const today = new Date().toISOString().split("T")[0];
+
   const [formData, setFormData] = useState({
     name: "",
     breed: "",
@@ -16,12 +20,22 @@ function RegisterCat() {
     eyeColor: "",
     comment: "",
     statusCat: "",
-    reportDate: "",
+    reportDate: today, // Set initial date to today's date
   });
+
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false); // État pour afficher le message de succès
+
+  const axios = useAxios();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+  const handleSelectChange = (selectedOption, action) => {
+    setFormData({
+      ...formData,
+      [action.name]: selectedOption ? selectedOption.value : "",
+    });
   };
 
   const handlePhotoChange = (e) => {
@@ -37,7 +51,27 @@ function RegisterCat() {
     setFormData({ ...formData, name: name });
     try {
       const response = await axios.post("/api/cat/register", formData);
-      console.log(response.data); // Logique pour gérer la réponse du backend
+      console.log(response); // Logique pour gérer la réponse du backend
+      setShowSuccessMessage(true); // Afficher le message de succès
+      setFormData({
+        ...formData,
+        name: "",
+        breed: "",
+        color: "",
+        dateOfBirth: "",
+        photo: "",
+        gender: "",
+        chipNumber: "",
+        furType: "",
+        eyeColor: "",
+        comment: "",
+        statusCat: "",
+        reportDate: today,
+      }); // Réinitialiser le formulaire
+      // Temporiser pour masquer le message de succès après 3 secondes
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000); //  5 seconds
     } catch (error) {
       console.error("Error registering cat:", error);
     }
@@ -86,24 +120,33 @@ function RegisterCat() {
         </Form.Group>
         <Form.Group controlId="breed">
           <Form.Label>Race</Form.Label>
-          <Form.Control
-            type="text"
+          <Select
             name="breed"
-            value={formData.breed}
-            onChange={handleChange}
-            placeholder="Entrez la race"
+            value={catBreeds.find((option) => option.value === formData.breed)}
+            onChange={handleSelectChange}
+            options={catBreeds}
+            placeholder="Sélectionnez la race"
+            isClearable
           />
         </Form.Group>
         <Form.Group controlId="color">
           <Form.Label>Couleur</Form.Label>
           <Form.Control
-            type="text"
+            as="select"
             name="color"
             value={formData.color}
             onChange={handleChange}
-            placeholder="Entrez la couleur"
+            placeholder="Sélectionnez la couleur"
             required
-          />
+          >
+            <option value="">-- Sélectionnez la couleur --</option>
+            <option value="NOIR">Noir</option>
+            <option value="BLANC">Blanc</option>
+            <option value="GRIS">Gris</option>
+            <option value="ROUX">Roux</option>
+            <option value="MIXTE">Mixte</option>
+            <option value="AUTRE">Autre</option>
+          </Form.Control>
         </Form.Group>
         <Form.Group controlId="dateOfBirth">
           <Form.Label>Date de naissance</Form.Label>
@@ -127,13 +170,18 @@ function RegisterCat() {
         <Form.Group controlId="gender">
           <Form.Label>Genre</Form.Label>
           <Form.Control
-            type="text"
+            as="select"
             name="gender"
             value={formData.gender}
             onChange={handleChange}
-            placeholder="Entrez le genre"
+            placeholder="Sélectionnez le genre"
             required
-          />
+          >
+            <option value="">-- Sélectionnez le genre --</option>
+            <option value="Mâle">Mâle</option>
+            <option value="Femelle">Femelle</option>
+            <option value="Inconnu">Inconnu</option>
+          </Form.Control>
         </Form.Group>
         <Form.Group controlId="chipNumber">
           <Form.Label>Numéro de puce</Form.Label>
@@ -148,23 +196,37 @@ function RegisterCat() {
         <Form.Group controlId="furType">
           <Form.Label>Type de fourrure</Form.Label>
           <Form.Control
-            type="text"
+            as="select"
             name="furType"
             value={formData.furType}
             onChange={handleChange}
-            placeholder="Entrez le type de fourrure"
-          />
+            placeholder="Sélectionnez le type de fourrure"
+          >
+            <option value="">-- Sélectionnez le type de fourrure --</option>
+            <option value="Courte">Courte</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Longue">Longue</option>
+            <option value="Sans poils">Sans poils</option>
+          </Form.Control>
         </Form.Group>
         <Form.Group controlId="eyeColor">
           <Form.Label>Couleur des yeux</Form.Label>
           <Form.Control
-            type="text"
+            as="select"
             name="eyeColor"
             value={formData.eyeColor}
             onChange={handleChange}
-            placeholder="Entrez la couleur des yeux"
+            placeholder="Sélectionnez la couleur des yeux"
             required
-          />
+          >
+            <option value="">-- Sélectionnez la couleur des yeux --</option>
+            <option value="BLEU">Bleu</option>
+            <option value="VERT">Vert</option>
+            <option value="JAUNE">Jaune</option>
+            <option value="MARRON">Marron</option>
+            <option value="NOISETTE">Noisette</option>
+            <option value="AUTRE">Autre</option>
+          </Form.Control>
         </Form.Group>
         <Form.Group controlId="comment" className="mb-3">
           <Form.Label>Commentaire</Form.Label>
@@ -180,6 +242,15 @@ function RegisterCat() {
         <Button variant="light" type="submit" style={buttonStyles}>
           Enregistrer le chat
         </Button>
+        {showSuccessMessage && (
+          <Alert
+            variant="success"
+            onClose={() => setShowSuccessMessage(false)}
+            dismissible
+          >
+            Le chat a été enregistré avec succès !
+          </Alert>
+        )}
       </Form>
     </Container>
   );
