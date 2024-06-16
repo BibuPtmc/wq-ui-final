@@ -9,6 +9,15 @@ const ProfilePage = () => {
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // State pour le formulaire de mise à jour
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    gender: "",
+    birthDay: "",
+  });
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!sessionStorage.getItem("token")) {
@@ -22,6 +31,13 @@ const ProfilePage = () => {
           : {};
         const response = await axios.get("users/me", { headers: headers });
         setConnectedUser(response);
+        setFormData({
+          firstName: response.firstName,
+          lastName: response.lastName,
+          address: response.address,
+          gender: response.gender,
+          birthDay: response.birthDay,
+        });
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -33,6 +49,23 @@ const ProfilePage = () => {
       fetchUserData();
     }
   }, [axios, loading]);
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.put("users/update", formData);
+      alert("Profil mis à jour avec succès");
+      // Mettez à jour l'utilisateur connecté dans l'état local si nécessaire
+    } catch (error) {
+      alert(
+        "Erreur lors de la mise à jour du profil: " + error.response.message
+      );
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
   const handleDeleteAccount = async () => {
     try {
@@ -47,6 +80,19 @@ const ProfilePage = () => {
     } catch (error) {
       alert("Error deleting account: " + error.response); // Message d'erreur
     }
+  };
+
+  const formatPhoneNumber = (phoneNumber) => {
+    let cleaned = ("" + phoneNumber).replace(/\D/g, "");
+    if (cleaned.startsWith("32")) {
+      cleaned = "+" + cleaned;
+    } else {
+      cleaned = "+32" + cleaned;
+    }
+    if (cleaned.startsWith("+320")) {
+      cleaned = cleaned.replace("+320", "+32");
+    }
+    return cleaned;
   };
 
   if (authLoading || loading) {
@@ -64,7 +110,7 @@ const ProfilePage = () => {
           <Card>
             <Card.Body>
               <Card.Title>Éditer le profil</Card.Title>
-              <Form>
+              <Form onSubmit={handleUpdateProfile}>
                 <Row className="mb-3">
                   <Col md={6}>
                     <Form.Group controlId="formEmail">
@@ -77,20 +123,22 @@ const ProfilePage = () => {
                     </Form.Group>
                   </Col>
                   <Col md={3}>
-                    <Form.Group controlId="formFirstName">
+                    <Form.Group controlId="firstName">
                       <Form.Label>Prénom</Form.Label>
                       <Form.Control
                         type="text"
-                        defaultValue={connectedUser.firstName}
+                        value={formData.firstName}
+                        onChange={handleChange}
                       />
                     </Form.Group>
                   </Col>
                   <Col md={3}>
-                    <Form.Group controlId="formLastName">
+                    <Form.Group controlId="lastName">
                       <Form.Label>Nom</Form.Label>
                       <Form.Control
                         type="text"
-                        defaultValue={connectedUser.lastName}
+                        value={formData.lastName}
+                        onChange={handleChange}
                       />
                     </Form.Group>
                   </Col>
@@ -101,37 +149,43 @@ const ProfilePage = () => {
                       <Form.Label>Numéro de téléphone</Form.Label>
                       <Form.Control
                         type="text"
-                        defaultValue={connectedUser.phone}
+                        defaultValue={formatPhoneNumber(connectedUser.phone)}
                         disabled
                       />
                     </Form.Group>
                   </Col>
                   <Col md={6}>
-                    <Form.Group controlId="formAddress">
+                    <Form.Group controlId="address">
                       <Form.Label>Adresse</Form.Label>
                       <Form.Control
                         type="text"
-                        defaultValue={connectedUser.address}
+                        value={formData.address}
+                        onChange={handleChange}
                       />
                     </Form.Group>
                   </Col>
                 </Row>
                 <Row className="mb-3">
                   <Col md={6}>
-                    <Form.Group controlId="formGender">
+                    <Form.Group controlId="gender">
                       <Form.Label>Sexe</Form.Label>
-                      <Form.Select defaultValue={connectedUser.gender}>
+                      <Form.Select
+                        value={formData.gender}
+                        onChange={handleChange}
+                      >
                         <option>Homme</option>
                         <option>Femme</option>
+                        <option>Autre</option>
                       </Form.Select>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
-                    <Form.Group controlId="formBirthDate">
+                    <Form.Group controlId="birthDay">
                       <Form.Label>Date de naissance</Form.Label>
                       <Form.Control
                         type="date"
-                        defaultValue={connectedUser.birthDay}
+                        value={formData.birthDay}
+                        onChange={handleChange}
                       />
                     </Form.Group>
                   </Col>
