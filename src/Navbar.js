@@ -37,7 +37,7 @@ const NavBar = () => {
           <Nav.Link href="/">Home</Nav.Link>
           <Nav.Link href="/contact">Contactez-nous</Nav.Link>
           <Nav.Link href="/registerCat">Signaler</Nav.Link>
-          <Nav.Link href="#lost">Perdu</Nav.Link>
+          <Nav.Link href="/lostCats">Perdu</Nav.Link>
           <Nav.Link href="/foundCats">Trouvé</Nav.Link>
           <Nav.Link href="/profile">Espace perso</Nav.Link>
         </Nav>

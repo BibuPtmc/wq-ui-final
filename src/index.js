@@ -5,6 +5,7 @@ import NavBar from "./Navbar";
 import Footer from "./Footer";
 import RegistrationForm from "./register/RegistrationForm";
 import RegisterCat from "./RegisterCat";
+import LostCats from "./LostCats";
 import FoundCats from "./FoundCats";
 import HomePage from "./HomePage";
 import { ContactUs } from "./ContactPage";
@@ -37,6 +38,7 @@ const App = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registerCat" element={<RegisterCat />} />
               <Route path="/foundCats" element={<FoundCats />} />
+              <Route path="/lostCats" element={<LostCats />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </div>

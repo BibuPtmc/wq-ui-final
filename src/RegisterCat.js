@@ -6,8 +6,8 @@ import { buttonStyles } from "./styles";
 import catBreeds from "./CatBreeds";
 
 function RegisterCat() {
-  const today = new Date().toISOString().split("T")[0];
-
+  const today = new Date().toISOString().replace("T", " ").replace("Z", "");
+  console.log(today);
   const [formData, setFormData] = useState({
     name: "",
     breed: "",
@@ -49,8 +49,25 @@ function RegisterCat() {
     const name = formData.name.trim() === "" ? "Inconnu" : formData.name;
     // Mettre à jour le nom du chat dans le formulaire
     setFormData({ ...formData, name: name });
+    const catStatus = {
+      cat: {
+        name: formData.name,
+        breed: formData.breed,
+        color: formData.color,
+        dateOfBirth: formData.dateOfBirth,
+        photo: formData.photo,
+        gender: formData.gender,
+        chipNumber: formData.chipNumber,
+        furType: formData.furType,
+        eyeColor: formData.eyeColor,
+        comment: formData.comment,
+      },
+      comment: formData.comment,
+      statusCat: formData.statusCat,
+      reportDate: today,
+    };
     try {
-      const response = await axios.post("/api/cat/register", formData);
+      const response = await axios.post("/cat/register", catStatus);
       console.log(response); // Logique pour gérer la réponse du backend
       setShowSuccessMessage(true); // Afficher le message de succès
       setFormData({
