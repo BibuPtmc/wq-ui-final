@@ -2,29 +2,38 @@ import React, { useEffect, useState } from "react";
 import { useAxios } from "./hooks/useAxios";
 import { Card, Button, Container, Row, Col } from "react-bootstrap";
 
-function FoundCats() {
-  const [foundCats, setFoundCats] = useState([]);
+function LostCats() {
+  const [lostCats, setLostCats] = useState([]);
   const axios = useAxios();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Effectuer une requête pour récupérer les chats trouvés
-    const fetchFoundCats = async () => {
+    const fetchLostCats = async () => {
       try {
-        const response = await axios.get("/api/cat/findFoundCats");
-        setFoundCats(response.data);
+        var headers = sessionStorage.getItem("token")
+          ? { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
+          : {};
+        const response = await axios.get("cat/findLostCat", {
+          headers: headers,
+        });
+        setLoading(false);
+        setLostCats(response);
       } catch (error) {
-        console.error("Error fetching found cats:", error);
+        console.error("Error fetching lost cats:", error);
       }
     };
 
-    fetchFoundCats();
+    if (loading) {
+      fetchLostCats();
+    }
   }, [axios]);
 
   return (
     <Container className="mt-3">
-      <h2>Chats Trouvés</h2>
+      <h2>Chats Perdus</h2>
       <Row xs={1} md={2} lg={3} xl={4} className="g-4">
-        {foundCats.map((cat) => (
+        {lostCats.map((cat) => (
           <Col key={cat.catId}>
             <Card>
               <Card.Img variant="top" src={cat.photo} />
@@ -52,4 +61,4 @@ function FoundCats() {
   );
 }
 
-export default FoundCats;
+export default LostCats;
