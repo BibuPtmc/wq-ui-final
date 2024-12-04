@@ -11,12 +11,7 @@ function LostCats() {
     // Effectuer une requête pour récupérer les chats trouvés
     const fetchLostCats = async () => {
       try {
-        var headers = sessionStorage.getItem("token")
-          ? { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
-          : {};
-        const response = await axios.get("cat/findLostCat", {
-          headers: headers,
-        });
+        const response = await axios.get("cat/findLostCat");
         setLoading(false);
         setLostCats(response);
       } catch (error) {

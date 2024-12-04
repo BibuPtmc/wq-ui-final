@@ -24,6 +24,7 @@ function RegisterCat() {
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); // État pour afficher le message de succès
+  const [preview, setPreview] = useState(null); // Stocker l'aperçu de l'image
 
   const axios = useAxios();
 
@@ -39,8 +40,15 @@ function RegisterCat() {
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0]; // Récupérer le premier fichier sélectionné
-    setFormData({ ...formData, photo: file });
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, photo: file });
+
+      // Générer un aperçu de l'image
+      const reader = new FileReader();
+      reader.onload = () => setPreview(reader.result);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
