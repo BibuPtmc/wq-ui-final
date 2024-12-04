@@ -5,7 +5,7 @@ import { useAuth } from "./hooks/authProvider";
 
 const ProfilePage = () => {
   const axios = useAxios();
-  const { user, loading: authLoading, setIsLoggedIn } = useAuth();
+  const { loading: authLoading, setIsLoggedIn } = useAuth();
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
 

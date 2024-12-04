@@ -5,19 +5,23 @@ import { Card, Button, Container, Row, Col } from "react-bootstrap";
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
   const axios = useAxios();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Effectuer une requête pour récupérer les chats trouvés
     const fetchFoundCats = async () => {
       try {
-        const response = await axios.get("/api/cat/findFoundCats");
-        setFoundCats(response.data);
+        const response = await axios.get("cat/findFoundCat");
+        setLoading(false);
+        setFoundCats(response);
       } catch (error) {
         console.error("Error fetching found cats:", error);
       }
     };
 
-    fetchFoundCats();
+    if (loading) {
+      fetchFoundCats();
+    }
   }, [axios]);
 
   return (
