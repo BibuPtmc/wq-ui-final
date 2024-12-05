@@ -1,90 +1,122 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Form, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { useAxios } from "./hooks/useAxios";
-import { buttonStyles } from "./styles";
+import { Form, Button, Container, Row, Col, Card, Alert } from "react-bootstrap";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./hooks/authProvider";
+import { useAxios } from "./hooks/useAxios";
+import { motion } from "framer-motion";
+import { FaUser, FaLock, FaUserPlus } from "react-icons/fa";
 
-const LoginPage = () => {
-  var axios = useAxios();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+function LoginPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useAuth();
+  const axios = useAxios();
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    axios
-      .post("/auth/login", {
-        email: email,
-        password: password,
-      })
-      .then((response) => {
-        console.log("Response:", response);
-        const token = response.token;
-
-        sessionStorage.setItem("token", token);
-
-        console.log(sessionStorage);
-        console.log("Login successful");
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("auth/login", formData);
+      if (response.token) {
+        sessionStorage.setItem("token", response.token);
         setIsLoggedIn(true);
         navigate("/");
-      })
-      .catch((error) => {
-        console.error("Error logging in:", error);
-        if (error.response && error.response.status === 401) {
-          setError("Email or password is incorrect.");
-        } else {
-          setError("An unexpected error occurred. Please try again later.");
-        }
-      });
+      }
+    } catch (error) {
+      setError("Email ou mot de passe incorrect");
+    }
   };
 
   return (
-    <div className="container">
-      <h1>Login</h1>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="formBasicEmail">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Form.Group>
+    <Container className="py-5">
+      <Row className="justify-content-center">
+        <Col md={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="shadow-sm">
+              <Card.Body className="p-4">
+                <div className="text-center mb-4">
+                  <h2>Connexion</h2>
+                  <p className="text-muted">Accédez à votre compte WhiskerQuest</p>
+                </div>
 
-        <Form.Group controlId="formBasicPassword">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Form.Group>
+                {error && (
+                  <Alert variant="danger" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
 
-        <Button
-          variant="light"
-          type="submit"
-          style={buttonStyles}
-          className="mt-3"
-        >
-          Login
-        </Button>
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <FaUser className="me-2" />
+                      Email
+                    </Form.Label>
+                    <Form.Control
+                      type="email"
+                      placeholder="Entrez votre email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                    />
+                  </Form.Group>
 
-        <div className="mt-2">
-          <Link to="/forgot-password">Mot de passe oublié ?</Link>
-        </div>
+                  <Form.Group className="mb-4">
+                    <Form.Label>
+                      <FaLock className="me-2" />
+                      Mot de passe
+                    </Form.Label>
+                    <Form.Control
+                      type="password"
+                      placeholder="Entrez votre mot de passe"
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      required
+                    />
+                  </Form.Group>
 
-        {error && <div className="mt-3 text-danger">{error}</div>}
-      </Form>
-    </div>
+                  <div className="d-grid">
+                    <Button variant="primary" type="submit" size="lg">
+                      Se connecter
+                    </Button>
+                  </div>
+                </Form>
+              </Card.Body>
+            </Card>
+
+            <Card className="mt-4 shadow-sm">
+              <Card.Body className="p-4 text-center">
+                <FaUserPlus className="text-primary mb-3" size={24} />
+                <h4>Pas encore de compte ?</h4>
+                <p className="text-muted mb-4">
+                  Rejoignez WhiskerQuest pour profiter de toutes nos fonctionnalités
+                </p>
+                <Button
+                  as={Link}
+                  to="/register"
+                  variant="outline-primary"
+                  size="lg"
+                  className="px-5"
+                >
+                  S'inscrire
+                </Button>
+              </Card.Body>
+            </Card>
+          </motion.div>
+        </Col>
+      </Row>
+    </Container>
   );
-};
+}
 
 export default LoginPage;

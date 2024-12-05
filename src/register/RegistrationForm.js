@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { Form, Button, Alert, Container } from "react-bootstrap";
+import { Form, Button, Container, Row, Col, Card, Alert } from "react-bootstrap";
+import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../hooks/useAxios";
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars } from "react-icons/fa";
 import { buttonStyles } from "../styles";
 
 const RegistrationForm = () => {
+  const navigate = useNavigate();
+  const axios = useAxios();
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
@@ -18,48 +22,45 @@ const RegistrationForm = () => {
     gender: "",
   });
 
-  const [passwordsMatch, setPasswordsMatch] = useState(true); // Ajout d'un état pour indiquer si les mots de passe correspondent
-  const [registrationSuccess, setRegistrationSuccess] = useState(false); // État pour suivre si l'enregistrement a réussi
-  const [passwordComplexityError, setPasswordComplexityError] = useState(false); // État pour suivre si le mot de passe ne satisfait pas la complexité
-  const [error, setError] = useState(""); // État pour suivre les erreurs d'inscription
-
-  const axios = useAxios();
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [passwordComplexityError, setPasswordComplexityError] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setPasswordsMatch(true); // Réinitialiser l'état des mots de passe correspondants lorsque l'utilisateur modifie le champ de confirmation de mot de passe
-    setRegistrationSuccess(false); // Réinitialiser l'état de la réussite de l'enregistrement à false lorsqu'une modification est apportée
-    setPasswordComplexityError(false); // Réinitialiser l'état d'erreur de complexité du mot de passe
-    setError(""); // Réinitialiser les erreurs d'inscription lorsque l'utilisateur modifie les champs
+    setPasswordsMatch(true);
+    setRegistrationSuccess(false);
+    setPasswordComplexityError(false);
+    setError("");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Vérifier si les mots de passe correspondent
     if (formData.password !== formData.matchingPassword) {
-      setPasswordsMatch(false); // Mettre à jour l'état pour indiquer que les mots de passe ne correspondent pas
-      return; // Arrêter la soumission du formulaire
+      setPasswordsMatch(false);
+      return;
     }
 
-    const passwordRegex =
-      /(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+    const passwordRegex = /(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
     if (!passwordRegex.test(formData.password)) {
-      setPasswordComplexityError(true); // Définir l'état d'erreur de complexité du mot de passe
+      setPasswordComplexityError(true);
       return;
     }
 
     axios
       .post("/auth/signup", formData)
       .then((response) => {
-        // Ajout d'un journal pour afficher la réponse complète
         console.log("Réponse de l'API :", response);
-        // Accès au token dans la réponse
         const token = response.token;
         if (token) {
           sessionStorage.setItem("token", token);
           setRegistrationSuccess(true);
+          setTimeout(() => {
+            navigate("/login");
+          }, 2000);
         } else {
           setError("Token non trouvé dans la réponse de l'API");
         }
@@ -67,166 +68,247 @@ const RegistrationForm = () => {
       .catch((error) => {
         console.error("Erreur lors de l'inscription :", error);
         setError(
-          error.response && error.response.data
-            ? error.response.data.message
-            : "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+          error.response?.data?.message ||
+            "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
         );
       });
   };
 
   return (
-    <Container className="mt-3">
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="formUserName">
-          <Form.Label>Nom d'utilisateur</Form.Label>
-          <Form.Control
-            type="text"
-            name="userName"
-            value={formData.userName}
-            onChange={handleChange}
-            placeholder="Entrez le nom d'utilisateur"
-            required
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formEmail">
-          <Form.Label>Adresse e-mail</Form.Label>
-          <Form.Control
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Entrez l'e-mail"
-            required
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formPassword">
-          <Form.Label>Mot de passe</Form.Label>
-          <Form.Control
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Entrez le mot de passe"
-            required
-            isInvalid={!passwordsMatch || passwordComplexityError} // Marquer le champ comme invalide en cas de mots de passe non correspondants ou de complexité insuffisante
-          />
-          <Form.Control.Feedback type="invalid">
-            {passwordComplexityError &&
-              "Le mot de passe doit contenir au moins 8 caractères, au moins une lettre majuscule, au moins une lettre minuscule, et au moins un chiffre ou un caractère spécial."}
-            {!passwordsMatch && "Les mots de passe ne correspondent pas."}
-          </Form.Control.Feedback>
-        </Form.Group>
-
-        <Form.Group controlId="formMatchingPassword">
-          <Form.Label>Confirmer le mot de passe</Form.Label>
-          <Form.Control
-            type="password"
-            name="matchingPassword"
-            value={formData.matchingPassword}
-            onChange={handleChange}
-            placeholder="Confirmez le mot de passe"
-            required
-            isInvalid={!passwordsMatch} // Marquer le champ comme invalide si les mots de passe ne correspondent pas
-          />
-          {!passwordsMatch && (
-            <Form.Control.Feedback type="invalid">
-              Les mots de passe ne correspondent pas
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
-
-        <Form.Group controlId="formFirstName">
-          <Form.Label>Prénom</Form.Label>
-          <Form.Control
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            placeholder="Entrez le prénom"
-            required
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formLastName">
-          <Form.Label>Nom de famille</Form.Label>
-          <Form.Control
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            placeholder="Entrez le nom de famille"
-            required
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formBirthDay">
-          <Form.Label>Date de naissance</Form.Label>
-          <Form.Control
-            type="date"
-            name="birthDay"
-            value={formData.birthDay}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-        <Form.Group controlId="formPhone">
-          <Form.Label>Numéro de téléphone</Form.Label>
-          <Form.Control
-            type="text"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Entrez le numéro de téléphone"
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formAddress">
-          <Form.Label>Adresse</Form.Label>
-          <Form.Control
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="Entrez l'adresse"
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formGender">
-          <Form.Label>Genre</Form.Label>
-          <Form.Select
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            required
+    <Container className="py-5">
+      <Row className="justify-content-center">
+        <Col md={8}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <option>Sélectionnez le genre</option>
-            <option value="Homme">Homme</option>
-            <option value="Femme">Femme</option>
-            <option value="Autre">Autre</option>
-          </Form.Select>
-        </Form.Group>
+            <Card className="shadow-sm">
+              <Card.Body className="p-4">
+                <div className="text-center mb-4">
+                  <h2>Inscription</h2>
+                  <p className="text-muted">Rejoignez la communauté WhiskerQuest</p>
+                </div>
 
-        <Form.Group className="mb-3">
-          <Form.Check
-            required
-            label="Accepter les termes et conditions"
-            feedback="Vous devez accepter avant de soumettre."
-            feedbackType="invalid"
-          />
-        </Form.Group>
-        <Button variant="light" type="submit" style={buttonStyles}>
-          S'inscrire
-        </Button>
-        {registrationSuccess && (
-          <Alert variant="success">
-            Enregistrement terminé avec succès !{" "}
-            <Link to="/login">Se connecter</Link>
-          </Alert>
-        )}
-        {error && <Alert variant="danger">{error}</Alert>}
-      </Form>
+                {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+                {registrationSuccess && (
+                  <Alert variant="success" className="mb-4">
+                    Inscription réussie ! Redirection vers la page de connexion...
+                  </Alert>
+                )}
+
+                <Form onSubmit={handleSubmit}>
+                  <Card className="mb-4">
+                    <Card.Body>
+                      <h5 className="mb-3">Informations de connexion</h5>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <FaUser className="me-2" />
+                          Nom d'utilisateur
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="userName"
+                          value={formData.userName}
+                          onChange={handleChange}
+                          placeholder="Choisissez un nom d'utilisateur"
+                          required
+                        />
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <FaEnvelope className="me-2" />
+                          Email
+                        </Form.Label>
+                        <Form.Control
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="Entrez votre email"
+                          required
+                        />
+                      </Form.Group>
+
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>
+                              <FaLock className="me-2" />
+                              Mot de passe
+                            </Form.Label>
+                            <Form.Control
+                              type="password"
+                              name="password"
+                              value={formData.password}
+                              onChange={handleChange}
+                              placeholder="Créez votre mot de passe"
+                              required
+                              isInvalid={!passwordsMatch || passwordComplexityError}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                              {passwordComplexityError &&
+                                "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre ou caractère spécial."}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>
+                              <FaLock className="me-2" />
+                              Confirmer
+                            </Form.Label>
+                            <Form.Control
+                              type="password"
+                              name="matchingPassword"
+                              value={formData.matchingPassword}
+                              onChange={handleChange}
+                              placeholder="Confirmez le mot de passe"
+                              required
+                              isInvalid={!passwordsMatch}
+                            />
+                            {!passwordsMatch && (
+                              <Form.Control.Feedback type="invalid">
+                                Les mots de passe ne correspondent pas
+                              </Form.Control.Feedback>
+                            )}
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+
+                  <Card className="mb-4">
+                    <Card.Body>
+                      <h5 className="mb-3">Informations personnelles</h5>
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Prénom</Form.Label>
+                            <Form.Control
+                              type="text"
+                              name="firstName"
+                              value={formData.firstName}
+                              onChange={handleChange}
+                              placeholder="Votre prénom"
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Nom</Form.Label>
+                            <Form.Control
+                              type="text"
+                              name="lastName"
+                              value={formData.lastName}
+                              onChange={handleChange}
+                              placeholder="Votre nom"
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>
+                              <FaCalendar className="me-2" />
+                              Date de naissance
+                            </Form.Label>
+                            <Form.Control
+                              type="date"
+                              name="birthDay"
+                              value={formData.birthDay}
+                              onChange={handleChange}
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>
+                              <FaVenusMars className="me-2" />
+                              Genre
+                            </Form.Label>
+                            <Form.Select
+                              name="gender"
+                              value={formData.gender}
+                              onChange={handleChange}
+                              required
+                            >
+                              <option value="">Sélectionnez le genre</option>
+                              <option value="Homme">Homme</option>
+                              <option value="Femme">Femme</option>
+                              <option value="Autre">Autre</option>
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <FaPhone className="me-2" />
+                          Téléphone
+                        </Form.Label>
+                        <Form.Control
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="Votre numéro de téléphone"
+                        />
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Adresse</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="address"
+                          value={formData.address}
+                          onChange={handleChange}
+                          placeholder="Votre adresse complète"
+                        />
+                      </Form.Group>
+                    </Card.Body>
+                  </Card>
+
+                  <Form.Group className="mb-4">
+                    <Form.Check
+                      required
+                      label="J'accepte les termes et conditions"
+                      feedback="Vous devez accepter avant de soumettre."
+                      feedbackType="invalid"
+                    />
+                  </Form.Group>
+
+                  <div className="d-grid gap-2">
+                    <Button
+                      variant="light"
+                      type="submit"
+                      size="lg"
+                      style={buttonStyles}
+                    >
+                      S'inscrire
+                    </Button>
+                  </div>
+                </Form>
+
+                <div className="text-center mt-4">
+                  <p className="text-muted">
+                    Déjà membre ?{" "}
+                    <Link to="/login" className="text-primary">
+                      Se connecter
+                    </Link>
+                  </p>
+                </div>
+              </Card.Body>
+            </Card>
+          </motion.div>
+        </Col>
+      </Row>
     </Container>
   );
 };

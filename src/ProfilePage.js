@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash } from 'react-icons/fa';
 
 const ProfilePage = () => {
   const axios = useAxios();
   const { loading: authLoading, setIsLoggedIn } = useAuth();
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [updateError, setUpdateError] = useState("");
+  const [activeTab, setActiveTab] = useState("profile");
 
   // State pour le formulaire de mise à jour
   const [formData, setFormData] = useState({
@@ -40,6 +44,7 @@ const ProfilePage = () => {
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setUpdateError("Erreur lors du chargement des données utilisateur");
       } finally {
         setLoading(false);
       }
@@ -52,14 +57,16 @@ const ProfilePage = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    setUpdateSuccess(false);
+    setUpdateError("");
+    
     try {
-      const response = await axios.put("users/update", formData);
-      alert("Profil mis à jour avec succès");
-      // Mettez à jour l'utilisateur connecté dans l'état local si nécessaire
+      await axios.put("users/update", formData);
+      setUpdateSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      alert(
-        "Erreur lors de la mise à jour du profil: " + error.response.message
-      );
+      setUpdateError(error.response?.message || "Erreur lors de la mise à jour du profil");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -68,17 +75,18 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    try {
-      const response = await axios.delete(
-        `users/delete?id=${connectedUser.userId}`
-      );
-      alert(response); // Message de succès
-      sessionStorage.removeItem("token");
-      setIsLoggedIn(false);
-      // Rediriger l'utilisateur après la suppression du compte, par exemple vers la page de connexion
-      window.location.href = "/login";
-    } catch (error) {
-      alert("Error deleting account: " + error.message); // Message d'erreur
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
+      try {
+        const response = await axios.delete(
+          `users/delete?id=${connectedUser.userId}`
+        );
+        alert(response);
+        sessionStorage.removeItem("token");
+        setIsLoggedIn(false);
+        window.location.href = "/login";
+      } catch (error) {
+        setUpdateError("Erreur lors de la suppression du compte: " + error.message);
+      }
     }
   };
 
@@ -96,180 +104,336 @@ const ProfilePage = () => {
   };
 
   if (authLoading || loading) {
-    return <p>Loading...</p>;
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+        <Spinner animation="border" role="status" variant="primary">
+          <span className="visually-hidden">Chargement...</span>
+        </Spinner>
+      </Container>
+    );
   }
 
   if (!connectedUser) {
-    return <p>User not logged in</p>;
+    return (
+      <Container className="mt-5">
+        <Alert variant="warning">
+          Vous devez être connecté pour accéder à cette page
+        </Alert>
+      </Container>
+    );
   }
 
   return (
-    <Container fluid>
-      <Row className="justify-content-center mt-4">
-        <Col md={8}>
-          <Card>
-            <Card.Body>
-              <Card.Title>Éditer le profil</Card.Title>
-              <Form onSubmit={handleUpdateProfile}>
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Form.Group controlId="formEmail">
-                      <Form.Label>Adresse e-mail</Form.Label>
-                      <Form.Control
-                        type="email"
-                        defaultValue={connectedUser.email}
-                        disabled
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group controlId="firstName">
-                      <Form.Label>Prénom</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group controlId="lastName">
-                      <Form.Label>Nom</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Form.Group controlId="formPhone">
-                      <Form.Label>Numéro de téléphone</Form.Label>
-                      <Form.Control
-                        type="text"
-                        defaultValue={formatPhoneNumber(connectedUser.phone)}
-                        disabled
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group controlId="address">
-                      <Form.Label>Adresse</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formData.address}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Form.Group controlId="gender">
-                      <Form.Label>Sexe</Form.Label>
-                      <Form.Select
-                        value={formData.gender}
-                        onChange={handleChange}
-                      >
-                        <option>Homme</option>
-                        <option>Femme</option>
-                        <option>Autre</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group controlId="birthDay">
-                      <Form.Label>Date de naissance</Form.Label>
-                      <Form.Control
-                        type="date"
-                        value={formData.birthDay}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Button variant="primary" type="submit">
-                  Mettre à jour
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={8} className="mt-4">
-          <Card>
-            <Card.Body>
-              <Card.Title>Modifier le mot de passe</Card.Title>
-              <Form>
-                <Row className="mb-3">
-                  <Col md={12}>
-                    <Form.Group controlId="formCurrentPassword">
-                      <Form.Label>Mot de passe</Form.Label>
-                      <Form.Control
-                        type="password"
-                        placeholder="Mot de passe"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Form.Group controlId="formNewPassword">
-                      <Form.Label>Nouveau mot de passe</Form.Label>
-                      <Form.Control
-                        type="password"
-                        placeholder="Nouveau mot de passe"
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group controlId="formConfirmPassword">
-                      <Form.Label>Confirmation mot de passe</Form.Label>
-                      <Form.Control
-                        type="password"
-                        placeholder="Confirmation mot de passe"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Button variant="primary" type="submit">
-                  Mettre à jour
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4} className="mt-4">
-          <Card>
+    <Container fluid className="py-5 bg-light">
+      {updateSuccess && (
+        <Row className="justify-content-center mb-4">
+          <Col md={8}>
+            <Alert variant="success" onClose={() => setUpdateSuccess(false)} dismissible>
+              Profil mis à jour avec succès !
+            </Alert>
+          </Col>
+        </Row>
+      )}
+      
+      {updateError && (
+        <Row className="justify-content-center mb-4">
+          <Col md={8}>
+            <Alert variant="danger" onClose={() => setUpdateError("")} dismissible>
+              {updateError}
+            </Alert>
+          </Col>
+        </Row>
+      )}
+
+      <Row className="justify-content-center">
+        <Col md={4} lg={3} className="mb-4">
+          <Card className="shadow-sm sticky-top" style={{ top: "2rem" }}>
             <Card.Body className="text-center">
               <div
-                className="profile-avatar"
+                className="profile-avatar mb-4"
                 style={{
-                  width: "100px",
-                  height: "100px",
+                  width: "120px",
+                  height: "120px",
                   borderRadius: "50%",
-                  backgroundColor: "#17a2b8",
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   color: "white",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  fontSize: "36px",
-                  margin: "0 auto 10px",
+                  fontSize: "40px",
+                  margin: "0 auto",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  transition: "transform 0.3s ease",
+                  cursor: "pointer",
                 }}
+                onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
                 {connectedUser.firstName.charAt(0)}
                 {connectedUser.lastName.charAt(0)}
               </div>
-              <Card.Title>
+              <Card.Title className="mb-3">
                 {connectedUser.firstName} {connectedUser.lastName}
               </Card.Title>
-              <Card.Text>Particulier</Card.Text>
-              <Button variant="danger" onClick={handleDeleteAccount}>
+              <Card.Text className="text-muted mb-4">Particulier</Card.Text>
+              
+              <Nav variant="pills" className="flex-column mb-4">
+                <Nav.Item>
+                  <Nav.Link 
+                    active={activeTab === "profile"}
+                    onClick={() => setActiveTab("profile")}
+                    className="text-start mb-2"
+                  >
+                    <FaUser className="me-2" />
+                    Profil
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link 
+                    active={activeTab === "security"}
+                    onClick={() => setActiveTab("security")}
+                    className="text-start mb-2"
+                  >
+                    <FaLock className="me-2" />
+                    Sécurité
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link 
+                    active={activeTab === "history"}
+                    onClick={() => setActiveTab("history")}
+                    className="text-start"
+                  >
+                    <FaHistory className="me-2" />
+                    Historique
+                  </Nav.Link>
+                </Nav.Item>
+              </Nav>
+
+              <Button
+                variant="outline-danger"
+                size="sm"
+                className="w-100 mt-3"
+                onClick={handleDeleteAccount}
+                style={{
+                  color: '#dc3545',
+                  borderColor: '#dc3545',
+                  backgroundColor: 'transparent',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#dc3545';
+                  e.target.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#dc3545';
+                }}
+              >
+                <FaTrash className="me-2" />
                 Supprimer mon compte
               </Button>
             </Card.Body>
           </Card>
+        </Col>
+
+        <Col md={8} lg={7}>
+          <Tab.Content>
+            <Tab.Pane active={activeTab === "profile"}>
+              <Card className="shadow-sm mb-4">
+                <Card.Body>
+                  <Card.Title className="mb-4">
+                    <FaUser className="me-2" />
+                    Informations personnelles
+                  </Card.Title>
+                  <Form onSubmit={handleUpdateProfile}>
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Form.Group className="mb-3" controlId="formEmail">
+                          <Form.Label className="text-muted">
+                            <FaEnvelope className="me-2" />
+                            Email
+                          </Form.Label>
+                          <Form.Control
+                            type="email"
+                            defaultValue={connectedUser.email}
+                            disabled
+                            className="bg-light"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3" controlId="formPhone">
+                          <Form.Label className="text-muted">
+                            <FaPhone className="me-2" />
+                            Téléphone
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            defaultValue={formatPhoneNumber(connectedUser.phone)}
+                            disabled
+                            className="bg-light"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Form.Group className="mb-3" controlId="firstName">
+                          <Form.Label>Prénom</Form.Label>
+                          <Form.Control
+                            type="text"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            className="border-0 shadow-sm"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3" controlId="lastName">
+                          <Form.Label>Nom</Form.Label>
+                          <Form.Control
+                            type="text"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            className="border-0 shadow-sm"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Form.Group className="mb-3" controlId="address">
+                      <Form.Label className="text-muted">
+                        <FaMapMarkerAlt className="me-2" />
+                        Adresse
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={formData.address}
+                        onChange={handleChange}
+                        className="border-0 shadow-sm"
+                      />
+                    </Form.Group>
+
+                    <Row className="mb-4">
+                      <Col md={6}>
+                        <Form.Group controlId="gender">
+                          <Form.Label className="text-muted">
+                            <FaVenusMars className="me-2" />
+                            Genre
+                          </Form.Label>
+                          <Form.Select
+                            value={formData.gender}
+                            onChange={handleChange}
+                            className="border-0 shadow-sm"
+                          >
+                            <option>Homme</option>
+                            <option>Femme</option>
+                            <option>Autre</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group controlId="birthDay">
+                          <Form.Label className="text-muted">
+                            <FaBirthdayCake className="me-2" />
+                            Date de naissance
+                          </Form.Label>
+                          <Form.Control
+                            type="date"
+                            value={formData.birthDay}
+                            onChange={handleChange}
+                            className="border-0 shadow-sm"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <div className="d-grid">
+                      <Button
+                        variant="primary"
+                        type="submit"
+                        size="lg"
+                        className="rounded-pill"
+                      >
+                        Mettre à jour le profil
+                      </Button>
+                    </div>
+                  </Form>
+                </Card.Body>
+              </Card>
+            </Tab.Pane>
+
+            <Tab.Pane active={activeTab === "security"}>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <Card.Title className="mb-4">
+                    <FaLock className="me-2" />
+                    Modifier le mot de passe
+                  </Card.Title>
+                  <Form>
+                    <Form.Group className="mb-3" controlId="formCurrentPassword">
+                      <Form.Label>Mot de passe actuel</Form.Label>
+                      <Form.Control
+                        type="password"
+                        placeholder="Entrez votre mot de passe actuel"
+                        className="border-0 shadow-sm"
+                      />
+                    </Form.Group>
+
+                    <Row className="mb-4">
+                      <Col md={6}>
+                        <Form.Group controlId="formNewPassword">
+                          <Form.Label>Nouveau mot de passe</Form.Label>
+                          <Form.Control
+                            type="password"
+                            placeholder="Entrez votre nouveau mot de passe"
+                            className="border-0 shadow-sm"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group controlId="formConfirmPassword">
+                          <Form.Label>Confirmation</Form.Label>
+                          <Form.Control
+                            type="password"
+                            placeholder="Confirmez votre nouveau mot de passe"
+                            className="border-0 shadow-sm"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <div className="d-grid">
+                      <Button
+                        variant="outline-primary"
+                        type="submit"
+                        size="lg"
+                        className="rounded-pill"
+                      >
+                        Mettre à jour le mot de passe
+                      </Button>
+                    </div>
+                  </Form>
+                </Card.Body>
+              </Card>
+            </Tab.Pane>
+
+            <Tab.Pane active={activeTab === "history"}>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <Card.Title className="mb-4">
+                    <FaHistory className="me-2" />
+                    Historique des activités
+                  </Card.Title>
+                  <p className="text-muted text-center py-5">
+                    L'historique des activités sera bientôt disponible.
+                  </p>
+                </Card.Body>
+              </Card>
+            </Tab.Pane>
+          </Tab.Content>
         </Col>
       </Row>
     </Container>
