@@ -11,8 +11,7 @@ import {
   FaTwitter,
   FaInstagram,
   FaLinkedin,
-  FaPaw,
-  FaHeart
+  FaPaw
 } from "react-icons/fa";
 
 const Footer = () => {
@@ -147,7 +146,7 @@ const Footer = () => {
           <Col className="text-center py-3" style={{ borderTop: "1px solid var(--secondary-color)" }}>
             <p className="mb-0">
               {currentYear} WhiskerQuest - Développé avec{''}
-              <span style={{ color: '#dc3545' }}>❤</span> par MOTQUIN Anaïs
+              <span style={{ color: '#dc3545' }}> ❤</span> par MOTQUIN Anaïs
             </p>
           </Col>
         </Row>
