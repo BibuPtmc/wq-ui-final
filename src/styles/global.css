@@ -1,0 +1,269 @@
+:root {
+  /* Palette de couleurs principale */
+  --primary-color: #6B4423;     /* Marron foncé - couleur principale */
+  --secondary-color: #D4A373;   /* Marron clair - couleur secondaire */
+  --accent-color: #E9B384;      /* Beige orangé - accent */
+  --light-accent: #FFECD6;      /* Beige clair - accent léger */
+  --dark-text: #2C1810;         /* Marron très foncé - texte principal */
+  --light-text: #F5F5F5;        /* Blanc cassé - texte clair */
+  --success-color: #4CAF50;     /* Vert - succès */
+  --danger-color: #F44336;      /* Rouge - erreur/danger */
+  --warning-color: #FFA726;     /* Orange - avertissement */
+  
+  /* Variables pour l'espacement */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+/* Styles globaux */
+body {
+  padding-top: 76px;
+  color: var(--dark-text);
+  background-color: #fff;
+}
+
+/* Style pour les conteneurs principaux */
+.main-container {
+  padding-top: var(--spacing-xl);
+  min-height: calc(100vh - 76px);
+  background-color: #fff;
+}
+
+/* Style pour les cartes */
+.cat-card {
+  height: 100%;
+  transition: all 0.3s ease-in-out;
+  background-color: #fff;
+  border: 1px solid rgba(107, 68, 35, 0.1);
+  box-shadow: 0 2px 8px rgba(107, 68, 35, 0.1);
+}
+
+.cat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(107, 68, 35, 0.15);
+}
+
+.cat-card img {
+  height: 200px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.cat-card .card-title {
+  color: var(--primary-color);
+}
+
+.cat-card .card-body {
+  background-color: #fff;
+}
+
+/* Badges personnalisés */
+.badge-male {
+  background-color: var(--primary-color) !important;
+  color: var(--light-text) !important;
+}
+
+.badge-female {
+  background-color: var(--accent-color) !important;
+  color: var(--dark-text) !important;
+}
+
+/* Override Bootstrap badge colors */
+.badge.bg-primary {
+  background-color: var(--primary-color) !important;  /* Brun foncé pour mâle */
+  color: var(--light-text) !important;
+}
+
+.badge.bg-danger {
+  background-color: #f0c8d0 !important;  /* Rose-brun clair pour femelle */
+  color: var(--dark-text) !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffd700 !important;
+  color: var(--dark-text) !important;
+}
+
+.badge.bg-light {
+  background-color: #f8f9fa !important;
+  border: 1px solid #dee2e6;
+}
+
+/* Boutons personnalisés */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--light-text) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-color) !important;
+  color: var(--light-text) !important;
+}
+
+/* Liens */
+a {
+  color: var(--primary-color);
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--secondary-color);
+}
+
+/* Animation de chargement */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.loading-container .spinner-border {
+  color: var(--primary-color) !important;
+}
+
+/* Styles de formulaire */
+.form-control:focus {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 0.2rem rgba(107, 68, 35, 0.25);
+}
+
+/* Navigation */
+.navbar {
+  background-color: #fff !important;
+  box-shadow: 0 2px 8px rgba(107, 68, 35, 0.1);
+}
+
+.navbar .nav-link {
+  color: var(--primary-color) !important;
+}
+
+.navbar .nav-link:hover {
+  color: var(--secondary-color) !important;
+}
+
+.navbar .nav-link.active {
+  color: var(--accent-color) !important;
+}
+
+/* Style personnalisé pour les onglets de navigation */
+.nav-pills .nav-link {
+  color: var(--primary-color);
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: var(--light-accent);
+  color: var(--primary-color);
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  body {
+    padding-top: 62px;
+  }
+  
+  .main-container {
+    padding-top: var(--spacing-md);
+  }
+  
+  .cat-card img {
+    height: 150px;
+  }
+}
+
+/* Utilitaires de texte */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.text-secondary {
+  color: var(--secondary-color) !important;
+}
+
+.text-accent {
+  color: var(--accent-color) !important;
+}
+
+/* Backgrounds */
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color) !important;
+}
+
+.bg-accent {
+  background-color: var(--accent-color) !important;
+}
+
+.bg-light {
+  background-color: var(--light-accent) !important;
+}
+
+/* Styles pour les sections */
+.section {
+  padding: var(--spacing-xl) 0;
+  background-color: #fff;
+}
+
+.section-alternate {
+  background-color: var(--light-accent);
+}
+
+/* Styles pour les formulaires */
+.form-container {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  box-shadow: 0 2px 8px rgba(107, 68, 35, 0.1);
+}
+
+/* Styles pour les alertes */
+.alert-success {
+  background-color: var(--success-color);
+  color: #fff;
+}
+
+.alert-danger {
+  background-color: var(--danger-color);
+  color: #fff;
+}
+
+.alert-warning {
+  background-color: var(--warning-color);
+  color: #fff;
+}
+
+/* Styles pour la page des colliers GPS */
+
+/* Animation pour les cartes de produits */
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
