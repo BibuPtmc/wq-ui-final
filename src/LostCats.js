@@ -15,13 +15,16 @@ function LostCats() {
         const response = await axios.get("cat/findLostCat");
         setLoading(false);
         setLostCats(response);
+        console.log("loading:"+loading);
+        console.log("cat found:"+response);
       } catch (error) {
         console.error("Error fetching lost cats:", error);
         setLoading(false);
       }
     };
-
-    fetchLostCats();
+    if(loading){
+      fetchLostCats();
+    }
   }, [axios]);
 
   if (loading) {
@@ -55,11 +58,12 @@ function LostCats() {
                   <Card className="cat-card shadow-sm">
                     <Card.Img
                       variant="top"
-                      src={cat.photo}
+                      src={`data:${cat.type};base64,${cat.imageCatData}`}
                       alt={cat.name}
                       onError={(e) => {
                         e.target.src = "https://via.placeholder.com/300x200?text=Image+non+disponible";
                       }}
+                      style={{ height: "200px", objectFit: "cover" }}
                     />
                     <Card.Body>
                       <div className="d-flex justify-content-between align-items-start mb-2">

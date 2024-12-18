@@ -82,11 +82,18 @@ function RegisterCat() {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({ ...formData, photo: file });
-
-      // Générer un aperçu de l'image
+      // Generate preview
       const reader = new FileReader();
-      reader.onload = () => setPreview(reader.result);
+      reader.onload = () => {
+        setPreview(reader.result);
+        // Get base64 string without the data:image/xxx;base64, prefix
+        const base64String = reader.result.split(',')[1];
+        setFormData({
+          ...formData,
+          type: file.type,
+          photo: base64String
+        });
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -103,7 +110,8 @@ function RegisterCat() {
         breed: formData.breed,
         color: formData.color,
         dateOfBirth: formData.dateOfBirth,
-        photo: formData.photo,
+        imageCatData: formData.photo,
+        type: formData.type,
         gender: formData.gender,
         chipNumber: formData.chipNumber,
         furType: formData.furType,

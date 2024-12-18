@@ -15,13 +15,16 @@ function FoundCats() {
         const response = await axios.get("cat/findFoundCat");
         setLoading(false);
         setFoundCats(response);
+        console.log("loading:"+loading);
+        console.log("cat found:"+response);
       } catch (error) {
         console.error("Error fetching found cats:", error);
         setLoading(false);
       }
     };
-
-    fetchFoundCats();
+    if(loading){
+      fetchFoundCats();
+    }
   }, [axios]);
 
   if (loading) {
@@ -55,7 +58,7 @@ function FoundCats() {
                   <Card className="cat-card shadow-sm">
                     <Card.Img
                       variant="top"
-                      src={cat.photo}
+                      src={`data:${cat.type};base64,${cat.imageCatData}`}
                       alt={cat.name}
                       onError={(e) => {
                         e.target.src = "https://via.placeholder.com/300x200?text=Image+non+disponible";
