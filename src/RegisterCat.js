@@ -13,18 +13,18 @@ function RegisterCat() {
   const today = new Date().toISOString().replace("T", " ").replace("Z", "");
   console.log(today);
   const [formData, setFormData] = useState({
-    name: "",
-    breed: "",
-    color: "",
-    dateOfBirth: "",
+    name: "Mittens", // Nom par défaut
+    breed: "Siamese", // Race par défaut
+    color: "BLANC", // Couleur par défaut
+    dateOfBirth: "", // Laisser vide
     photo: "",
-    gender: "",
-    chipNumber: "",
-    furType: "",
-    eyeColor: "",
-    comment: "",
-    statusCat: "",
-    reportDate: today,
+    gender: "Femelle", // Genre par défaut
+    chipNumber: "123456789", // Numéro de puce par défaut
+    furType: "Courte", // Type de fourrure par défaut
+    eyeColor: "BLEU", // Couleur des yeux par défaut
+    comment: "Chat très amical et joueur.", // Commentaire par défaut
+    statusCat: "LOST", // Statut par défaut
+    reportDate: today, // Date de signalement par défaut
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
