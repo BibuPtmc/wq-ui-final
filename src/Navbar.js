@@ -27,9 +27,11 @@ const NavBar = () => {
   }, [scrolled]);
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    sessionStorage.removeItem("token");
-    navigate("/");
+    if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+      setIsLoggedIn(false);
+      sessionStorage.removeItem("token");
+      navigate("/");
+    }
   };
 
   const navbarStyle = {

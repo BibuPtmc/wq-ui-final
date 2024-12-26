@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash } from 'react-icons/fa';
+import { FaUser,FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash } from 'react-icons/fa';
+import ReportedCats from './ReportedCats'; // Importez votre composant ici
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -12,6 +13,7 @@ const ProfilePage = () => {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
+  const [reportedCats, setReportedCats] = useState([]); // État pour les chats signalés
 
   // State pour le formulaire de mise à jour
   const [formData, setFormData] = useState({
@@ -30,18 +32,20 @@ const ProfilePage = () => {
       }
 
       try {
-        var headers = sessionStorage.getItem("token")
-          ? { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
-          : {};
-        const response = await axios.get("users/me", { headers: headers });
+        const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+        const response = await axios.get("users/me", { headers });
         setConnectedUser(response);
         setFormData({
-          firstName: response.firstName,
-          lastName: response.lastName,
-          address: response.address,
-          gender: response.gender,
-          birthDay: response.birthDay,
+          firstName: response.firstName || "",
+          lastName: response.lastName || "",
+          address: response.address || "",
+          gender: response.gender || "",
+          birthDay: response.birthDay || "",
         });
+
+        // Récupérer les chats signalés ici
+        const reportedResponse = await axios.get("cat/reportedCats", { headers });
+        setReportedCats(reportedResponse || []); // Assurez-vous d'utiliser .data
       } catch (error) {
         console.error("Error fetching user data:", error);
         setUpdateError("Erreur lors du chargement des données utilisateur");
@@ -65,7 +69,7 @@ const ProfilePage = () => {
       setUpdateSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      setUpdateError(error.response?.message || "Erreur lors de la mise à jour du profil");
+      setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -77,10 +81,8 @@ const ProfilePage = () => {
   const handleDeleteAccount = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
       try {
-        const response = await axios.delete(
-          `users/delete?id=${connectedUser.userId}`
-        );
-        alert(response);
+        await axios.delete(`users/delete?id=${connectedUser.userId}`);
+        alert("Votre compte a été supprimé avec succès.");
         sessionStorage.removeItem("token");
         setIsLoggedIn(false);
         window.location.href = "/login";
@@ -90,17 +92,24 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteReportedCat = async (catStatusId) => {
+    try {
+      const headers = {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      };
+      // Utilisez l'URL de suppression correcte
+      await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
+      setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
+      alert("Chat signalé supprimé avec succès.");
+    } catch (error) {
+      console.error("Erreur lors de la suppression du chat signalé:", error);
+      alert("Erreur lors de la suppression du chat signalé.");
+    }
+  };
+
   const formatPhoneNumber = (phoneNumber) => {
     let cleaned = ("" + phoneNumber).replace(/\D/g, "");
-    if (cleaned.startsWith("32")) {
-      cleaned = "+" + cleaned;
-    } else {
-      cleaned = "+32" + cleaned;
-    }
-    if (cleaned.startsWith("+320")) {
-      cleaned = cleaned.replace("+320", "+32");
-    }
-    return cleaned;
+    return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
   };
 
   if (authLoading || loading) {
@@ -206,6 +215,16 @@ const ProfilePage = () => {
                   >
                     <FaHistory className="me-2" />
                     Historique
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link 
+                    active={activeTab === "reported"}
+                    onClick={() => setActiveTab("reported")}
+                    className="text-start"
+                  >
+                    <FaPaw className="me-2" />
+                    Chats Signalés
                   </Nav.Link>
                 </Nav.Item>
               </Nav>
@@ -373,7 +392,7 @@ const ProfilePage = () => {
                     Modifier le mot de passe
                   </Card.Title>
                   <Form>
-                    <Form.Group className="mb-3" controlId="formCurrentPassword">
+                  <Form.Group className="mb-3" controlId="formCurrentPassword">
                       <Form.Label>Mot de passe actuel</Form.Label>
                       <Form.Control
                         type="password"
@@ -420,16 +439,14 @@ const ProfilePage = () => {
               </Card>
             </Tab.Pane>
 
-            <Tab.Pane active={activeTab === "history"}>
-              <Card className="shadow-sm">
+            <Tab.Pane active={activeTab === "reported"}>
+              <Card className="shadow-sm mb-4">
                 <Card.Body>
                   <Card.Title className="mb-4">
-                    <FaHistory className="me-2" />
-                    Historique des activités
+                    <FaPaw className="me-2" />
+                    Chats Signalés
                   </Card.Title>
-                  <p className="text-muted text-center py-5">
-                    L'historique des activités sera bientôt disponible.
-                  </p>
+              <ReportedCats reportedCats={reportedCats} onDelete={handleDeleteReportedCat} />
                 </Card.Body>
               </Card>
             </Tab.Pane>

@@ -12,8 +12,8 @@ function LoginPage() {
   const axios = useAxios();
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "bibu@gmail.com", // Email préenregistré
+    password: "Patamon10#",   // Mot de passe préenregistré
   });
 
   const handleSubmit = async (e) => {
