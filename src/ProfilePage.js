@@ -107,6 +107,71 @@ const ProfilePage = () => {
     }
   };
 
+  const handleEditReportedCat = async (catStatusId, updatedData) => {
+    try {
+      const headers = {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      };
+
+      // Trouver le chat dans l'état actuel
+      const currentCat = reportedCats.find(cat => cat.catStatusId === catStatusId);
+      if (!currentCat) {
+        throw new Error("Chat non trouvé");
+      }
+
+      // Créer le CatDTO avec toutes les informations existantes
+      const catDTO = {
+        catId: currentCat.cat.catId,
+        name: updatedData.name,
+        color: currentCat.cat.color,
+        eyeColor: currentCat.cat.eyeColor,
+        breed: currentCat.cat.breed,
+        furType: currentCat.cat.furType,
+        gender: currentCat.cat.gender,
+        chipNumber: currentCat.cat.chipNumber,
+        type: currentCat.cat.type,
+        dateOfBirth: currentCat.cat.dateOfBirth,
+        comment: currentCat.cat.comment,
+        imageCatData: currentCat.cat.imageCatData // Ajout de l'image
+      };
+
+      // Mettre à jour le chat
+      await axios.put(`cat/update`, catDTO, { headers });
+
+      // Créer le CatStatusDTO pour la mise à jour du statut
+      const catStatusDTO = {
+        catStatusId: catStatusId,
+        statusCat: updatedData.statusCat,
+        comment: updatedData.comment,
+        cat: {
+          catId: currentCat.cat.catId
+        }
+      };
+
+      // Mettre à jour le statut du chat
+      await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
+      
+      // Mettre à jour l'état local
+      setReportedCats(prevCats => prevCats.map(cat => 
+        cat.catStatusId === catStatusId 
+          ? { 
+              ...cat,
+              cat: { ...cat.cat, name: updatedData.name },
+              statusCat: updatedData.statusCat,
+              comment: updatedData.comment
+            }
+          : cat
+      ));
+      
+      setUpdateSuccess(true);
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (error) {
+      console.error("Erreur lors de la modification du chat:", error);
+      setUpdateError("Erreur lors de la modification du chat: " + error.message);
+      setTimeout(() => setUpdateError(""), 3000);
+    }
+  };
+
   const formatPhoneNumber = (phoneNumber) => {
     let cleaned = ("" + phoneNumber).replace(/\D/g, "");
     return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
@@ -446,7 +511,11 @@ const ProfilePage = () => {
                     <FaPaw className="me-2" />
                     Chats Signalés
                   </Card.Title>
-              <ReportedCats reportedCats={reportedCats} onDelete={handleDeleteReportedCat} />
+              <ReportedCats 
+                reportedCats={reportedCats} 
+                onDelete={handleDeleteReportedCat}
+                onEdit={handleEditReportedCat}
+              />
                 </Card.Body>
               </Card>
             </Tab.Pane>
