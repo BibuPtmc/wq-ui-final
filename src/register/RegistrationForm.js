@@ -10,16 +10,16 @@ const RegistrationForm = () => {
   const navigate = useNavigate();
   const axios = useAxios();
   const [formData, setFormData] = useState({
-    userName: "",
-    email: "",
-    password: "",
-    matchingPassword: "",
-    firstName: "",
-    lastName: "",
-    birthDay: "",
-    phone: "",
-    address: "",
-    gender: "",
+    userName: "testuser", // Nom d'utilisateur par défaut
+    email: "test@example.com", // Email par défaut
+    password: "Password123!", // Mot de passe par défaut
+    matchingPassword: "Password123!", // Confirmation du mot de passe par défaut
+    firstName: "John", // Prénom par défaut
+    lastName: "Doe", // Nom par défaut
+    birthDay: "", // Laisser vide pour la date de naissance
+    phone: "0123456789", // Numéro de téléphone par défaut
+    address: "123 Rue Exemple", // Adresse par défaut
+    gender: "Homme", // Genre par défaut
   });
 
   const [passwordsMatch, setPasswordsMatch] = useState(true);
