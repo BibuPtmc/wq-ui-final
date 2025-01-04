@@ -1,38 +1,48 @@
-import React from 'react';
-import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import '../styles/global.css';
-
-const gpsCollars = [
-  {
-    id: 1,
-    name: "Tractive GPS Cat",
-    price: 49.99,
-    description: "Suivez votre chat en temps réel. Batterie longue durée, étanche, léger et confortable.",
-    features: ["GPS en temps réel", "Étanche", "Batterie 7 jours", "Zone de sécurité"],
-    image: "/images/gps-collar-1.jpg",
-    bestseller: true
-  },
-  {
-    id: 2,
-    name: "Whisker Tracker Pro",
-    price: 69.99,
-    description: "GPS premium avec suivi d'activité et historique des déplacements complet.",
-    features: ["Suivi d'activité", "Historique 30 jours", "Alertes instantanées", "Design élégant"],
-    image: "/images/gps-collar-2.jpg",
-    new: true
-  },
-  {
-    id: 3,
-    name: "SafeCat Basic",
-    price: 39.99,
-    description: "Solution GPS abordable pour garder un œil sur votre chat.",
-    features: ["GPS basique", "Batterie 5 jours", "Application mobile", "Installation facile"],
-    image: "/images/gps-collar-3.jpg"
-  }
-];
+import { useCart } from '../components/ecommerce/CartContext';
+import { useAuth } from '../hooks/authProvider';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 function GpsCollars() {
+  const [products, setProducts] = useState([]);
+  const { addToCart } = useCart();
+  const [loading, setLoading] = useState(true);
+  const { isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/ecommerce/products');
+        setProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleAddToCart = (product) => {
+    if (!isLoggedIn) {
+      return;
+    }
+    addToCart(product);
+  };
+
+  if (loading) {
+    return (
+      <Container className="py-5 text-center">
+        <h2>Chargement des produits...</h2>
+      </Container>
+    );
+  }
+
   return (
     <Container className="py-5">
       <motion.div
@@ -47,9 +57,20 @@ function GpsCollars() {
           </p>
         </div>
 
+        {!isLoggedIn && (
+          <Alert variant="info" className="mb-4">
+            <Alert.Heading>Connexion requise</Alert.Heading>
+            <p>
+              Pour acheter nos colliers GPS, veuillez vous{' '}
+              <Link to="/login" className="alert-link">connecter</Link> ou{' '}
+              <Link to="/register" className="alert-link">créer un compte</Link>.
+            </p>
+          </Alert>
+        )}
+
         <Row xs={1} md={2} lg={3} className="g-4">
-          {gpsCollars.map((collar) => (
-            <Col key={collar.id}>
+          {products.map((product) => (
+            <Col key={product.id}>
               <motion.div
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
@@ -58,58 +79,47 @@ function GpsCollars() {
                   <div className="position-relative">
                     <Card.Img
                       variant="top"
-                      src={collar.image}
-                      alt={collar.name}
+                      src={product.imageUrl}
+                      alt={product.name}
                       style={{ height: "200px", objectFit: "cover" }}
                       onError={(e) => {
                         e.target.src = "https://via.placeholder.com/300x200?text=Image+non+disponible";
                       }}
                     />
-                    {collar.bestseller && (
-                      <Badge 
-                        bg="warning" 
-                        text="dark"
-                        className="position-absolute top-0 start-0 m-2"
-                      >
-                        Meilleure vente
-                      </Badge>
-                    )}
-                    {collar.new && (
-                      <Badge 
-                        bg="success"
-                        className="position-absolute top-0 start-0 m-2"
-                      >
-                        Nouveau
-                      </Badge>
-                    )}
                   </div>
                   <Card.Body className="d-flex flex-column">
-                    <Card.Title className="mb-3">{collar.name}</Card.Title>
+                    <Card.Title className="mb-3">{product.name}</Card.Title>
                     <Card.Text className="text-muted mb-3">
-                      {collar.description}
+                      {product.description}
                     </Card.Text>
-                    <div className="mb-3">
-                      {collar.features.map((feature, index) => (
-                        <Badge 
-                          key={index}
-                          bg="light" 
-                          text="dark"
-                          className="me-2 mb-2"
-                        >
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
                     <div className="mt-auto">
                       <div className="d-flex justify-content-between align-items-center">
-                        <span className="h4 mb-0">{collar.price} €</span>
-                        <Button 
-                          variant="primary"
-                          className="px-4"
-                        >
-                          Acheter
-                        </Button>
+                        <span className="h4 mb-0">{product.price.toFixed(2)} €</span>
+                        {isLoggedIn ? (
+                          <Button 
+                            variant="primary"
+                            className="px-4"
+                            onClick={() => handleAddToCart(product)}
+                            disabled={product.stockQuantity === 0}
+                          >
+                            {product.stockQuantity > 0 ? 'Ajouter au panier' : 'Rupture de stock'}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline-primary"
+                            className="px-4"
+                            as={Link}
+                            to="/login"
+                          >
+                            Se connecter pour acheter
+                          </Button>
+                        )}
                       </div>
+                      {product.stockQuantity > 0 && (
+                        <small className="text-muted mt-2 d-block">
+                          Stock disponible: {product.stockQuantity}
+                        </small>
+                      )}
                     </div>
                   </Card.Body>
                 </Card>

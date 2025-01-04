@@ -12,6 +12,7 @@ import { ContactUs } from "./ContactPage";
 import LoginPage from "./LoginPage";
 import ProfilePage from "./ProfilePage";
 import GpsCollars from './pages/GpsCollars';
+import { CartProvider } from './components/ecommerce/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import { AuthProvider, useAuth } from "./hooks/authProvider";
@@ -33,45 +34,47 @@ const ProtectedRoute = ({ children }) => {
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <NavBar />
-            <Routes>
-              <Route exact path="/" element={<HomePage />} />
-              <Route path="/register" element={<RegistrationForm />} />
-              <Route path="/contact" element={<ContactUs />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route 
-                path="/registerCat" 
-                element={
-                  <ProtectedRoute>
-                    <RegisterCat />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/foundCats" element={<FoundCats />} />
-              <Route path="/lostCats" element={<LostCats />} />
-              <Route path="/gps-collars" element={<GpsCollars />} />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
+      <CartProvider>
+        <Router>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100vh",
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <NavBar />
+              <Routes>
+                <Route exact path="/" element={<HomePage />} />
+                <Route path="/register" element={<RegistrationForm />} />
+                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route 
+                  path="/registerCat" 
+                  element={
+                    <ProtectedRoute>
+                      <RegisterCat />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/foundCats" element={<FoundCats />} />
+                <Route path="/lostCats" element={<LostCats />} />
+                <Route path="/gps-collars" element={<GpsCollars />} />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Routes>
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
-      </Router>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 };

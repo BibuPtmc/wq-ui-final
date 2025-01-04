@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Form, Button, Container, Row, Col, Card, Alert } from "react-bootstrap";
+import { Form, Button, Container, Row, Col, Card, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../hooks/useAxios";
 import { motion } from "framer-motion";
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash } from "react-icons/fa";
 import { buttonStyles } from "../styles";
 
 const RegistrationForm = () => {
@@ -26,6 +26,8 @@ const RegistrationForm = () => {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [passwordComplexityError, setPasswordComplexityError] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,19 +140,28 @@ const RegistrationForm = () => {
                               <FaLock className="me-2" />
                               Mot de passe
                             </Form.Label>
-                            <Form.Control
-                              type="password"
-                              name="password"
-                              value={formData.password}
-                              onChange={handleChange}
-                              placeholder="Créez votre mot de passe"
-                              required
-                              isInvalid={!passwordsMatch || passwordComplexityError}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                              {passwordComplexityError &&
-                                "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre ou caractère spécial."}
-                            </Form.Control.Feedback>
+                            <InputGroup>
+                              <Form.Control
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Créez votre mot de passe"
+                                required
+                                isInvalid={!passwordsMatch || passwordComplexityError}
+                              />
+                              <Button 
+                                variant="outline-secondary"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{ borderColor: (!passwordsMatch || passwordComplexityError) ? '#dc3545' : '' }}
+                              >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                              </Button>
+                              <Form.Control.Feedback type="invalid">
+                                {passwordComplexityError &&
+                                  "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre ou caractère spécial."}
+                              </Form.Control.Feedback>
+                            </InputGroup>
                           </Form.Group>
                         </Col>
                         <Col md={6}>
@@ -159,20 +170,29 @@ const RegistrationForm = () => {
                               <FaLock className="me-2" />
                               Confirmer
                             </Form.Label>
-                            <Form.Control
-                              type="password"
-                              name="matchingPassword"
-                              value={formData.matchingPassword}
-                              onChange={handleChange}
-                              placeholder="Confirmez le mot de passe"
-                              required
-                              isInvalid={!passwordsMatch}
-                            />
-                            {!passwordsMatch && (
-                              <Form.Control.Feedback type="invalid">
-                                Les mots de passe ne correspondent pas
-                              </Form.Control.Feedback>
-                            )}
+                            <InputGroup>
+                              <Form.Control
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="matchingPassword"
+                                value={formData.matchingPassword}
+                                onChange={handleChange}
+                                placeholder="Confirmez le mot de passe"
+                                required
+                                isInvalid={!passwordsMatch}
+                              />
+                              <Button 
+                                variant="outline-secondary"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                style={{ borderColor: !passwordsMatch ? '#dc3545' : '' }}
+                              >
+                                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                              </Button>
+                              {!passwordsMatch && (
+                                <Form.Control.Feedback type="invalid">
+                                  Les mots de passe ne correspondent pas
+                                </Form.Control.Feedback>
+                              )}
+                            </InputGroup>
                           </Form.Group>
                         </Col>
                       </Row>

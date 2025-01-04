@@ -5,12 +5,15 @@ import Logo from "./image/log.webp";
 import { useAuth } from "./hooks/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
+import Cart from './components/ecommerce/Cart';
+import { useCart } from './components/ecommerce/CartContext';
 
 const NavBar = () => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +33,7 @@ const NavBar = () => {
     if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
       setIsLoggedIn(false);
       sessionStorage.removeItem("token");
+      clearCart(); 
       navigate("/");
     }
   };
@@ -136,20 +140,25 @@ const NavBar = () => {
 
           <Nav>
             {isLoggedIn ? (
-              <Dropdown align="end">
-                <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
-                  <FaUser className="me-1" /> Mon Compte
-                </Dropdown.Toggle>
+              <>
+                <div className="me-3">
+                  <Cart />
+                </div>
+                <Dropdown align="end">
+                  <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
+                    <FaUser className="me-1" /> Mon Compte
+                  </Dropdown.Toggle>
 
-                <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/profile">
-                    <FaUser className="me-2" /> Profil
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={handleLogout}>
-                    <FaSignOutAlt className="me-2" /> Déconnexion
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+                  <Dropdown.Menu>
+                    <Dropdown.Item as={Link} to="/profile">
+                      <FaUser className="me-2" /> Profil
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={handleLogout}>
+                      <FaSignOutAlt className="me-2" /> Déconnexion
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </>
             ) : (
               <div className="d-flex gap-2">
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
