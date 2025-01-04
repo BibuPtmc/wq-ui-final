@@ -12,7 +12,6 @@ import { ContactUs } from "./ContactPage";
 import LoginPage from "./LoginPage";
 import ProfilePage from "./ProfilePage";
 import GpsCollars from './pages/GpsCollars';
-import MatchingPage from './MatchingPage';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import { AuthProvider, useAuth } from "./hooks/authProvider";
@@ -65,14 +64,6 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/matching" 
-                element={
-                  <ProtectedRoute>
-                    <MatchingPage />
                   </ProtectedRoute>
                 } 
               />
