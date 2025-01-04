@@ -5,6 +5,7 @@ import Logo from "./image/log.webp";
 import { useAuth } from "./hooks/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
+import Cart from './components/ecommerce/Cart';
 
 const NavBar = () => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
@@ -136,22 +137,30 @@ const NavBar = () => {
 
           <Nav>
             {isLoggedIn ? (
-              <Dropdown align="end">
-                <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
-                  <FaUser className="me-1" /> Mon Compte
-                </Dropdown.Toggle>
+              <>
+                <div className="me-3">
+                  <Cart />
+                </div>
+                <Dropdown align="end">
+                  <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
+                    <FaUser className="me-1" /> Mon Compte
+                  </Dropdown.Toggle>
 
-                <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/profile">
-                    <FaUser className="me-2" /> Profil
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={handleLogout}>
-                    <FaSignOutAlt className="me-2" /> Déconnexion
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+                  <Dropdown.Menu>
+                    <Dropdown.Item as={Link} to="/profile">
+                      <FaUser className="me-2" /> Profil
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={handleLogout}>
+                      <FaSignOutAlt className="me-2" /> Déconnexion
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </>
             ) : (
               <div className="d-flex gap-2">
+                <div className="me-3">
+                  <Cart />
+                </div>
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                   <Button
                     as={Link}

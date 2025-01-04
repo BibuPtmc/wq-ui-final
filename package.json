@@ -9,6 +9,8 @@
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@stripe/stripe-js": "^1.54.2",
+    "@stripe/react-stripe-js": "^1.16.5",
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "bundle-js": "^1.0.3",
