@@ -11,6 +11,8 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
+  const stripePublicKey = 'pk_test_51QdZtOKlSPpwAw12qu2014zhUSSOlMHXuhIQEyumWRgxZRAH2zKn5o5agU6UIeZG6SLGRHST6Pf8jylB7RNOvPTK00yJi088Bk';
+  
   const [cartItems, setCartItems] = useState(() => {
     // Récupérer les articles du panier depuis le localStorage au chargement
     const savedCart = localStorage.getItem('cart');
@@ -73,6 +75,7 @@ export const CartProvider = ({ children }) => {
     updateQuantity,
     getTotal,
     clearCart,
+    stripePublicKey,
   };
 
   return (
