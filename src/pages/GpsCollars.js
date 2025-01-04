@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import '../styles/global.css';
 import { useCart } from '../components/ecommerce/CartContext';
+import { useAuth } from '../hooks/authProvider';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 function GpsCollars() {
   const [products, setProducts] = useState([]);
   const { addToCart } = useCart();
   const [loading, setLoading] = useState(true);
+  const { isLoggedIn } = useAuth();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -24,6 +27,13 @@ function GpsCollars() {
 
     fetchProducts();
   }, []);
+
+  const handleAddToCart = (product) => {
+    if (!isLoggedIn) {
+      return;
+    }
+    addToCart(product);
+  };
 
   if (loading) {
     return (
@@ -46,6 +56,17 @@ function GpsCollars() {
             Gardez un œil sur votre compagnon félin avec nos colliers GPS de haute qualité
           </p>
         </div>
+
+        {!isLoggedIn && (
+          <Alert variant="info" className="mb-4">
+            <Alert.Heading>Connexion requise</Alert.Heading>
+            <p>
+              Pour acheter nos colliers GPS, veuillez vous{' '}
+              <Link to="/login" className="alert-link">connecter</Link> ou{' '}
+              <Link to="/register" className="alert-link">créer un compte</Link>.
+            </p>
+          </Alert>
+        )}
 
         <Row xs={1} md={2} lg={3} className="g-4">
           {products.map((product) => (
@@ -74,14 +95,25 @@ function GpsCollars() {
                     <div className="mt-auto">
                       <div className="d-flex justify-content-between align-items-center">
                         <span className="h4 mb-0">{product.price.toFixed(2)} €</span>
-                        <Button 
-                          variant="primary"
-                          className="px-4"
-                          onClick={() => addToCart(product)}
-                          disabled={product.stockQuantity === 0}
-                        >
-                          {product.stockQuantity > 0 ? 'Ajouter au panier' : 'Rupture de stock'}
-                        </Button>
+                        {isLoggedIn ? (
+                          <Button 
+                            variant="primary"
+                            className="px-4"
+                            onClick={() => handleAddToCart(product)}
+                            disabled={product.stockQuantity === 0}
+                          >
+                            {product.stockQuantity > 0 ? 'Ajouter au panier' : 'Rupture de stock'}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline-primary"
+                            className="px-4"
+                            as={Link}
+                            to="/login"
+                          >
+                            Se connecter pour acheter
+                          </Button>
+                        )}
                       </div>
                       {product.stockQuantity > 0 && (
                         <small className="text-muted mt-2 d-block">

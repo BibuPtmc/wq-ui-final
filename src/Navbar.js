@@ -6,12 +6,14 @@ import { useAuth } from "./hooks/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import Cart from './components/ecommerce/Cart';
+import { useCart } from './components/ecommerce/CartContext';
 
 const NavBar = () => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +33,7 @@ const NavBar = () => {
     if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
       setIsLoggedIn(false);
       sessionStorage.removeItem("token");
+      clearCart(); 
       navigate("/");
     }
   };
@@ -158,9 +161,6 @@ const NavBar = () => {
               </>
             ) : (
               <div className="d-flex gap-2">
-                <div className="me-3">
-                  <Cart />
-                </div>
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                   <Button
                     as={Link}

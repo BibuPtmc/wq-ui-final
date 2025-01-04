@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, ListGroup, Form, Badge } from 'react-bootstrap';
 import { useCart } from './CartContext';
 import { loadStripe } from '@stripe/stripe-js';
@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useAuth } from '../../hooks/authProvider';
 import { BsCart3 } from 'react-icons/bs';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const stripePromise = loadStripe('your-publishable-key');
 
@@ -14,12 +15,17 @@ const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, getTotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const { isLoggedIn, token } = useAuth();
-
+  const navigate = useNavigate();
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Si l'utilisateur n'est pas connecté, on ne rend pas le composant
+  if (!isLoggedIn) {
+    return null;
+  }
 
   const handleCheckout = async () => {
     if (!isLoggedIn) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
