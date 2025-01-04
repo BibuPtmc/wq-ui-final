@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Button, Modal, Form } from 'react-bootstrap';
 import { FaTimes, FaEdit } from 'react-icons/fa';
+import CatMatching from './CatMatching';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit }) => {
   const [showModal, setShowModal] = useState(false);
@@ -69,6 +70,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit }) => {
                   <Card.Text>
                     <strong>Date de signalement:</strong> {new Date(catStatus.reportDate).toLocaleDateString() || "Date inconnue"}
                   </Card.Text>
+                  <CatMatching cat={catStatus.cat} />
                 </Card.Body>
               </Card>
             </Col>

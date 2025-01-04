@@ -145,6 +145,9 @@ const NavBar = () => {
                   <Dropdown.Item as={Link} to="/profile">
                     <FaUser className="me-2" /> Profil
                   </Dropdown.Item>
+                  <Dropdown.Item as={Link} to="/matching">
+                    <FaSearch className="me-2" /> Correspondances
+                  </Dropdown.Item>
                   <Dropdown.Item onClick={handleLogout}>
                     <FaSignOutAlt className="me-2" /> Déconnexion
                   </Dropdown.Item>
