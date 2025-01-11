@@ -18,7 +18,7 @@ function GpsCollars() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/ecommerce/products');
+        const response = await axios.get('http://localhost:8080/ecommerce/products');
         setProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);

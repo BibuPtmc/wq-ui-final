@@ -52,7 +52,7 @@ const Cart = () => {
       }
 
       // Création de la session de paiement
-      const response = await fetch('http://localhost:8080/api/ecommerce/orders', {
+      const response = await fetch('http://localhost:8080/ecommerce/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
