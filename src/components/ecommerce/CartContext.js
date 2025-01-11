@@ -11,8 +11,16 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const stripePublicKey = 'pk_test_51QdZtOKlSPpwAw12qu2014zhUSSOlMHXuhIQEyumWRgxZRAH2zKn5o5agU6UIeZG6SLGRHST6Pf8jylB7RNOvPTK00yJi088Bk';
+  // Utiliser la clé publique depuis les variables d'environnement
+  const stripePublicKey = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
   
+  // Vérifier si la clé est disponible
+  useEffect(() => {
+    if (!stripePublicKey) {
+      console.error('REACT_APP_STRIPE_PUBLIC_KEY n\'est pas définie dans le fichier .env');
+    }
+  }, [stripePublicKey]);
+
   const [cartItems, setCartItems] = useState(() => {
     // Récupérer les articles du panier depuis le localStorage au chargement
     const savedCart = localStorage.getItem('cart');
