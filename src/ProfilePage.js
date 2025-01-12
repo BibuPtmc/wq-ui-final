@@ -44,8 +44,13 @@ const ProfilePage = () => {
         });
 
         // Récupérer les chats signalés ici
-        const reportedResponse = await axios.get("cat/reportedCats", { headers });
-        setReportedCats(reportedResponse || []); // Assurez-vous d'utiliser .data
+        try {
+          const reportedResponse = await axios.get("cat/reportedCats", { headers });
+          setReportedCats(reportedResponse || []); // Assurez-vous d'utiliser .data
+        } catch (error) {
+          // Ne pas afficher d'erreur si aucun chat n'est trouvé
+          setReportedCats([]);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
         setUpdateError("Erreur lors du chargement des données utilisateur");
