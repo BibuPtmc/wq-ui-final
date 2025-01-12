@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, ListGroup, Form, Badge } from 'react-bootstrap';
 import { useCart } from './CartContext';
 import { loadStripe } from '@stripe/stripe-js';
-import axios from 'axios';
+import { useAxios } from '../../hooks/useAxios';
 import { useAuth } from '../../hooks/authProvider';
 import { BsCart3 } from 'react-icons/bs';
 import { motion } from 'framer-motion';
@@ -15,6 +15,7 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const { isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
+  const axiosInstance = useAxios();
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   // Initialize Stripe with the public key from context
@@ -48,35 +49,61 @@ const Cart = () => {
     try {
       const stripe = await stripePromise;
       if (!stripe) {
-        throw new Error('Impossible d\'initialiser Stripe');
+        throw new Error('La configuration de Stripe n\'est pas complète. Veuillez réessayer plus tard.');
       }
 
-      // Création de la session de paiement
-      const response = await fetch('http://localhost:8080/ecommerce/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ items: cartItems }),
+      console.log('Cart items before sending:', cartItems);
+      
+      // Formater les données pour le serveur
+      const orderItems = cartItems.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: item.product.price
+      }));
+      
+      console.log('Formatted order items:', orderItems);
+      
+      // Création de la commande
+      const orderResponse = await axiosInstance.post('/ecommerce/orders', { 
+        items: orderItems
       });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création de la session de paiement');
+      
+      console.log('Order created:', orderResponse);
+      
+      // Création de la session Stripe
+      const stripeResponse = await axiosInstance.post(`/ecommerce/create-checkout-session?orderId=${orderResponse.id}`);
+      
+      console.log('Stripe session:', stripeResponse);
+      
+      if (!stripeResponse || !stripeResponse.sessionId) {
+        throw new Error('Impossible de créer la session de paiement');
       }
-
-      const session = await response.json();
 
       // Redirection vers la page de paiement
       const { error } = await stripe.redirectToCheckout({
-        sessionId: session.id,
+        sessionId: stripeResponse.sessionId
       });
 
       if (error) {
-        throw error;
+        console.error('Stripe redirect error:', error);
+        throw new Error(error.message || 'Erreur lors de la redirection vers la page de paiement');
       }
     } catch (err) {
       console.error('Erreur lors du paiement:', err);
-      setError(err.message || 'Une erreur est survenue lors du paiement');
+      let errorMessage = 'Une erreur est survenue lors du paiement. ';
+      
+      if (err.response) {
+        // Le serveur a répondu avec un status code hors de la plage 2xx
+        errorMessage += err.response.data.message || 'Erreur de réponse du serveur.';
+      } else if (err.request) {
+        // La requête a été faite mais pas de réponse reçue
+        errorMessage += 'Impossible de se connecter au serveur de paiement.';
+      } else {
+        // Erreur lors de la configuration de la requête
+        errorMessage += 'Erreur de configuration de la requête.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

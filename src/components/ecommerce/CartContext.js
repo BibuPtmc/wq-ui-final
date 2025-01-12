@@ -33,6 +33,11 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = (product) => {
+    if (!product.id) {
+      console.error("Le produit n'a pas d'ID valide", product);
+      return;
+    }
+  
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.product.id === product.id);
       if (existingItem) {
