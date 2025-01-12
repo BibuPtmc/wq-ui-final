@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./hooks/authProvider";
 import { useAxios } from "./hooks/useAxios";
 import { motion } from "framer-motion";
-import { FaUser, FaLock, FaUserPlus } from "react-icons/fa";
+import { FaUser, FaLock, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ function LoginPage() {
     email: "bibu@gmail.com", // Email préenregistré
     password: "Patamon10#",   // Mot de passe préenregistré
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,15 +75,23 @@ function LoginPage() {
                       <FaLock className="me-2" />
                       Mot de passe
                     </Form.Label>
-                    <Form.Control
-                      type="password"
-                      placeholder="Entrez votre mot de passe"
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      required
-                    />
+                    <div className="input-group">
+                      <Form.Control
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Entrez votre mot de passe"
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        required
+                      />
+                      <Button 
+                        variant="outline-secondary"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </Button>
+                    </div>
                   </Form.Group>
 
                   <div className="d-grid">

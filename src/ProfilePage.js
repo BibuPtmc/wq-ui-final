@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
-import { FaUser,FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash } from 'react-icons/fa';
+import { FaUser,FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import ReportedCats from './ReportedCats'; // Importez votre composant ici
 
 const ProfilePage = () => {
@@ -29,6 +29,10 @@ const ProfilePage = () => {
     newPassword: "",
     matchingPassword: ""
   });
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showMatchingPassword, setShowMatchingPassword] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -515,46 +519,62 @@ const ProfilePage = () => {
                     Modifier le mot de passe
                   </Card.Title>
                   <Form onSubmit={handleUpdatePassword}>
-                    <Form.Group className="mb-3" controlId="currentPassword">
+                    <Form.Group className="mb-3">
                       <Form.Label>Mot de passe actuel</Form.Label>
-                      <Form.Control
-                        type="password"
-                        placeholder="Entrez votre mot de passe actuel"
-                        className="border-0 shadow-sm"
-                        value={passwordForm.currentPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
+                      <div className="input-group">
+                        <Form.Control
+                          type={showCurrentPassword ? "text" : "password"}
+                          id="currentPassword"
+                          value={passwordForm.currentPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                        <Button 
+                          variant="outline-secondary"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        >
+                          {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </div>
                     </Form.Group>
 
-                    <Row className="mb-4">
-                      <Col md={6}>
-                        <Form.Group controlId="newPassword">
-                          <Form.Label>Nouveau mot de passe</Form.Label>
-                          <Form.Control
-                            type="password"
-                            placeholder="Entrez votre nouveau mot de passe"
-                            className="border-0 shadow-sm"
-                            value={passwordForm.newPassword}
-                            onChange={handlePasswordChange}
-                            required
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group controlId="matchingPassword">
-                          <Form.Label>Confirmation</Form.Label>
-                          <Form.Control
-                            type="password"
-                            placeholder="Confirmez votre nouveau mot de passe"
-                            className="border-0 shadow-sm"
-                            value={passwordForm.matchingPassword}
-                            onChange={handlePasswordChange}
-                            required
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Nouveau mot de passe</Form.Label>
+                      <div className="input-group">
+                        <Form.Control
+                          type={showNewPassword ? "text" : "password"}
+                          id="newPassword"
+                          value={passwordForm.newPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                        <Button 
+                          variant="outline-secondary"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </div>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Confirmer le nouveau mot de passe</Form.Label>
+                      <div className="input-group">
+                        <Form.Control
+                          type={showMatchingPassword ? "text" : "password"}
+                          id="matchingPassword"
+                          value={passwordForm.matchingPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                        <Button 
+                          variant="outline-secondary"
+                          onClick={() => setShowMatchingPassword(!showMatchingPassword)}
+                        >
+                          {showMatchingPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </div>
+                    </Form.Group>
 
                     <div className="d-grid">
                       <Button
