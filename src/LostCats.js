@@ -4,7 +4,6 @@ import { Card, Button, Container, Row, Col, Spinner, Badge } from "react-bootstr
 import { motion } from "framer-motion";
 import "./styles/global.css";
 import CatDetails from "./CatDetails";
-import noImageAvailable from "./assets/no-image.svg";
 
 function LostCats() {
   const [lostCats, setLostCats] = useState([]);
@@ -71,7 +70,7 @@ function LostCats() {
                         src={`data:${cat.type};base64,${cat.imageCatData}`}
                         alt={cat.name}
                         onError={(e) => {
-                          e.target.src = noImageAvailable;
+                          e.target.src = "/images/noImageCat.png";
                           e.target.onerror = null; // Empêche les erreurs en boucle
                         }}
                         style={{ height: "200px", objectFit: "cover" }}
