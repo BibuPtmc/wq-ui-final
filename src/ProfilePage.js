@@ -80,12 +80,19 @@ const ProfilePage = () => {
     setUpdateError("");
     
     try {
-      const response = await axios.put("users/update", formData);
+      await axios.put("users/update", formData);
       setUpdateSuccess(true);
-      setConnectedUser(response);
-      await fetchUserData(); // Mettre à jour les données globales
+      setUpdateError("Profil mis à jour avec succès !");
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Faire disparaître le message après 5 secondes
+      setTimeout(() => {
+        setUpdateSuccess(false);
+        setUpdateError("");
+      }, 5000);
+
     } catch (error) {
+      setUpdateSuccess(false);
       setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -123,15 +130,32 @@ const ProfilePage = () => {
         setConnectedUser(response.data);
       }
 
-      setUpdateSuccess(true);
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         matchingPassword: ""
       });
+      // Un seul message de succès en vert qui disparaît après 5 secondes
+      setUpdateSuccess(true);
+      setUpdateError("Votre mot de passe a été mis à jour avec succès ! Vous devrez utiliser ce nouveau mot de passe lors de votre prochaine connexion.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Faire disparaître le message après 3 secondes
+      setTimeout(() => {
+        setUpdateSuccess(false);
+        setUpdateError("");
+      }, 5000);
+
     } catch (error) {
-      setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du mot de passe");
+      // Messages d'erreur plus spécifiques
+      setUpdateSuccess(false);
+      if (error.response?.status === 401) {
+        setUpdateError("Le mot de passe actuel est incorrect");
+      } else if (error.response?.data?.message) {
+        setUpdateError(error.response.data.message);
+      } else {
+        setUpdateError("Une erreur est survenue lors de la mise à jour du mot de passe. Veuillez réessayer.");
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -261,17 +285,17 @@ const ProfilePage = () => {
 
   return (
     <Container fluid className="py-5 bg-light">
-      {updateSuccess && (
+      {updateSuccess && updateError && (
         <Row className="justify-content-center mb-4">
           <Col md={8}>
             <Alert variant="success" onClose={() => setUpdateSuccess(false)} dismissible>
-              Profil mis à jour avec succès !
+              {updateError}
             </Alert>
           </Col>
         </Row>
       )}
       
-      {updateError && (
+      {updateSuccess === false && updateError && (
         <Row className="justify-content-center mb-4">
           <Col md={8}>
             <Alert variant="danger" onClose={() => setUpdateError("")} dismissible>
