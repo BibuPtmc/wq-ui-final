@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
-import { FaUser,FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash } from 'react-icons/fa';
+import { FaUser,FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import ReportedCats from './ReportedCats'; // Importez votre composant ici
 
 const ProfilePage = () => {
   const axios = useAxios();
-  const { loading: authLoading, setIsLoggedIn } = useAuth();
+  const { loading: authLoading, setIsLoggedIn, fetchUserData } = useAuth();
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updateSuccess, setUpdateSuccess] = useState(false);
@@ -29,6 +29,10 @@ const ProfilePage = () => {
     newPassword: "",
     matchingPassword: ""
   });
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showMatchingPassword, setShowMatchingPassword] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -76,10 +80,23 @@ const ProfilePage = () => {
     setUpdateError("");
     
     try {
-      await axios.put("users/update", formData);
+      const response = await axios.put("users/update", formData);
+      // Mettre à jour les données locales et globales
+      setConnectedUser(response);
+      await fetchUserData();
+      
       setUpdateSuccess(true);
+      setUpdateError("Profil mis à jour avec succès !");
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Faire disparaître le message après 5 secondes
+      setTimeout(() => {
+        setUpdateSuccess(false);
+        setUpdateError("");
+      }, 5000);
+
     } catch (error) {
+      setUpdateSuccess(false);
       setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -117,15 +134,32 @@ const ProfilePage = () => {
         setConnectedUser(response.data);
       }
 
-      setUpdateSuccess(true);
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         matchingPassword: ""
       });
+      // Un seul message de succès en vert qui disparaît après 5 secondes
+      setUpdateSuccess(true);
+      setUpdateError("Votre mot de passe a été mis à jour avec succès ! Vous devrez utiliser ce nouveau mot de passe lors de votre prochaine connexion.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Faire disparaître le message après 3 secondes
+      setTimeout(() => {
+        setUpdateSuccess(false);
+        setUpdateError("");
+      }, 5000);
+
     } catch (error) {
-      setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du mot de passe");
+      // Messages d'erreur plus spécifiques
+      setUpdateSuccess(false);
+      if (error.response?.status === 401) {
+        setUpdateError("Le mot de passe actuel est incorrect");
+      } else if (error.response?.data?.message) {
+        setUpdateError(error.response.data.message);
+      } else {
+        setUpdateError("Une erreur est survenue lors de la mise à jour du mot de passe. Veuillez réessayer.");
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -255,17 +289,17 @@ const ProfilePage = () => {
 
   return (
     <Container fluid className="py-5 bg-light">
-      {updateSuccess && (
+      {updateSuccess && updateError && (
         <Row className="justify-content-center mb-4">
           <Col md={8}>
             <Alert variant="success" onClose={() => setUpdateSuccess(false)} dismissible>
-              Profil mis à jour avec succès !
+              {updateError}
             </Alert>
           </Col>
         </Row>
       )}
       
-      {updateError && (
+      {updateSuccess === false && updateError && (
         <Row className="justify-content-center mb-4">
           <Col md={8}>
             <Alert variant="danger" onClose={() => setUpdateError("")} dismissible>
@@ -513,46 +547,62 @@ const ProfilePage = () => {
                     Modifier le mot de passe
                   </Card.Title>
                   <Form onSubmit={handleUpdatePassword}>
-                    <Form.Group className="mb-3" controlId="currentPassword">
+                    <Form.Group className="mb-3">
                       <Form.Label>Mot de passe actuel</Form.Label>
-                      <Form.Control
-                        type="password"
-                        placeholder="Entrez votre mot de passe actuel"
-                        className="border-0 shadow-sm"
-                        value={passwordForm.currentPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
+                      <div className="input-group">
+                        <Form.Control
+                          type={showCurrentPassword ? "text" : "password"}
+                          id="currentPassword"
+                          value={passwordForm.currentPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                        <Button 
+                          variant="outline-secondary"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        >
+                          {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </div>
                     </Form.Group>
 
-                    <Row className="mb-4">
-                      <Col md={6}>
-                        <Form.Group controlId="newPassword">
-                          <Form.Label>Nouveau mot de passe</Form.Label>
-                          <Form.Control
-                            type="password"
-                            placeholder="Entrez votre nouveau mot de passe"
-                            className="border-0 shadow-sm"
-                            value={passwordForm.newPassword}
-                            onChange={handlePasswordChange}
-                            required
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group controlId="matchingPassword">
-                          <Form.Label>Confirmation</Form.Label>
-                          <Form.Control
-                            type="password"
-                            placeholder="Confirmez votre nouveau mot de passe"
-                            className="border-0 shadow-sm"
-                            value={passwordForm.matchingPassword}
-                            onChange={handlePasswordChange}
-                            required
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Nouveau mot de passe</Form.Label>
+                      <div className="input-group">
+                        <Form.Control
+                          type={showNewPassword ? "text" : "password"}
+                          id="newPassword"
+                          value={passwordForm.newPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                        <Button 
+                          variant="outline-secondary"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </div>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Confirmer le nouveau mot de passe</Form.Label>
+                      <div className="input-group">
+                        <Form.Control
+                          type={showMatchingPassword ? "text" : "password"}
+                          id="matchingPassword"
+                          value={passwordForm.matchingPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                        <Button 
+                          variant="outline-secondary"
+                          onClick={() => setShowMatchingPassword(!showMatchingPassword)}
+                        >
+                          {showMatchingPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </div>
+                    </Form.Group>
 
                     <div className="d-grid">
                       <Button

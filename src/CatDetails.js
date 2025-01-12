@@ -26,7 +26,8 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               className="img-fluid rounded shadow"
               style={{ width: '100%', height: '300px', objectFit: 'cover' }}
               onError={(e) => {
-                e.target.src = "https://via.placeholder.com/300x300?text=Image+non+disponible";
+                e.target.src = "/images/noImageCat.png";
+                e.target.onerror = null; // Empêche les erreurs en boucle
               }}
             />
           </Col>

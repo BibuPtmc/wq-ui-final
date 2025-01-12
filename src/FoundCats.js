@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import "./styles/global.css";
 import CatDetails from "./CatDetails";
 
-
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
   const axios = useAxios();
@@ -72,7 +71,8 @@ function FoundCats() {
                         src={`data:${cat.type};base64,${cat.imageCatData}`}
                         alt={cat.name}
                         onError={(e) => {
-                          e.target.src = "https://via.placeholder.com/300x200?text=Image+non+disponible";
+                          e.target.src = "/images/noImageCat.png";
+                          e.target.onerror = null; // Empêche les erreurs en boucle
                         }}
                         style={{ height: "200px", objectFit: "cover" }}
                       />
