@@ -80,7 +80,11 @@ const ProfilePage = () => {
     setUpdateError("");
     
     try {
-      await axios.put("users/update", formData);
+      const response = await axios.put("users/update", formData);
+      // Mettre à jour les données locales et globales
+      setConnectedUser(response);
+      await fetchUserData();
+      
       setUpdateSuccess(true);
       setUpdateError("Profil mis à jour avec succès !");
       window.scrollTo({ top: 0, behavior: 'smooth' });
