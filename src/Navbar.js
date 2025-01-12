@@ -9,7 +9,7 @@ import Cart from './components/ecommerce/Cart';
 import { useCart } from './components/ecommerce/CartContext';
 
 const NavBar = () => {
-  const { isLoggedIn, setIsLoggedIn, userData } = useAuth();
+  const { isLoggedIn, userData, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -31,9 +31,7 @@ const NavBar = () => {
 
   const handleLogout = () => {
     if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
-      setIsLoggedIn(false);
-      sessionStorage.removeItem("token");
-      clearCart(); 
+      logout();
       navigate("/");
     }
   };
