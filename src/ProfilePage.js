@@ -14,6 +14,8 @@ const ProfilePage = () => {
   const [updateError, setUpdateError] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
   const [reportedCats, setReportedCats] = useState([]); // État pour les chats signalés
+  const [orders, setOrders] = useState([]); // État pour les commandes
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   // State pour le formulaire de mise à jour
   const [formData, setFormData] = useState({
@@ -73,6 +75,25 @@ const ProfilePage = () => {
       fetchUserData();
     }
   }, [axios, loading]);
+
+  // Fonction pour récupérer les commandes
+  const fetchOrders = async () => {
+    if (activeTab === 'orders') {
+      setOrdersLoading(true);
+      try {
+        const response = await axios.get('/ecommerce/orders');
+        setOrders(response);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setOrdersLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [activeTab]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -364,12 +385,12 @@ const ProfilePage = () => {
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link 
-                    active={activeTab === "history"}
-                    onClick={() => setActiveTab("history")}
-                    className="text-start"
+                    active={activeTab === "orders"}
+                    onClick={() => setActiveTab("orders")}
+                    className="text-start mb-2"
                   >
                     <FaHistory className="me-2" />
-                    Historique
+                    Historique des commandes
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
@@ -615,6 +636,55 @@ const ProfilePage = () => {
                       </Button>
                     </div>
                   </Form>
+                </Card.Body>
+              </Card>
+            </Tab.Pane>
+
+            <Tab.Pane active={activeTab === "orders"}>
+              <Card className="shadow-sm mb-4">
+                <Card.Body>
+                  <Card.Title className="mb-4">
+                    <h5 className="mb-0">Historique des commandes</h5>
+                  </Card.Title>
+                  {ordersLoading ? (
+                    <div className="text-center">
+                      <Spinner animation="border" />
+                    </div>
+                  ) : orders.length === 0 ? (
+                    <Alert variant="info">
+                      Vous n'avez pas encore passé de commande.
+                    </Alert>
+                  ) : (
+                    <div className="orders-list">
+                      {orders.map((order) => (
+                        <Card key={order.id} className="mb-3">
+                          <Card.Header>
+                            <strong>Commande #{order.id}</strong>
+                            <span className="float-end">
+                              {new Date(order.orderDate).toLocaleDateString()}
+                            </span>
+                          </Card.Header>
+                          <Card.Body>
+                            <div className="order-items">
+                              {order.orderItems.map((item, index) => (
+                                <div key={index} className="d-flex justify-content-between mb-2">
+                                  <span>{item.product.name} x{item.quantity}</span>
+                                  <span>{item.product.price.toFixed(2)} €</span>
+                                </div>
+                              ))}
+                            </div>
+                            <hr />
+                            <div className="d-flex justify-content-between">
+                              <strong>Statut:</strong>
+                              <span className={`badge bg-${order.status === 'COMPLETED' ? 'success' : 'warning'}`}>
+                                {order.status === 'COMPLETED' ? 'Payée' : 'En attente'}
+                              </span>
+                            </div>
+                          </Card.Body>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </Card.Body>
               </Card>
             </Tab.Pane>
