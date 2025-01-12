@@ -7,10 +7,13 @@ export const AuthProvider = ({ children }) => {
   const axios = useAxios();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+
   const fetchUserData = async () => {
     if (!sessionStorage.getItem("token")) {
       setLoading(false);
       setIsLoggedIn(false);
+      setUserData(null);
       return;
     }
 
@@ -19,18 +22,23 @@ export const AuthProvider = ({ children }) => {
         ? { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
         : {};
       const response = await axios.get("users/me", { headers: headers });
-      setIsLoggedIn(response);
+      setIsLoggedIn(true);
+      setUserData(response);
     } catch (error) {
       console.error("Error fetching user data:", error);
+      setIsLoggedIn(false);
+      setUserData(null);
     } finally {
       setLoading(false);
     }
   };
+
   if (loading) {
     fetchUserData();
   }
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, userData, setUserData, fetchUserData }}>
       {children}
     </AuthContext.Provider>
   );
