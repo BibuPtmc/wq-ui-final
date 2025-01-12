@@ -63,21 +63,25 @@ const Cart = () => {
       
       console.log('Formatted order items:', orderItems);
       
-      const response = await axiosInstance.post('/ecommerce/orders', { 
+      // Création de la commande
+      const orderResponse = await axiosInstance.post('/ecommerce/orders', { 
         items: orderItems
       });
-
-      console.log('Server response:', response);
-      const session = response.data;
-      console.log('Session data:', session);
-
-      if (!session || !session.id) {
-        throw new Error('La réponse du serveur ne contient pas d\'ID de session valide');
+      
+      console.log('Order created:', orderResponse);
+      
+      // Création de la session Stripe
+      const stripeResponse = await axiosInstance.post(`/ecommerce/create-checkout-session?orderId=${orderResponse.id}`);
+      
+      console.log('Stripe session:', stripeResponse);
+      
+      if (!stripeResponse || !stripeResponse.sessionId) {
+        throw new Error('Impossible de créer la session de paiement');
       }
 
       // Redirection vers la page de paiement
       const { error } = await stripe.redirectToCheckout({
-        sessionId: session.id,
+        sessionId: stripeResponse.sessionId
       });
 
       if (error) {
