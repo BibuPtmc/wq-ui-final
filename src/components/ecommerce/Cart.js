@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, ListGroup, Form, Badge } from 'react-bootstrap';
 import { useCart } from './CartContext';
 import { loadStripe } from '@stripe/stripe-js';
@@ -8,15 +8,28 @@ import { BsCart3 } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-const stripePromise = loadStripe('your-publishable-key');
-
 const Cart = () => {
+  const { cartItems, removeFromCart, updateQuantity, getTotal, clearCart, stripePublicKey } = useCart();
   const [showModal, setShowModal] = useState(false);
-  const { cartItems, removeFromCart, updateQuantity, getTotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const { isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Initialize Stripe with the public key from context
+  const stripePromise = useMemo(() => {
+    try {
+      if (!stripePublicKey) {
+        console.error('La clé publique Stripe n\'est pas définie');
+        return null;
+      }
+      return loadStripe(stripePublicKey);
+    } catch (err) {
+      console.error('Erreur d\'initialisation de Stripe:', err);
+      return null;
+    }
+  }, [stripePublicKey]);
 
   // Si l'utilisateur n'est pas connecté, on ne rend pas le composant
   if (!isLoggedIn) {
@@ -29,46 +42,41 @@ const Cart = () => {
       return;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
       const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Impossible d\'initialiser Stripe');
+      }
 
-      const orderResponse = await axios.post(
-        'http://localhost:8080/api/ecommerce/orders',
-        cartItems.map(item => ({
-          product: { id: item.product.id },
-          quantity: item.quantity
-        })),
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      // Création de la session de paiement
+      const response = await fetch('http://localhost:8080/ecommerce/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items: cartItems }),
+      });
 
-      const paymentResponse = await axios.post(
-        `http://localhost:8080/api/ecommerce/orders/${orderResponse.data.id}/payment`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création de la session de paiement');
+      }
 
+      const session = await response.json();
+
+      // Redirection vers la page de paiement
       const { error } = await stripe.redirectToCheckout({
-        clientSecret: paymentResponse.data.clientSecret,
+        sessionId: session.id,
       });
 
       if (error) {
-        console.error('Error:', error);
-      } else {
-        clearCart();
-        setShowModal(false);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error during checkout:', error);
-      alert('Une erreur est survenue lors du paiement. Veuillez réessayer.');
+    } catch (err) {
+      console.error('Erreur lors du paiement:', err);
+      setError(err.message || 'Une erreur est survenue lors du paiement');
     } finally {
       setLoading(false);
     }
@@ -144,6 +152,11 @@ const Cart = () => {
           {cartItems.length > 0 && (
             <div className="mt-4 text-end">
               <h5>Total: {getTotal().toFixed(2)} €</h5>
+            </div>
+          )}
+          {error && (
+            <div className="alert alert-danger mt-3">
+              {error}
             </div>
           )}
         </Modal.Body>
