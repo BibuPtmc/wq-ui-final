@@ -24,6 +24,12 @@ const ProfilePage = () => {
     birthDay: "",
   });
 
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    matchingPassword: ""
+  });
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!sessionStorage.getItem("token")) {
@@ -75,6 +81,51 @@ const ProfilePage = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordForm({ ...passwordForm, [e.target.id]: e.target.value });
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setUpdateSuccess(false);
+    setUpdateError("");
+
+    // Vérifier que les mots de passe correspondent
+    if (passwordForm.newPassword !== passwordForm.matchingPassword) {
+      setUpdateError("Les nouveaux mots de passe ne correspondent pas");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    try {
+      const updatedData = {
+        ...formData,
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+        matchingPassword: passwordForm.newPassword,
+        password: passwordForm.newPassword
+      };
+
+      const response = await axios.put("users/update", updatedData);
+      
+      // Mettre à jour les données locales avec la réponse
+      if (response.data) {
+        setConnectedUser(response.data);
+      }
+
+      setUpdateSuccess(true);
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        matchingPassword: ""
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du mot de passe");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -461,34 +512,43 @@ const ProfilePage = () => {
                     <FaLock className="me-2" />
                     Modifier le mot de passe
                   </Card.Title>
-                  <Form>
-                  <Form.Group className="mb-3" controlId="formCurrentPassword">
+                  <Form onSubmit={handleUpdatePassword}>
+                    <Form.Group className="mb-3" controlId="currentPassword">
                       <Form.Label>Mot de passe actuel</Form.Label>
                       <Form.Control
                         type="password"
                         placeholder="Entrez votre mot de passe actuel"
                         className="border-0 shadow-sm"
+                        value={passwordForm.currentPassword}
+                        onChange={handlePasswordChange}
+                        required
                       />
                     </Form.Group>
 
                     <Row className="mb-4">
                       <Col md={6}>
-                        <Form.Group controlId="formNewPassword">
+                        <Form.Group controlId="newPassword">
                           <Form.Label>Nouveau mot de passe</Form.Label>
                           <Form.Control
                             type="password"
                             placeholder="Entrez votre nouveau mot de passe"
                             className="border-0 shadow-sm"
+                            value={passwordForm.newPassword}
+                            onChange={handlePasswordChange}
+                            required
                           />
                         </Form.Group>
                       </Col>
                       <Col md={6}>
-                        <Form.Group controlId="formConfirmPassword">
+                        <Form.Group controlId="matchingPassword">
                           <Form.Label>Confirmation</Form.Label>
                           <Form.Control
                             type="password"
                             placeholder="Confirmez votre nouveau mot de passe"
                             className="border-0 shadow-sm"
+                            value={passwordForm.matchingPassword}
+                            onChange={handlePasswordChange}
+                            required
                           />
                         </Form.Group>
                       </Col>
