@@ -7,7 +7,7 @@ import ReportedCats from './ReportedCats'; // Importez votre composant ici
 
 const ProfilePage = () => {
   const axios = useAxios();
-  const { loading: authLoading, setIsLoggedIn } = useAuth();
+  const { loading: authLoading, setIsLoggedIn, fetchUserData } = useAuth();
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updateSuccess, setUpdateSuccess] = useState(false);
@@ -76,8 +76,10 @@ const ProfilePage = () => {
     setUpdateError("");
     
     try {
-      await axios.put("users/update", formData);
+      const response = await axios.put("users/update", formData);
       setUpdateSuccess(true);
+      setConnectedUser(response);
+      await fetchUserData(); // Mettre à jour les données globales
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
