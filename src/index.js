@@ -12,6 +12,7 @@ import { ContactUs } from "./ContactPage";
 import LoginPage from "./LoginPage";
 import ProfilePage from "./ProfilePage";
 import GpsCollars from './pages/GpsCollars';
+import PaymentSuccess from './pages/PaymentSuccess';
 import { CartProvider } from './components/ecommerce/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
@@ -61,6 +62,7 @@ const App = () => {
                 <Route path="/foundCats" element={<FoundCats />} />
                 <Route path="/lostCats" element={<LostCats />} />
                 <Route path="/gps-collars" element={<GpsCollars />} />
+                <Route path="/success" element={<PaymentSuccess />} />
                 <Route 
                   path="/profile" 
                   element={
