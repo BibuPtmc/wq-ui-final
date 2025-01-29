@@ -16,7 +16,7 @@ const ProfilePage = () => {
   const [updateError, setUpdateError] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
   const [reportedCats, setReportedCats] = useState([]);
-  const [ownedCats, setOwnedCats] = useState([]); 
+  const [ownedCats, setOwnedCats] = useState([]);
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [showCatDetails, setShowCatDetails] = useState(false);
