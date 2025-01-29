@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col, Card, Badge, Alert, Button } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import { FaPaw, FaTrash } from 'react-icons/fa';
-import CatDetails from '../../CatDetails';
+
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat }) => {
   if (ownedCats.length === 0) {

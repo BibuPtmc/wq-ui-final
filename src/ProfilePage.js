@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab, Badge } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
 import { FaUser, FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import ReportedCats from './ReportedCats';
 import OwnedCats from './components/profile/OwnedCats';
 import CatDetails from './CatDetails';
-import { motion } from "framer-motion";
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -742,10 +741,6 @@ const ProfilePage = () => {
                   <Tab.Pane active={activeTab === "ownedCats"}>
                     <Card className="shadow-sm mb-4">
                       <Card.Body>
-                        <Card.Title className="mb-4">
-                          <FaPaw className="me-2" />
-                          Mes chats
-                        </Card.Title>
                         <OwnedCats 
                           ownedCats={ownedCats}
                           onShowCatDetails={handleShowCatDetails}
