@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab, Badge } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
-import { FaUser,FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
-import ReportedCats from './ReportedCats'; // Importez votre composant ici
+import { FaUser, FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
+import ReportedCats from './ReportedCats';
+import CatDetails from './CatDetails';
+import { motion } from "framer-motion";
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -13,9 +15,12 @@ const ProfilePage = () => {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
-  const [reportedCats, setReportedCats] = useState([]); // État pour les chats signalés
-  const [orders, setOrders] = useState([]); // État pour les commandes
+  const [reportedCats, setReportedCats] = useState([]);
+  const [ownedCats, setOwnedCats] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [showCatDetails, setShowCatDetails] = useState(false);
+  const [selectedCatStatus, setSelectedCatStatus] = useState(null);
 
   // State pour le formulaire de mise à jour
   const [formData, setFormData] = useState({
@@ -58,10 +63,18 @@ const ProfilePage = () => {
         // Récupérer les chats signalés ici
         try {
           const reportedResponse = await axios.get("cat/reportedCats", { headers });
-          setReportedCats(reportedResponse || []); // Assurez-vous d'utiliser .data
+          setReportedCats(reportedResponse || []); 
         } catch (error) {
           // Ne pas afficher d'erreur si aucun chat n'est trouvé
           setReportedCats([]);
+        }
+
+        // Fetch owned cats
+        try {
+          const ownedResponse = await axios.get("cat/ownedCats", { headers });
+          setOwnedCats(ownedResponse || []);
+        } catch (error) {
+          setOwnedCats([]);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -288,6 +301,12 @@ const ProfilePage = () => {
     return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
   };
 
+  const handleCloseCatDetails = () => setShowCatDetails(false);
+  const handleShowCatDetails = (catStatus) => {
+    setSelectedCatStatus(catStatus);
+    setShowCatDetails(true);
+  };
+
   if (authLoading || loading) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
@@ -309,404 +328,489 @@ const ProfilePage = () => {
   }
 
   return (
-    <Container fluid className="py-5 bg-light">
-      {updateSuccess && updateError && (
-        <Row className="justify-content-center mb-4">
-          <Col md={8}>
-            <Alert variant="success" onClose={() => setUpdateSuccess(false)} dismissible>
-              {updateError}
-            </Alert>
-          </Col>
-        </Row>
-      )}
-      
-      {updateSuccess === false && updateError && (
-        <Row className="justify-content-center mb-4">
-          <Col md={8}>
-            <Alert variant="danger" onClose={() => setUpdateError("")} dismissible>
-              {updateError}
-            </Alert>
-          </Col>
-        </Row>
-      )}
-
-      <Row className="justify-content-center">
-        <Col md={4} lg={3} className="mb-4">
-          <Card className="shadow-sm sticky-top" style={{ top: "2rem" }}>
-            <Card.Body className="text-center">
-              <div
-                className="profile-avatar mb-4"
-                style={{
-                  width: "120px",
-                  height: "120px",
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  color: "white",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  fontSize: "40px",
-                  margin: "0 auto",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                  transition: "transform 0.3s ease",
-                  cursor: "pointer",
-                }}
-                onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-              >
-                {connectedUser.firstName.charAt(0)}
-                {connectedUser.lastName.charAt(0)}
-              </div>
-              <Card.Title className="mb-3">
-                {connectedUser.firstName} {connectedUser.lastName}
-              </Card.Title>
-              <Card.Text className="text-muted mb-4">Particulier</Card.Text>
-              
-              <Nav variant="pills" className="flex-column mb-4">
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === "profile"}
-                    onClick={() => setActiveTab("profile")}
-                    className="text-start mb-2"
-                  >
-                    <FaUser className="me-2" />
-                    Profil
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === "security"}
-                    onClick={() => setActiveTab("security")}
-                    className="text-start mb-2"
-                  >
-                    <FaLock className="me-2" />
-                    Sécurité
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === "orders"}
-                    onClick={() => setActiveTab("orders")}
-                    className="text-start mb-2"
-                  >
-                    <FaHistory className="me-2" />
-                    Historique des commandes
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === "reported"}
-                    onClick={() => setActiveTab("reported")}
-                    className="text-start"
-                  >
-                    <FaPaw className="me-2" />
-                    Chats Signalés
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-
-              <Button
-                variant="outline-danger"
-                size="sm"
-                className="w-100 mt-3"
-                onClick={handleDeleteAccount}
-                style={{
-                  color: '#dc3545',
-                  borderColor: '#dc3545',
-                  backgroundColor: 'transparent',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#dc3545';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#dc3545';
-                }}
-              >
-                <FaTrash className="me-2" />
-                Supprimer mon compte
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={8} lg={7}>
-          <Tab.Content>
-            <Tab.Pane active={activeTab === "profile"}>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <Card.Title className="mb-4">
-                    <FaUser className="me-2" />
-                    Informations personnelles
-                  </Card.Title>
-                  <Form onSubmit={handleUpdateProfile}>
-                    <Row className="mb-3">
-                      <Col md={6}>
-                        <Form.Group className="mb-3" controlId="formEmail">
-                          <Form.Label className="text-muted">
-                            <FaEnvelope className="me-2" />
-                            Email
-                          </Form.Label>
-                          <Form.Control
-                            type="email"
-                            defaultValue={connectedUser.email}
-                            disabled
-                            className="bg-light"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3" controlId="formPhone">
-                          <Form.Label className="text-muted">
-                            <FaPhone className="me-2" />
-                            Téléphone
-                          </Form.Label>
-                          <Form.Control
-                            type="text"
-                            defaultValue={formatPhoneNumber(connectedUser.phone)}
-                            disabled
-                            className="bg-light"
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-
-                    <Row className="mb-3">
-                      <Col md={6}>
-                        <Form.Group className="mb-3" controlId="firstName">
-                          <Form.Label>Prénom</Form.Label>
-                          <Form.Control
-                            type="text"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            className="border-0 shadow-sm"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3" controlId="lastName">
-                          <Form.Label>Nom</Form.Label>
-                          <Form.Control
-                            type="text"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            className="border-0 shadow-sm"
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-
-                    <Form.Group className="mb-3" controlId="address">
-                      <Form.Label className="text-muted">
-                        <FaMapMarkerAlt className="me-2" />
-                        Adresse
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formData.address}
-                        onChange={handleChange}
-                        className="border-0 shadow-sm"
-                      />
-                    </Form.Group>
-
-                    <Row className="mb-4">
-                      <Col md={6}>
-                        <Form.Group controlId="gender">
-                          <Form.Label className="text-muted">
-                            <FaVenusMars className="me-2" />
-                            Genre
-                          </Form.Label>
-                          <Form.Select
-                            value={formData.gender}
-                            onChange={handleChange}
-                            className="border-0 shadow-sm"
-                          >
-                            <option>Homme</option>
-                            <option>Femme</option>
-                            <option>Autre</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group controlId="birthDay">
-                          <Form.Label className="text-muted">
-                            <FaBirthdayCake className="me-2" />
-                            Date de naissance
-                          </Form.Label>
-                          <Form.Control
-                            type="date"
-                            value={formData.birthDay}
-                            onChange={handleChange}
-                            className="border-0 shadow-sm"
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-
-                    <div className="d-grid">
-                      <Button
-                        variant="primary"
-                        type="submit"
-                        size="lg"
-                        className="rounded-pill"
-                      >
-                        Mettre à jour le profil
-                      </Button>
+    <Container className="mt-4">
+      {loading ? (
+        <div className="text-center">
+          <Spinner animation="border" />
+        </div>
+      ) : !connectedUser ? (
+        <Alert variant="warning">Veuillez vous connecter pour accéder à votre profil.</Alert>
+      ) : (
+        <>
+          {updateError && <Alert variant={updateSuccess ? "success" : "danger"}>{updateError}</Alert>}
+          
+          <Tab.Container id="profile-tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+            <Row className="justify-content-center">
+              <Col md={4} lg={3} className="mb-4">
+                <Card className="shadow-sm sticky-top" style={{ top: "2rem" }}>
+                  <Card.Body className="text-center">
+                    <div
+                      className="profile-avatar mb-4"
+                      style={{
+                        width: "120px",
+                        height: "120px",
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        fontSize: "40px",
+                        margin: "0 auto",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        transition: "transform 0.3s ease",
+                        cursor: "pointer",
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                      onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    >
+                      {connectedUser.firstName.charAt(0)}
+                      {connectedUser.lastName.charAt(0)}
                     </div>
-                  </Form>
-                </Card.Body>
-              </Card>
-            </Tab.Pane>
-
-            <Tab.Pane active={activeTab === "security"}>
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <Card.Title className="mb-4">
-                    <FaLock className="me-2" />
-                    Modifier le mot de passe
-                  </Card.Title>
-                  <Form onSubmit={handleUpdatePassword}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Mot de passe actuel</Form.Label>
-                      <div className="input-group">
-                        <Form.Control
-                          type={showCurrentPassword ? "text" : "password"}
-                          id="currentPassword"
-                          value={passwordForm.currentPassword}
-                          onChange={handlePasswordChange}
-                          required
-                        />
-                        <Button 
-                          variant="outline-secondary"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    <Card.Title className="mb-3">
+                      {connectedUser.firstName} {connectedUser.lastName}
+                    </Card.Title>
+                    <Card.Text className="text-muted mb-4">Particulier</Card.Text>
+                    
+                    <Nav variant="pills" className="flex-column mb-4">
+                      <Nav.Item>
+                        <Nav.Link 
+                          active={activeTab === "profile"}
+                          onClick={() => setActiveTab("profile")}
+                          className="text-start mb-2"
                         >
-                          {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
-                        </Button>
-                      </div>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Nouveau mot de passe</Form.Label>
-                      <div className="input-group">
-                        <Form.Control
-                          type={showNewPassword ? "text" : "password"}
-                          id="newPassword"
-                          value={passwordForm.newPassword}
-                          onChange={handlePasswordChange}
-                          required
-                        />
-                        <Button 
-                          variant="outline-secondary"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          <FaUser className="me-2" />
+                          Profil
+                        </Nav.Link>
+                      </Nav.Item>
+                      <Nav.Item>
+                        <Nav.Link 
+                          active={activeTab === "security"}
+                          onClick={() => setActiveTab("security")}
+                          className="text-start mb-2"
                         >
-                          {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-                        </Button>
-                      </div>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Confirmer le nouveau mot de passe</Form.Label>
-                      <div className="input-group">
-                        <Form.Control
-                          type={showMatchingPassword ? "text" : "password"}
-                          id="matchingPassword"
-                          value={passwordForm.matchingPassword}
-                          onChange={handlePasswordChange}
-                          required
-                        />
-                        <Button 
-                          variant="outline-secondary"
-                          onClick={() => setShowMatchingPassword(!showMatchingPassword)}
+                          <FaLock className="me-2" />
+                          Sécurité
+                        </Nav.Link>
+                      </Nav.Item>
+                      <Nav.Item>
+                        <Nav.Link 
+                          active={activeTab === "orders"}
+                          onClick={() => setActiveTab("orders")}
+                          className="text-start mb-2"
                         >
-                          {showMatchingPassword ? <FaEyeSlash /> : <FaEye />}
-                        </Button>
-                      </div>
-                    </Form.Group>
+                          <FaHistory className="me-2" />
+                          Historique des commandes
+                        </Nav.Link>
+                      </Nav.Item>
+                      <Nav.Item>
+                        <Nav.Link 
+                          active={activeTab === "reported"}
+                          onClick={() => setActiveTab("reported")}
+                          className="text-start"
+                        >
+                          <FaPaw className="me-2" />
+                          Chats Signalés
+                        </Nav.Link>
+                      </Nav.Item>
+                      <Nav.Item>
+                        <Nav.Link 
+                          active={activeTab === "ownedCats"}
+                          onClick={() => setActiveTab("ownedCats")}
+                          className="text-start"
+                        >
+                          <FaPaw className="me-2" />
+                          Mes chats
+                        </Nav.Link>
+                      </Nav.Item>
+                    </Nav>
 
-                    <div className="d-grid">
-                      <Button
-                        variant="outline-primary"
-                        type="submit"
-                        size="lg"
-                        className="rounded-pill"
-                      >
-                        Mettre à jour le mot de passe
-                      </Button>
-                    </div>
-                  </Form>
-                </Card.Body>
-              </Card>
-            </Tab.Pane>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      className="w-100 mt-3"
+                      onClick={handleDeleteAccount}
+                      style={{
+                        color: '#dc3545',
+                        borderColor: '#dc3545',
+                        backgroundColor: 'transparent',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#dc3545';
+                        e.target.style.color = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'transparent';
+                        e.target.style.color = '#dc3545';
+                      }}
+                    >
+                      <FaTrash className="me-2" />
+                      Supprimer mon compte
+                    </Button>
+                  </Card.Body>
+                </Card>
+              </Col>
 
-            <Tab.Pane active={activeTab === "orders"}>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <Card.Title className="mb-4">
-                    <h5 className="mb-0">Historique des commandes</h5>
-                  </Card.Title>
-                  {ordersLoading ? (
-                    <div className="text-center">
-                      <Spinner animation="border" />
-                    </div>
-                  ) : orders.length === 0 ? (
-                    <Alert variant="info">
-                      Vous n'avez pas encore passé de commande.
-                    </Alert>
-                  ) : (
-                    <div className="orders-list">
-                      {orders.map((order) => (
-                        <Card key={order.id} className="mb-3">
-                          <Card.Header>
-                            <strong>Commande #{order.id}</strong>
-                            <span className="float-end">
-                              {new Date(order.orderDate).toLocaleDateString()}
-                            </span>
-                          </Card.Header>
-                          <Card.Body>
-                            <div className="order-items">
-                              {order.orderItems.map((item, index) => (
-                                <div key={index} className="d-flex justify-content-between mb-2">
-                                  <span>{item.product.name} x{item.quantity}</span>
-                                  <span>{item.product.price.toFixed(2)} €</span>
-                                </div>
-                              ))}
+              <Col md={8} lg={7}>
+                <Tab.Content>
+                  <Tab.Pane active={activeTab === "profile"}>
+                    <Card className="shadow-sm mb-4">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <FaUser className="me-2" />
+                          Informations personnelles
+                        </Card.Title>
+                        <Form onSubmit={handleUpdateProfile}>
+                          <Row className="mb-3">
+                            <Col md={6}>
+                              <Form.Group className="mb-3" controlId="formEmail">
+                                <Form.Label className="text-muted">
+                                  <FaEnvelope className="me-2" />
+                                  Email
+                                </Form.Label>
+                                <Form.Control
+                                  type="email"
+                                  defaultValue={connectedUser.email}
+                                  disabled
+                                  className="bg-light"
+                                />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mb-3" controlId="formPhone">
+                                <Form.Label className="text-muted">
+                                  <FaPhone className="me-2" />
+                                  Téléphone
+                                </Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  defaultValue={formatPhoneNumber(connectedUser.phone)}
+                                  disabled
+                                  className="bg-light"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+
+                          <Row className="mb-3">
+                            <Col md={6}>
+                              <Form.Group className="mb-3" controlId="firstName">
+                                <Form.Label>Prénom</Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  value={formData.firstName}
+                                  onChange={handleChange}
+                                  className="border-0 shadow-sm"
+                                />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mb-3" controlId="lastName">
+                                <Form.Label>Nom</Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  value={formData.lastName}
+                                  onChange={handleChange}
+                                  className="border-0 shadow-sm"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+
+                          <Form.Group className="mb-3" controlId="address">
+                            <Form.Label className="text-muted">
+                              <FaMapMarkerAlt className="me-2" />
+                              Adresse
+                            </Form.Label>
+                            <Form.Control
+                              type="text"
+                              value={formData.address}
+                              onChange={handleChange}
+                              className="border-0 shadow-sm"
+                            />
+                          </Form.Group>
+
+                          <Row className="mb-4">
+                            <Col md={6}>
+                              <Form.Group controlId="gender">
+                                <Form.Label className="text-muted">
+                                  <FaVenusMars className="me-2" />
+                                  Genre
+                                </Form.Label>
+                                <Form.Select
+                                  value={formData.gender}
+                                  onChange={handleChange}
+                                  className="border-0 shadow-sm"
+                                >
+                                  <option>Homme</option>
+                                  <option>Femme</option>
+                                  <option>Autre</option>
+                                </Form.Select>
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group controlId="birthDay">
+                                <Form.Label className="text-muted">
+                                  <FaBirthdayCake className="me-2" />
+                                  Date de naissance
+                                </Form.Label>
+                                <Form.Control
+                                  type="date"
+                                  value={formData.birthDay}
+                                  onChange={handleChange}
+                                  className="border-0 shadow-sm"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+
+                          <div className="d-grid">
+                            <Button
+                              variant="primary"
+                              type="submit"
+                              size="lg"
+                              className="rounded-pill"
+                            >
+                              Mettre à jour le profil
+                            </Button>
+                          </div>
+                        </Form>
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+
+                  <Tab.Pane active={activeTab === "security"}>
+                    <Card className="shadow-sm">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <FaLock className="me-2" />
+                          Modifier le mot de passe
+                        </Card.Title>
+                        <Form onSubmit={handleUpdatePassword}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Mot de passe actuel</Form.Label>
+                            <div className="input-group">
+                              <Form.Control
+                                type={showCurrentPassword ? "text" : "password"}
+                                id="currentPassword"
+                                value={passwordForm.currentPassword}
+                                onChange={handlePasswordChange}
+                                required
+                              />
+                              <Button 
+                                variant="outline-secondary"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              >
+                                {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                              </Button>
                             </div>
-                            <hr />
-                            <div className="d-flex justify-content-between">
-                              <strong>Statut:</strong>
-                              <span className={`badge bg-${order.status === 'COMPLETED' ? 'success' : 'warning'}`}>
-                                {order.status === 'COMPLETED' ? 'Payée' : 'En attente'}
-                              </span>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </Card.Body>
-              </Card>
-            </Tab.Pane>
+                          </Form.Group>
 
-            <Tab.Pane active={activeTab === "reported"}>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <Card.Title className="mb-4">
-                    <FaPaw className="me-2" />
-                    Chats Signalés
-                  </Card.Title>
-              <ReportedCats 
-                reportedCats={reportedCats} 
-                onDelete={handleDeleteReportedCat}
-                onEdit={handleEditReportedCat}
-              />
-                </Card.Body>
-              </Card>
-            </Tab.Pane>
-          </Tab.Content>
-        </Col>
-      </Row>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Nouveau mot de passe</Form.Label>
+                            <div className="input-group">
+                              <Form.Control
+                                type={showNewPassword ? "text" : "password"}
+                                id="newPassword"
+                                value={passwordForm.newPassword}
+                                onChange={handlePasswordChange}
+                                required
+                              />
+                              <Button 
+                                variant="outline-secondary"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                              >
+                                {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                              </Button>
+                            </div>
+                          </Form.Group>
+
+                          <Form.Group className="mb-3">
+                            <Form.Label>Confirmer le nouveau mot de passe</Form.Label>
+                            <div className="input-group">
+                              <Form.Control
+                                type={showMatchingPassword ? "text" : "password"}
+                                id="matchingPassword"
+                                value={passwordForm.matchingPassword}
+                                onChange={handlePasswordChange}
+                                required
+                              />
+                              <Button 
+                                variant="outline-secondary"
+                                onClick={() => setShowMatchingPassword(!showMatchingPassword)}
+                              >
+                                {showMatchingPassword ? <FaEyeSlash /> : <FaEye />}
+                              </Button>
+                            </div>
+                          </Form.Group>
+
+                          <div className="d-grid">
+                            <Button
+                              variant="outline-primary"
+                              type="submit"
+                              size="lg"
+                              className="rounded-pill"
+                            >
+                              Mettre à jour le mot de passe
+                            </Button>
+                          </div>
+                        </Form>
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+
+                  <Tab.Pane active={activeTab === "orders"}>
+                    <Card className="shadow-sm mb-4">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <h5 className="mb-0">Historique des commandes</h5>
+                        </Card.Title>
+                        {ordersLoading ? (
+                          <div className="text-center">
+                            <Spinner animation="border" />
+                          </div>
+                        ) : orders.length === 0 ? (
+                          <Alert variant="info">
+                            Vous n'avez pas encore passé de commande.
+                          </Alert>
+                        ) : (
+                          <div className="orders-list">
+                            {orders.map((order) => (
+                              <Card key={order.id} className="mb-3">
+                                <Card.Header>
+                                  <strong>Commande #{order.id}</strong>
+                                  <span className="float-end">
+                                    {new Date(order.orderDate).toLocaleDateString()}
+                                  </span>
+                                </Card.Header>
+                                <Card.Body>
+                                  <div className="order-items">
+                                    {order.orderItems.map((item, index) => (
+                                      <div key={index} className="d-flex justify-content-between mb-2">
+                                        <span>{item.product.name} x{item.quantity}</span>
+                                        <span>{item.product.price.toFixed(2)} €</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <hr />
+                                  <div className="d-flex justify-content-between">
+                                    <strong>Statut:</strong>
+                                    <span className={`badge bg-${order.status === 'COMPLETED' ? 'success' : 'warning'}`}>
+                                      {order.status === 'COMPLETED' ? 'Payée' : 'En attente'}
+                                    </span>
+                                  </div>
+                                </Card.Body>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+
+                  <Tab.Pane active={activeTab === "reported"}>
+                    <Card className="shadow-sm mb-4">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <FaPaw className="me-2" />
+                          Chats Signalés
+                        </Card.Title>
+                    <ReportedCats 
+                      reportedCats={reportedCats} 
+                      onDelete={handleDeleteReportedCat}
+                      onEdit={handleEditReportedCat}
+                    />
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+
+                  <Tab.Pane active={activeTab === "ownedCats"}>
+                    <Card className="shadow-sm mb-4">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <FaPaw className="me-2" />
+                          Mes chats
+                        </Card.Title>
+                        {ownedCats.length === 0 ? (
+                          <Alert variant="info">Vous n'avez pas encore de chats.</Alert>
+                        ) : (
+                          <>
+                            <div className="text-center mb-4">
+                              <Badge bg="primary" className="px-3 py-2">
+                                {ownedCats.length} chats
+                              </Badge>
+                            </div>
+                            <Row xs={1} md={2} lg={3} className="g-4">
+                              {ownedCats.map((catStatus) => {
+                                const cat = catStatus.cat;
+                                return (
+                                  <Col key={cat.catId}>
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ duration: 0.3 }}
+                                    >
+                                      <Card className="cat-card shadow-sm h-100">
+                                        <Card.Img
+                                          variant="top"
+                                          src={cat.imageCatData ? 
+                                            `data:${cat.type};base64,${cat.imageCatData}` : 
+                                            cat.photoUrl || "/images/noImageCat.png"
+                                          }
+                                          alt={cat.name}
+                                          onError={(e) => {
+                                            e.target.src = "/images/noImageCat.png";
+                                            e.target.onerror = null;
+                                          }}
+                                          style={{ height: "200px", objectFit: "cover", cursor: "pointer" }}
+                                          onClick={() => handleShowCatDetails(catStatus)}
+                                        />
+                                        <Card.Body>
+                                          <div className="d-flex justify-content-between align-items-start mb-2">
+                                            <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
+                                            <Badge
+                                              bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                                              className="ms-2"
+                                            >
+                                              {cat.gender}
+                                            </Badge>
+                                          </div>
+                                          <Card.Text className="text-muted small">
+                                            Race: {cat.breed || "Inconnue"}
+                                          </Card.Text>
+                                          <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            className="mt-2 w-100"
+                                            onClick={() => handleShowCatDetails(catStatus)}
+                                          >
+                                            Voir les détails
+                                          </Button>
+                                        </Card.Body>
+                                      </Card>
+                                    </motion.div>
+                                  </Col>
+                                );
+                              })}
+                            </Row>
+                          </>
+                        )}
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+                </Tab.Content>
+              </Col>
+            </Row>
+          </Tab.Container>
+
+          <CatDetails
+            selectedCatStatus={selectedCatStatus}
+            handleClose={handleCloseCatDetails}
+            show={showCatDetails}
+          />
+        </>
+      )}
     </Container>
   );
 };
