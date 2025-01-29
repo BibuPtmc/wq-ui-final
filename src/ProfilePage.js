@@ -296,6 +296,19 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteOwnedCat = async (catId) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat ?")) {
+      try {
+        await axios.delete(`cat/delete?id=${catId}`);
+        setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
+        alert("Chat supprimé avec succès.");
+      } catch (error) {
+        console.error("Erreur lors de la suppression du chat:", error);
+        alert("Erreur lors de la suppression du chat.");
+      }
+    }
+  };
+
   const formatPhoneNumber = (phoneNumber) => {
     let cleaned = ("" + phoneNumber).replace(/\D/g, "");
     return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
@@ -779,14 +792,26 @@ const ProfilePage = () => {
                                           <Card.Text className="text-muted small">
                                             Race: {cat.breed || "Inconnue"}
                                           </Card.Text>
-                                          <Button
-                                            variant="outline-primary"
-                                            size="sm"
-                                            className="mt-2 w-100"
-                                            onClick={() => handleShowCatDetails(catStatus)}
-                                          >
-                                            Voir les détails
-                                          </Button>
+                                          <div className="d-flex gap-2 mt-2">
+                                            <Button
+                                              variant="outline-primary"
+                                              size="sm"
+                                              className="flex-grow-1"
+                                              onClick={() => handleShowCatDetails(catStatus)}
+                                            >
+                                              Voir les détails
+                                            </Button>
+                                            <Button
+                                              variant="outline-danger"
+                                              size="sm"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteOwnedCat(cat.catId);
+                                              }}
+                                            >
+                                              <FaTrash />
+                                            </Button>
+                                          </div>
                                         </Card.Body>
                                       </Card>
                                     </motion.div>
