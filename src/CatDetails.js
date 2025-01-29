@@ -27,7 +27,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               style={{ width: '100%', height: '300px', objectFit: 'cover' }}
               onError={(e) => {
                 e.target.src = "/images/noImageCat.png";
-                e.target.onerror = null; // Empêche les erreurs en boucle
+                e.target.onerror = null;
               }}
             />
           </Col>
@@ -41,6 +41,11 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 >
                   {cat.gender}
                 </Badge>
+                {selectedCatStatus.statusCat === 'OWN' && (
+                  <Badge bg="success" className="ms-2">
+                    Propriétaire
+                  </Badge>
+                )}
               </h3>
             </div>
 
@@ -89,8 +94,14 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
             )}
 
             <div className="mt-3">
-              <Badge bg={selectedCatStatus.statusCat === 'LOST' ? 'danger' : 'success'} className="px-3 py-2">
-                {selectedCatStatus.statusCat === 'LOST' ? 'Chat perdu' : 'Chat trouvé'}
+              <Badge bg={
+                selectedCatStatus.statusCat === 'OWN' ? 'success' :
+                selectedCatStatus.statusCat === 'LOST' ? 'danger' : 
+                'primary'
+              } className="px-3 py-2">
+                {selectedCatStatus.statusCat === 'OWN' ? 'Chat possédé' :
+                 selectedCatStatus.statusCat === 'LOST' ? 'Chat perdu' : 
+                 'Chat trouvé'}
               </Badge>
             </div>
           </Col>
