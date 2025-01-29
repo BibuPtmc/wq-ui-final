@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Alert, Spinner, Badge } from 'react-bootstrap';
+import { Card, Alert, Spinner } from 'react-bootstrap';
 
 const OrderHistory = ({ orders, ordersLoading }) => {
   if (ordersLoading) {
