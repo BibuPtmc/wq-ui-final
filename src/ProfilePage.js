@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
-import { FaUser, FaPaw, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaPaw, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import ReportedCats from './ReportedCats';
 import OwnedCats from './components/profile/OwnedCats';
 import CatDetails from './CatDetails';
+import PersonalInfo from './components/profile/PersonalInfo';
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -120,7 +121,6 @@ const ProfilePage = () => {
       await fetchUserData();
       
       setUpdateSuccess(true);
-      setUpdateError("Profil mis à jour avec succès !");
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       // Faire disparaître le message après 5 secondes
@@ -474,121 +474,13 @@ const ProfilePage = () => {
                           <FaUser className="me-2" />
                           Informations personnelles
                         </Card.Title>
-                        <Form onSubmit={handleUpdateProfile}>
-                          <Row className="mb-3">
-                            <Col md={6}>
-                              <Form.Group className="mb-3" controlId="formEmail">
-                                <Form.Label className="text-muted">
-                                  <FaEnvelope className="me-2" />
-                                  Email
-                                </Form.Label>
-                                <Form.Control
-                                  type="email"
-                                  defaultValue={connectedUser.email}
-                                  disabled
-                                  className="bg-light"
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                              <Form.Group className="mb-3" controlId="formPhone">
-                                <Form.Label className="text-muted">
-                                  <FaPhone className="me-2" />
-                                  Téléphone
-                                </Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  defaultValue={formatPhoneNumber(connectedUser.phone)}
-                                  disabled
-                                  className="bg-light"
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-
-                          <Row className="mb-3">
-                            <Col md={6}>
-                              <Form.Group className="mb-3" controlId="firstName">
-                                <Form.Label>Prénom</Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  value={formData.firstName}
-                                  onChange={handleChange}
-                                  className="border-0 shadow-sm"
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                              <Form.Group className="mb-3" controlId="lastName">
-                                <Form.Label>Nom</Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  value={formData.lastName}
-                                  onChange={handleChange}
-                                  className="border-0 shadow-sm"
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-
-                          <Form.Group className="mb-3" controlId="address">
-                            <Form.Label className="text-muted">
-                              <FaMapMarkerAlt className="me-2" />
-                              Adresse
-                            </Form.Label>
-                            <Form.Control
-                              type="text"
-                              value={formData.address}
-                              onChange={handleChange}
-                              className="border-0 shadow-sm"
-                            />
-                          </Form.Group>
-
-                          <Row className="mb-4">
-                            <Col md={6}>
-                              <Form.Group controlId="gender">
-                                <Form.Label className="text-muted">
-                                  <FaVenusMars className="me-2" />
-                                  Genre
-                                </Form.Label>
-                                <Form.Select
-                                  value={formData.gender}
-                                  onChange={handleChange}
-                                  className="border-0 shadow-sm"
-                                >
-                                  <option>Homme</option>
-                                  <option>Femme</option>
-                                  <option>Autre</option>
-                                </Form.Select>
-                              </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                              <Form.Group controlId="birthDay">
-                                <Form.Label className="text-muted">
-                                  <FaBirthdayCake className="me-2" />
-                                  Date de naissance
-                                </Form.Label>
-                                <Form.Control
-                                  type="date"
-                                  value={formData.birthDay}
-                                  onChange={handleChange}
-                                  className="border-0 shadow-sm"
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-
-                          <div className="d-grid">
-                            <Button
-                              variant="primary"
-                              type="submit"
-                              size="lg"
-                              className="rounded-pill"
-                            >
-                              Mettre à jour le profil
-                            </Button>
-                          </div>
-                        </Form>
+                        <PersonalInfo 
+                          formData={formData}
+                          setFormData={setFormData}
+                          handleSubmit={handleUpdateProfile}
+                          updateSuccess={updateSuccess}
+                          updateError={updateError}
+                        />
                       </Card.Body>
                     </Card>
                   </Tab.Pane>
