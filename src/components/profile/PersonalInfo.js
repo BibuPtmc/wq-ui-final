@@ -1,8 +1,8 @@
 import React from 'react';
-import { Form, Row, Col, Button } from 'react-bootstrap';
+import { Form, Row, Col, Button, Spinner } from 'react-bootstrap';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaVenusMars, FaBirthdayCake } from 'react-icons/fa';
 
-const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfile }) => {
+const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfile, loading }) => {
   const formatPhoneNumber = (phoneNumber) => {
     let cleaned = ("" + phoneNumber).replace(/\D/g, "");
     return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
@@ -12,7 +12,7 @@ const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfi
     <Form onSubmit={handleUpdateProfile}>
       <Row className="mb-3">
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="formEmail">
+          <Form.Group controlId="formEmail" className="mb-3">
             <Form.Label className="text-muted">
               <FaEnvelope className="me-2" />
               Email
@@ -26,7 +26,7 @@ const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfi
           </Form.Group>
         </Col>
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="formPhone">
+          <Form.Group controlId="formPhone" className="mb-3">
             <Form.Label className="text-muted">
               <FaPhone className="me-2" />
               Téléphone
@@ -43,30 +43,32 @@ const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfi
 
       <Row className="mb-3">
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="firstName">
+          <Form.Group controlId="firstName" className="mb-3">
             <Form.Label>Prénom</Form.Label>
             <Form.Control
               type="text"
               value={formData.firstName}
               onChange={handleChange}
+              disabled={loading}
               className="border-0 shadow-sm"
             />
           </Form.Group>
         </Col>
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="lastName">
+          <Form.Group controlId="lastName" className="mb-3">
             <Form.Label>Nom</Form.Label>
             <Form.Control
               type="text"
               value={formData.lastName}
               onChange={handleChange}
+              disabled={loading}
               className="border-0 shadow-sm"
             />
           </Form.Group>
         </Col>
       </Row>
 
-      <Form.Group className="mb-3" controlId="address">
+      <Form.Group controlId="address" className="mb-3">
         <Form.Label className="text-muted">
           <FaMapMarkerAlt className="me-2" />
           Adresse
@@ -75,30 +77,32 @@ const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfi
           type="text"
           value={formData.address}
           onChange={handleChange}
+          disabled={loading}
           className="border-0 shadow-sm"
         />
       </Form.Group>
 
       <Row className="mb-4">
         <Col md={6}>
-          <Form.Group controlId="gender">
+          <Form.Group controlId="gender" className="mb-3">
             <Form.Label className="text-muted">
               <FaVenusMars className="me-2" />
               Genre
             </Form.Label>
-            <Form.Select
+            <Form.Select 
               value={formData.gender}
               onChange={handleChange}
+              disabled={loading}
               className="border-0 shadow-sm"
             >
-              <option>Homme</option>
-              <option>Femme</option>
-              <option>Autre</option>
+              <option value="MALE">Homme</option>
+              <option value="FEMALE">Femme</option>
+              <option value="OTHER">Autre</option>
             </Form.Select>
           </Form.Group>
         </Col>
         <Col md={6}>
-          <Form.Group controlId="birthDay">
+          <Form.Group controlId="birthDay" className="mb-3">
             <Form.Label className="text-muted">
               <FaBirthdayCake className="me-2" />
               Date de naissance
@@ -107,20 +111,30 @@ const PersonalInfo = ({ connectedUser, formData, handleChange, handleUpdateProfi
               type="date"
               value={formData.birthDay}
               onChange={handleChange}
+              disabled={loading}
               className="border-0 shadow-sm"
             />
           </Form.Group>
         </Col>
       </Row>
 
-      <div className="d-grid">
-        <Button
-          variant="primary"
-          type="submit"
-          size="lg"
-          className="rounded-pill"
-        >
-          Mettre à jour le profil
+      <div className="d-flex justify-content-end">
+        <Button type="submit" variant="primary" disabled={loading}>
+          {loading ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="me-2"
+              />
+              Mise à jour...
+            </>
+          ) : (
+            'Mettre à jour le profil'
+          )}
         </Button>
       </div>
     </Form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
@@ -11,18 +11,26 @@ import OrderHistory from './components/profile/OrderHistory';
 import OwnedCats from './components/profile/OwnedCats';
 import ProfileSidebar from './components/profile/ProfileSidebar';
 
+const ALERT_TIMEOUT = 5000;
+
 const ProfilePage = () => {
   const axios = useAxios();
   const { loading: authLoading, setIsLoggedIn } = useAuth();
   const [connectedUser, setConnectedUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [updateSuccess, setUpdateSuccess] = useState(false);
-  const [updateError, setUpdateError] = useState("");
+  const [loadingStates, setLoadingStates] = useState({
+    profile: false,
+    password: false,
+    deleteAccount: false,
+    userData: true,
+    reportedCats: true,
+    ownedCats: true,
+    orders: true
+  });
+  const [alert, setAlert] = useState({ show: false, message: "", variant: "info" });
   const [activeTab, setActiveTab] = useState("profile");
   const [reportedCats, setReportedCats] = useState([]);
   const [ownedCats, setOwnedCats] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
   const [showCatDetails, setShowCatDetails] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
 
@@ -45,15 +53,24 @@ const ProfilePage = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showMatchingPassword, setShowMatchingPassword] = useState(false);
 
-  useEffect(() => {
-    if (loading) {
-      fetchUserData();
-    }
-  }, [axios, loading]);
+  const setLoading = useCallback((key, value) => {
+    setLoadingStates(prev => ({ ...prev, [key]: value }));
+  }, []);
 
-  const fetchUserData = async () => {
+  const showAlert = useCallback((message, variant = "info") => {
+    setAlert({ show: true, message, variant });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => setAlert({ show: false, message: "", variant: "info" }), ALERT_TIMEOUT);
+  }, []);
+
+  const handleError = useCallback((error, defaultMessage) => {
+    const errorMessage = error.response?.data?.message || defaultMessage;
+    showAlert(errorMessage, "danger");
+  }, [showAlert]);
+
+  const fetchUserData = useCallback(async () => {
     if (!sessionStorage.getItem("token")) {
-      setLoading(false);
+      setLoading('userData', false);
       return;
     }
 
@@ -72,63 +89,65 @@ const ProfilePage = () => {
       try {
         const reportedResponse = await axios.get("cat/reportedCats", { headers });
         setReportedCats(reportedResponse || []);
+        setLoading('reportedCats', false);
       } catch (error) {
         setReportedCats([]);
+        setLoading('reportedCats', false);
       }
 
       try {
         const ownedResponse = await axios.get("cat/ownedCats", { headers });
         setOwnedCats(ownedResponse || []);
+        setLoading('ownedCats', false);
       } catch (error) {
         setOwnedCats([]);
+        setLoading('ownedCats', false);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      setUpdateError("Erreur lors du chargement des données utilisateur");
+      showAlert("Erreur lors du chargement des données utilisateur", "danger");
     } finally {
-      setLoading(false);
+      setLoading('userData', false);
     }
-  };
+  }, [axios, setLoading, setConnectedUser, setFormData, setReportedCats, setOwnedCats, showAlert]);
 
-  const fetchOrders = async () => {
-    setOrdersLoading(true);
+  const fetchOrders = useCallback(async () => {
+    setLoading('orders', true);
     try {
       const response = await axios.get('/ecommerce/orders');
       setOrders(response);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      showAlert("Erreur lors du chargement des commandes", "danger");
     } finally {
-      setOrdersLoading(false);
+      setLoading('orders', false);
     }
-  };
+  }, [axios, setLoading, setOrders, showAlert]);
+
+  useEffect(() => {
+    if (loadingStates.userData) {
+      fetchUserData();
+    }
+  }, [loadingStates.userData, fetchUserData]);
 
   useEffect(() => {
     if (activeTab === 'orders') {
       fetchOrders();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchOrders]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setUpdateSuccess(false);
-    setUpdateError("");
+    setLoading('profile', true);
     
     try {
       const response = await axios.put("users/update", formData);
       setConnectedUser(response);
-      setUpdateSuccess(true);
-      setUpdateError("Profil mis à jour avec succès !");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      setTimeout(() => {
-        setUpdateSuccess(false);
-        setUpdateError("");
-      }, 5000);
-
+      showAlert("Profil mis à jour avec succès !", "success");
     } catch (error) {
-      setUpdateSuccess(false);
-      setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      handleError(error, "Erreur lors de la mise à jour du profil");
+    } finally {
+      setLoading('profile', false);
     }
   };
 
@@ -138,12 +157,11 @@ const ProfilePage = () => {
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
-    setUpdateSuccess(false);
-    setUpdateError("");
+    setLoading('password', true);
 
     if (passwordForm.newPassword !== passwordForm.matchingPassword) {
-      setUpdateError("Les nouveaux mots de passe ne correspondent pas");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showAlert("Les nouveaux mots de passe ne correspondent pas", "danger");
+      setLoading('password', false);
       return;
     }
 
@@ -168,25 +186,15 @@ const ProfilePage = () => {
         matchingPassword: ""
       });
 
-      setUpdateSuccess(true);
-      setUpdateError("Votre mot de passe a été mis à jour avec succès !");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      setTimeout(() => {
-        setUpdateSuccess(false);
-        setUpdateError("");
-      }, 5000);
-
+      showAlert("Votre mot de passe a été mis à jour avec succès !", "success");
     } catch (error) {
-      setUpdateSuccess(false);
       if (error.response?.status === 401) {
-        setUpdateError("Le mot de passe actuel est incorrect");
-      } else if (error.response?.data?.message) {
-        setUpdateError(error.response.data.message);
+        showAlert("Le mot de passe actuel est incorrect", "danger");
       } else {
-        setUpdateError("Une erreur est survenue lors de la mise à jour du mot de passe");
+        handleError(error, "Une erreur est survenue lors de la mise à jour du mot de passe");
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setLoading('password', false);
     }
   };
 
@@ -196,29 +204,34 @@ const ProfilePage = () => {
 
   const handleDeleteAccount = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
+      setLoading('deleteAccount', true);
       try {
         await axios.delete(`users/delete?id=${connectedUser.userId}`);
-        alert("Votre compte a été supprimé avec succès.");
+        showAlert("Votre compte a été supprimé avec succès.", "success");
         sessionStorage.removeItem("token");
         setIsLoggedIn(false);
         window.location.href = "/login";
       } catch (error) {
-        setUpdateError("Erreur lors de la suppression du compte: " + error.message);
+        handleError(error, "Erreur lors de la suppression du compte");
+      } finally {
+        setLoading('deleteAccount', false);
       }
     }
   };
 
   const handleDeleteReportedCat = async (catStatusId) => {
-    try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-      await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
-      setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
-      alert("Chat signalé supprimé avec succès.");
-    } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error);
-      alert("Erreur lors de la suppression du chat signalé.");
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat ? Cette action est irréversible.")) {
+      try {
+        const headers = {
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        };
+        await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
+        setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
+        showAlert("Chat signalé supprimé avec succès.", "success");
+      } catch (error) {
+        console.error("Erreur lors de la suppression du chat signalé:", error);
+        handleError(error, "Erreur lors de la suppression du chat signalé");
+      }
     }
   };
 
@@ -272,12 +285,10 @@ const ProfilePage = () => {
           : cat
       ));
       
-      setUpdateSuccess(true);
-      setTimeout(() => setUpdateSuccess(false), 3000);
+      showAlert("Chat signalé mis à jour avec succès !", "success");
     } catch (error) {
       console.error("Erreur lors de la modification du chat:", error);
-      setUpdateError("Erreur lors de la modification du chat: " + error.message);
-      setTimeout(() => setUpdateError(""), 3000);
+      showAlert("Erreur lors de la modification du chat", "danger");
     }
   };
 
@@ -289,10 +300,10 @@ const ProfilePage = () => {
         };
         await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
         setOwnedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
-        alert("Chat supprimé avec succès.");
+        showAlert("Chat supprimé avec succès.", "success");
       } catch (error) {
         console.error("Erreur lors de la suppression du chat:", error);
-        alert("Erreur lors de la suppression du chat.");
+        handleError(error, "Erreur lors de la suppression du chat");
       }
     }
   };
@@ -303,7 +314,7 @@ const ProfilePage = () => {
     setShowCatDetails(true);
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loadingStates.userData || loadingStates.reportedCats || loadingStates.ownedCats) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
         <Spinner animation="border" role="status" variant="primary">
@@ -325,7 +336,7 @@ const ProfilePage = () => {
 
   return (
     <Container className="mt-4">
-      {updateError && <Alert variant={updateSuccess ? "success" : "danger"}>{updateError}</Alert>}
+      {alert.show && <Alert variant={alert.variant}>{alert.message}</Alert>}
       
       <Tab.Container id="profile-tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
         <Row className="justify-content-center">
@@ -352,6 +363,7 @@ const ProfilePage = () => {
                       formData={formData}
                       handleChange={handleChange}
                       handleUpdateProfile={handleUpdateProfile}
+                      loading={loadingStates.profile}
                     />
                   </Card.Body>
                 </Card>
@@ -374,6 +386,7 @@ const ProfilePage = () => {
                       setShowCurrentPassword={setShowCurrentPassword}
                       setShowNewPassword={setShowNewPassword}
                       setShowMatchingPassword={setShowMatchingPassword}
+                      loading={loadingStates.password}
                     />
                   </Card.Body>
                 </Card>
@@ -387,7 +400,7 @@ const ProfilePage = () => {
                     </Card.Title>
                     <OrderHistory
                       orders={orders}
-                      ordersLoading={ordersLoading}
+                      ordersLoading={loadingStates.orders}
                     />
                   </Card.Body>
                 </Card>
