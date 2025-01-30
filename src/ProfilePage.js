@@ -3,7 +3,7 @@ import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } fro
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
 import { FaUser, FaPaw, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
-import ReportedCats from './ReportedCats';
+import ReportedCats from './components/profile/ReportedCats';
 import OwnedCats from './components/profile/OwnedCats';
 import CatDetails from './CatDetails';
 import PersonalInfo from './components/profile/PersonalInfo';
@@ -413,11 +413,15 @@ const ProfilePage = () => {
                           <FaPaw className="me-2" />
                           Chats Signalés
                         </Card.Title>
-                    <ReportedCats 
-                      reportedCats={reportedCats} 
-                      onDelete={handleDeleteReportedCat}
-                      onEdit={handleEditReportedCat}
-                    />
+                        <ReportedCats 
+                          reportedCats={reportedCats}
+                          onCatClick={(cat) => {
+                            setSelectedCatStatus(cat);
+                            setShowCatDetails(true);
+                          }}
+                          onDelete={handleDeleteReportedCat}
+                          onEdit={handleEditReportedCat}
+                        />
                       </Card.Body>
                     </Card>
                   </Tab.Pane>
