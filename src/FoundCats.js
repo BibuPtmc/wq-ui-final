@@ -3,7 +3,7 @@ import { useAxios } from "./hooks/useAxios";
 import { Card, Button, Container, Row, Col, Spinner, Badge } from "react-bootstrap";
 import { motion } from "framer-motion";
 import "./styles/global.css";
-import CatDetails from "./CatDetails";
+import CatDetails from "./components/profile/CatDetails";
 
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);

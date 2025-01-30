@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
+import { useCats } from './hooks/useCats';
 import { FaUser, FaPaw, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import ReportedCats from './components/profile/ReportedCats';
 import OwnedCats from './components/profile/OwnedCats';
-import CatDetails from './CatDetails';
+import CatDetails from './components/profile/CatDetails';
 import PersonalInfo from './components/profile/PersonalInfo';
 import SecuritySettings from './components/profile/SecuritySettings';
 import OrderHistory from './components/profile/OrderHistory';
@@ -14,13 +15,20 @@ import ProfileSidebar from './components/profile/ProfileSidebar';
 const ProfilePage = () => {
   const axios = useAxios();
   const { loading: authLoading, setIsLoggedIn, fetchUserData } = useAuth();
+  const { 
+    reportedCats, 
+    ownedCats, 
+    loading: catsLoading,
+    handleDeleteReportedCat,
+    handleEditReportedCat,
+    handleDeleteOwnedCat
+  } = useCats();
+  
   const [connectedUser, setConnectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
-  const [reportedCats, setReportedCats] = useState([]);
-  const [ownedCats, setOwnedCats] = useState([]);
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [showCatDetails, setShowCatDetails] = useState(false);
@@ -59,23 +67,6 @@ const ProfilePage = () => {
           gender: response.gender || "",
           birthDay: response.birthDay || "",
         });
-
-        // Récupérer les chats signalés ici
-        try {
-          const reportedResponse = await axios.get("cat/reportedCats", { headers });
-          setReportedCats(reportedResponse || []); 
-        } catch (error) {
-          // Ne pas afficher d'erreur si aucun chat n'est trouvé
-          setReportedCats([]);
-        }
-
-        // Fetch owned cats
-        try {
-          const ownedResponse = await axios.get("cat/ownedCats", { headers });
-          setOwnedCats(ownedResponse || []);
-        } catch (error) {
-          setOwnedCats([]);
-        }
       } catch (error) {
         console.error("Error fetching user data:", error);
         setUpdateError("Erreur lors du chargement des données utilisateur");
@@ -206,99 +197,6 @@ const ProfilePage = () => {
     }
   };
 
-  const handleDeleteReportedCat = async (catStatusId) => {
-    try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-      // Utilisez l'URL de suppression correcte
-      await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
-      setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
-      alert("Chat signalé supprimé avec succès.");
-    } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error);
-      alert("Erreur lors de la suppression du chat signalé.");
-    }
-  };
-
-  const handleEditReportedCat = async (catStatusId, updatedData) => {
-    try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-
-      // Trouver le chat dans l'état actuel
-      const currentCat = reportedCats.find(cat => cat.catStatusId === catStatusId);
-      if (!currentCat) {
-        throw new Error("Chat non trouvé");
-      }
-
-      // Créer le CatDTO avec toutes les informations existantes
-      const catDTO = {
-        catId: currentCat.cat.catId,
-        name: updatedData.name,
-        color: currentCat.cat.color,
-        eyeColor: currentCat.cat.eyeColor,
-        breed: currentCat.cat.breed,
-        furType: currentCat.cat.furType,
-        gender: currentCat.cat.gender,
-        chipNumber: currentCat.cat.chipNumber,
-        type: currentCat.cat.type,
-        dateOfBirth: currentCat.cat.dateOfBirth,
-        comment: currentCat.cat.comment,
-        imageCatData: currentCat.cat.imageCatData // Ajout de l'image
-      };
-
-      // Mettre à jour le chat
-      await axios.put(`cat/update`, catDTO, { headers });
-
-      // Créer le CatStatusDTO pour la mise à jour du statut
-      const catStatusDTO = {
-        catStatusId: catStatusId,
-        statusCat: updatedData.statusCat,
-        comment: updatedData.comment,
-        cat: {
-          catId: currentCat.cat.catId
-        }
-      };
-
-      // Mettre à jour le statut du chat
-      await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
-      
-      // Mettre à jour l'état local
-      setReportedCats(prevCats => prevCats.map(cat => 
-        cat.catStatusId === catStatusId 
-          ? { 
-              ...cat,
-              cat: { ...cat.cat, name: updatedData.name },
-              statusCat: updatedData.statusCat,
-              comment: updatedData.comment
-            }
-          : cat
-      ));
-      
-      setUpdateSuccess(true);
-      setTimeout(() => setUpdateSuccess(false), 3000);
-    } catch (error) {
-      console.error("Erreur lors de la modification du chat:", error);
-      setUpdateError("Erreur lors de la modification du chat: " + error.message);
-      setTimeout(() => setUpdateError(""), 3000);
-    }
-  };
-
-  const handleDeleteOwnedCat = async (catId) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat ?")) {
-      try {
-        await axios.delete(`cat/delete?id=${catId}`);
-        setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-        alert("Chat supprimé avec succès.");
-      } catch (error) {
-        console.error("Erreur lors de la suppression du chat:", error);
-        alert("Erreur lors de la suppression du chat.");
-      }
-    }
-  };
-
   const formatPhoneNumber = (phoneNumber) => {
     let cleaned = ("" + phoneNumber).replace(/\D/g, "");
     return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
@@ -310,7 +208,7 @@ const ProfilePage = () => {
     setShowCatDetails(true);
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loading || catsLoading) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
         <Spinner animation="border" role="status" variant="primary">
