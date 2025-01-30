@@ -8,6 +8,7 @@ import OwnedCats from './components/profile/OwnedCats';
 import CatDetails from './CatDetails';
 import PersonalInfo from './components/profile/PersonalInfo';
 import SecuritySettings from './components/profile/SecuritySettings';
+import OrderHistory from './components/profile/OrderHistory';
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -495,47 +496,13 @@ const ProfilePage = () => {
                     <Card className="shadow-sm mb-4">
                       <Card.Body>
                         <Card.Title className="mb-4">
-                          <h5 className="mb-0">Historique des commandes</h5>
+                          <FaHistory className="me-2" />
+                          Historique des commandes
                         </Card.Title>
-                        {ordersLoading ? (
-                          <div className="text-center">
-                            <Spinner animation="border" />
-                          </div>
-                        ) : orders.length === 0 ? (
-                          <Alert variant="info">
-                            Vous n'avez pas encore passé de commande.
-                          </Alert>
-                        ) : (
-                          <div className="orders-list">
-                            {orders.map((order) => (
-                              <Card key={order.id} className="mb-3">
-                                <Card.Header>
-                                  <strong>Commande #{order.id}</strong>
-                                  <span className="float-end">
-                                    {new Date(order.orderDate).toLocaleDateString()}
-                                  </span>
-                                </Card.Header>
-                                <Card.Body>
-                                  <div className="order-items">
-                                    {order.orderItems.map((item, index) => (
-                                      <div key={index} className="d-flex justify-content-between mb-2">
-                                        <span>{item.product.name} x{item.quantity}</span>
-                                        <span>{item.product.price.toFixed(2)} €</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <hr />
-                                  <div className="d-flex justify-content-between">
-                                    <strong>Statut:</strong>
-                                    <span className={`badge bg-${order.status === 'COMPLETED' ? 'success' : 'warning'}`}>
-                                      {order.status === 'COMPLETED' ? 'Payée' : 'En attente'}
-                                    </span>
-                                  </div>
-                                </Card.Body>
-                              </Card>
-                            ))}
-                          </div>
-                        )}
+                        <OrderHistory 
+                          orders={orders}
+                          ordersLoading={ordersLoading}
+                        />
                       </Card.Body>
                     </Card>
                   </Tab.Pane>
