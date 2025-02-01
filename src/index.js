@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import NavBar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import RegistrationForm from "./register/RegistrationForm";
-import RegisterCat from "./RegisterCat";
+import RegisterCat from "./components/cats/RegisterCat";
 import LostCats from "./components/cats/LostCats";
 import FoundCats from "./components/cats/FoundCats";
 import HomePage from "./pages/home/HomePage";

@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert, Card, Row, Col } from "react-bootstrap";
-import { useAxios } from "./hooks/useAxios";
+import { useAxios } from "../../hooks/useAxios";
 import Select from "react-select";
 import { motion } from "framer-motion";
 import { FaPaw, FaCamera } from "react-icons/fa";
-import { buttonStyles } from "./styles";
-import catBreeds from "./CatBreeds";
-import { useAuth } from "./hooks/authProvider";
+import { buttonStyles } from "../../styles/styles";
+import catBreeds from "../../CatBreeds";
+import { useAuth } from "../../hooks/authProvider";
 
 function RegisterCat() {
   const today = new Date().toISOString().replace("T", " ").replace("Z", "");

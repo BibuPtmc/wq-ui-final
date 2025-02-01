@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../hooks/useAxios";
 import { motion } from "framer-motion";
 import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash } from "react-icons/fa";
-import { buttonStyles } from "../styles";
+import { buttonStyles } from "../styles/styles";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
