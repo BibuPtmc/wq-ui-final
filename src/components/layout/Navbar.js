@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Navbar, Nav, Button, Container, Dropdown } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import Logo from "./image/log.webp";
-import { useAuth } from "./hooks/authProvider";
+import Logo from "../../image/log.webp";
+import { useAuth } from "../../hooks/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
-import Cart from './components/ecommerce/Cart';
-import { useCart } from './components/ecommerce/CartContext';
+import Cart from '../ecommerce/Cart';
+import { useCart } from '../ecommerce/CartContext';
 
 const NavBar = () => {
   const { isLoggedIn, userData, logout } = useAuth();

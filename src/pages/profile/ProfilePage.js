@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
-import { useAxios } from "./hooks/useAxios";
-import { useAuth } from "./hooks/authProvider";
-import { useCats } from './hooks/useCats';
+import { useAxios } from "../../hooks/useAxios";
+import { useAuth } from "../../hooks/authProvider";
+import { useCats } from '../../hooks/useCats';
 import { FaUser, FaPaw, FaLock, FaHistory} from 'react-icons/fa';
-import ReportedCats from './components/profile/ReportedCats';
-import OwnedCats from './components/profile/OwnedCats';
-import CatDetails from './components/profile/CatDetails';
-import PersonalInfo from './components/profile/PersonalInfo';
-import SecuritySettings from './components/profile/SecuritySettings';
-import OrderHistory from './components/profile/OrderHistory';
-import ProfileSidebar from './components/profile/ProfileSidebar';
+import ReportedCats from '../../components/profile/ReportedCats';
+import OwnedCats from '../../components/profile/OwnedCats';
+import CatDetails from '../../components/profile/CatDetails';
+import PersonalInfo from '../../components/profile/PersonalInfo';
+import SecuritySettings from '../../components/profile/SecuritySettings';
+import OrderHistory from '../../components/profile/OrderHistory';
+import ProfileSidebar from '../../components/profile/ProfileSidebar';
 
 const ProfilePage = () => {
   const axios = useAxios();

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Form, Button, Container, Row, Col, Card, Alert } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "./hooks/authProvider";
-import { useAxios } from "./hooks/useAxios";
+import { useAuth } from "../../hooks/authProvider";
+import { useAxios } from "../../hooks/useAxios";
 import { motion } from "framer-motion";
 import { FaUser, FaLock, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
 

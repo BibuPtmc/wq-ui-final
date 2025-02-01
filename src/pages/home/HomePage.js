@@ -1,8 +1,8 @@
 import React from "react";
 import { Carousel, Container, Button } from "react-bootstrap";
-import img1 from "./image/1.jpg";
-import img2 from "./image/2.jpg";
-import img3 from "./image/3.jpg";
+import img1 from "../../image/1.jpg";
+import img2 from "../../image/2.jpg";
+import img3 from "../../image/3.jpg";
 
 const HomePage = () => {
   return (
