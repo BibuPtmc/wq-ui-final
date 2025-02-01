@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useAxios } from "./hooks/useAxios";
+import { useAxios } from "../../hooks/useAxios";
 import { Card, Button, Container, Row, Col, Spinner, Badge } from "react-bootstrap";
 import { motion } from "framer-motion";
-import "./styles/global.css";
-import CatDetails from "./components/profile/CatDetails";
+import "../../styles/global.css";
+import CatDetails from "../profile/CatDetails";
 
 function LostCats() {
   const [lostCats, setLostCats] = useState([]);
