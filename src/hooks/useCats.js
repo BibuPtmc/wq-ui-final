@@ -6,6 +6,7 @@ export const useCats = () => {
   const [reportedCats, setReportedCats] = useState([]);
   const [ownedCats, setOwnedCats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const fetchCats = async () => {
     try {
@@ -40,6 +41,8 @@ export const useCats = () => {
       };
       await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
       setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
+      setSuccessMessage('Le chat a été supprimé avec succès !');
+      setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
       return true;
     } catch (error) {
       console.error("Erreur lors de la suppression du chat signalé:", error);
@@ -97,6 +100,8 @@ export const useCats = () => {
           : cat
       ));
       
+      setSuccessMessage('Les informations du chat ont été mises à jour avec succès !');
+      setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
       return true;
     } catch (error) {
       console.error("Erreur lors de la modification du chat:", error);
@@ -108,6 +113,8 @@ export const useCats = () => {
     try {
       await axios.delete(`cat/delete?id=${catId}`);
       setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
+      setSuccessMessage('Le chat a été supprimé avec succès !');
+      setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
       return true;
     } catch (error) {
       console.error("Erreur lors de la suppression du chat:", error);
@@ -125,6 +132,7 @@ export const useCats = () => {
     reportedCats,
     ownedCats,
     loading,
+    successMessage,
     handleDeleteReportedCat,
     handleEditReportedCat,
     handleDeleteOwnedCat,

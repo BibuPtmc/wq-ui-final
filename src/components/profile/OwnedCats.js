@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { FaPaw, FaTrash } from 'react-icons/fa';
 
 
-const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat }) => {
+const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, successMessage }) => {
   if (ownedCats.length === 0) {
     return (
       <Alert variant="info">Vous n'avez pas encore de chats.</Alert>
@@ -18,6 +18,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat }) => {
         Mes chats
       </Card.Title>
       
+      {successMessage && (
+        <Alert variant="success" className="mb-3">
+          {successMessage}
+        </Alert>
+      )}
+
       <div className="text-center mb-4">
         <Badge bg="primary" className="px-3 py-2">
           {ownedCats.length} chats

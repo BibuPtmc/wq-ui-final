@@ -33,7 +33,7 @@ function FoundCats() {
     if (loading) {
       fetchFoundCats();
     }
-  }, [axios]);
+  }, [axios, loading]);
 
   if (loading) {
     return (

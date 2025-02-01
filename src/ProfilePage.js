@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Card, Spinner, Alert, Nav, Tab } from "react-bootstrap";
+import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
 import { useAxios } from "./hooks/useAxios";
 import { useAuth } from "./hooks/authProvider";
 import { useCats } from './hooks/useCats';
-import { FaUser, FaPaw, FaLock, FaHistory, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaPaw, FaLock, FaHistory} from 'react-icons/fa';
 import ReportedCats from './components/profile/ReportedCats';
 import OwnedCats from './components/profile/OwnedCats';
 import CatDetails from './components/profile/CatDetails';
@@ -21,7 +21,8 @@ const ProfilePage = () => {
     loading: catsLoading,
     handleDeleteReportedCat,
     handleEditReportedCat,
-    handleDeleteOwnedCat
+    handleDeleteOwnedCat,
+    successMessage
   } = useCats();
   
   const [connectedUser, setConnectedUser] = useState(null);
@@ -319,6 +320,7 @@ const ProfilePage = () => {
                           }}
                           onDelete={handleDeleteReportedCat}
                           onEdit={handleEditReportedCat}
+                          successMessage={successMessage}
                         />
                       </Card.Body>
                     </Card>
@@ -331,6 +333,7 @@ const ProfilePage = () => {
                           ownedCats={ownedCats}
                           onShowCatDetails={handleShowCatDetails}
                           onDeleteCat={handleDeleteOwnedCat}
+                          successMessage={successMessage}
                         />
                       </Card.Body>
                     </Card>
