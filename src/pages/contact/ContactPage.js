@@ -3,7 +3,7 @@ import emailjs from "@emailjs/browser";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container"; // Importez Container depuis react-bootstrap
-import { buttonStyles } from "./styles";
+import { buttonStyles } from "../../styles/styles";
 
 export const ContactUs = () => {
   const form = useRef();

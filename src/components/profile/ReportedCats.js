@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Button, Modal, Form } from 'react-bootstrap';
+import { Card, Row, Col, Button, Modal, Form, Alert } from 'react-bootstrap';
 import { FaTimes, FaEdit } from 'react-icons/fa';
 
-const ReportedCats = ({ reportedCats, onDelete, onEdit }) => {
+const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -43,6 +43,11 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit }) => {
   return (
     <div>
       <h2>Chats Signalés</h2>
+      {successMessage && (
+        <Alert variant="success" className="mb-3">
+          {successMessage}
+        </Alert>
+      )}
       {reportedCats.length > 0 ? (
         <Row>
           {reportedCats.map(catStatus => (

@@ -1,6 +1,6 @@
-import { config } from "@fortawesome/fontawesome-svg-core";
+
 import axios from "axios";
-import { AuthProvider } from "./authProvider";
+
 
 export function useAxios() {
   var headers = sessionStorage.getItem("token")

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useAxios } from "./hooks/useAxios";
+import { useAxios } from "../../hooks/useAxios";
 import { Card, Button, Container, Row, Col, Spinner, Badge } from "react-bootstrap";
 import { motion } from "framer-motion";
-import "./styles/global.css";
-import CatDetails from "./CatDetails";
+import "../../styles/global.css";
+import CatDetails from "../profile/CatDetails";
 
-function FoundCats() {
-  const [foundCats, setFoundCats] = useState([]);
+function LostCats() {
+  const [lostCats, setLostCats] = useState([]);
   const axios = useAxios();
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
@@ -15,23 +15,22 @@ function FoundCats() {
   const handleClose = () => setShow(false);
   const handleShow = (catStatus) => {
     setSelectedCatStatus(catStatus);
-    console.log(selectedCatStatus);
     setShow(true);
-  }
+  };
 
   useEffect(() => {
-    const fetchFoundCats = async () => {
+    const fetchLostCats = async () => {
       try {
-        const response = await axios.get("cat/findFoundCat");
+        const response = await axios.get("cat/findLostCat");
         setLoading(false);
-        setFoundCats(response);
+        setLostCats(response);
       } catch (error) {
-        console.error("Error fetching found cats:", error);
+        console.error("Error fetching lost cats:", error);
         setLoading(false);
       }
     };
     if (loading) {
-      fetchFoundCats();
+      fetchLostCats();
     }
   }, [axios]);
 
@@ -47,17 +46,17 @@ function FoundCats() {
 
   return (
     <Container className="main-container">
-      <h1 className="text-center mb-4">Chats Trouvés</h1>
-      {foundCats.length > 0 ? (
+      <h1 className="text-center mb-4">Chats Perdus</h1>
+      {lostCats.length > 0 ? (
         <>
           <div className="text-center mb-4">
-            <Badge bg="success" className="px-3 py-2">
-              {foundCats.length} chats trouvés
+            <Badge bg="info" className="px-3 py-2">
+              {lostCats.length} chats perdus
             </Badge>
           </div>
           <Row xs={1} md={2} lg={3} className="g-4">
-            {foundCats.map((catStatus) => {
-              const cat = catStatus.cat; // Extract cat from catStatus
+            {lostCats.map((catStatus) => {
+              const cat = catStatus.cat;
               return (
                 <Col key={cat.catId}>
                   <motion.div
@@ -96,10 +95,10 @@ function FoundCats() {
                         </Card.Text>
                         <div className="d-flex justify-content-between align-items-center">
                           <small className="text-muted">
-                            Trouvé le: {new Date(catStatus.reportDate).toLocaleDateString()}
+                            Perdu le: {new Date(catStatus.reportDate).toLocaleDateString()}
                           </small>
                           <Button
-                            variant="outline-success"
+                            variant="outline-primary"
                             size="sm"
                             onClick={() => handleShow(catStatus)}
                             className="rounded-pill"
@@ -117,14 +116,14 @@ function FoundCats() {
         </>
       ) : (
         <div className="text-center py-5">
-          <h3>Aucun chat trouvé pour le moment</h3>
+          <h3>Aucun chat perdu pour le moment</h3>
           <p className="text-muted">
-            Revenez plus tard ou signalez un chat trouvé.
+            Revenez plus tard ou signalez un chat perdu.
           </p>
         </div>
       )}
-      
-      {/* Move CatDetails outside the map function */}
+
+      {/* CatDetails Modal */}
       <CatDetails 
         selectedCatStatus={selectedCatStatus} 
         handleClose={handleClose} 
@@ -134,4 +133,4 @@ function FoundCats() {
   );
 }
 
-export default FoundCats;
+export default LostCats;
