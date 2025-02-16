@@ -88,10 +88,8 @@ function FoundCats() {
                         <Card.Text className="text-muted small mb-2">
                           Race: {cat.breed || "Inconnue"}
                         </Card.Text>
-                        <Card.Text className="mb-3">
-                          {catStatus.comment && catStatus.comment.length > 100
-                            ? `${catStatus.comment.substring(0, 100)}...`
-                            : catStatus.comment || "Aucune description disponible"}
+                        <Card.Text className="text-muted small mb-2">
+                          Date de naissance: {cat.dateOfBirth ? new Date(cat.dateOfBirth).toLocaleDateString() : "Inconnue"}
                         </Card.Text>
                         <div className="d-flex justify-content-between align-items-center">
                           <small className="text-muted">
