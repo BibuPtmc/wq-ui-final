@@ -90,9 +90,9 @@ const PersonalInfo = ({
               onChange={handleChange}
             >
               <option value="">Sélectionnez votre genre</option>
-              <option value="MALE">Homme</option>
-              <option value="FEMALE">Femme</option>
-              <option value="OTHER">Autre</option>
+              <option value="Homme">Homme</option>
+              <option value="Femme">Femme</option>
+              <option value="Autre">Autre</option>
             </Form.Select>
           </Form.Group>
         </Col>
