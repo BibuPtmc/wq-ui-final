@@ -28,10 +28,32 @@ const RegistrationForm = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    
+    if (!email) {
+      setEmailError("L'adresse email est requise");
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError("L'adresse email n'est pas valide");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    
+    // Validation de l'email en temps réel
+    if (name === 'email') {
+      validateEmail(value);
+    }
+    
     setPasswordsMatch(true);
     setRegistrationSuccess(false);
     setPasswordComplexityError(false);
@@ -40,6 +62,11 @@ const RegistrationForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validation de l'email
+    if (!validateEmail(formData.email)) {
+      return;
+    }
 
     if (formData.password !== formData.matchingPassword) {
       setPasswordsMatch(false);
@@ -69,10 +96,14 @@ const RegistrationForm = () => {
       })
       .catch((error) => {
         console.error("Erreur lors de l'inscription :", error);
-        setError(
-          error.response?.data?.message ||
-            "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
-        );
+        if (error.response?.data?.message === "Email already exists") {
+          setError("Cette adresse email est déjà utilisée");
+        } else {
+          setError(
+            error.response?.data?.message ||
+              "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+          );
+        }
       });
   };
 
@@ -130,7 +161,13 @@ const RegistrationForm = () => {
                           onChange={handleChange}
                           placeholder="Entrez votre email"
                           required
+                          isInvalid={!!emailError}
                         />
+                        {emailError && (
+                          <Form.Control.Feedback type="invalid">
+                            {emailError}
+                          </Form.Control.Feedback>
+                        )}
                       </Form.Group>
 
                       <Row>
