@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Button, Modal, Form, Alert } from 'react-bootstrap';
-import { FaTimes, FaEdit } from 'react-icons/fa';
+import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
+import { motion } from 'framer-motion';
+import { FaPaw, FaEdit, FaTimes } from 'react-icons/fa';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const [showModal, setShowModal] = useState(false);
@@ -40,48 +41,97 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     });
   };
 
+  if (reportedCats.length === 0) {
+    return (
+      <Alert variant="info">Vous n'avez pas de chats signalés.</Alert>
+    );
+  }
+
   return (
-    <div>
-      <h2>Chats Signalés</h2>
+    <>
+
+
       {successMessage && (
         <Alert variant="success" className="mb-3">
           {successMessage}
         </Alert>
       )}
-      {reportedCats.length > 0 ? (
-        <Row>
-          {reportedCats.map(catStatus => (
-            <Col md={4} key={catStatus.catStatusId} className="mb-4">
-              <Card className="shadow-sm position-relative">
-                <div className="position-absolute d-flex" style={{ top: '10px', right: '10px', gap: '10px' }}>
-                  <FaEdit
-                    style={{ cursor: 'pointer', color: '#0d6efd' }}
-                    onClick={() => handleEdit(catStatus)}
+
+      <div className="text-center mb-4">
+        <Badge bg="primary" className="px-3 py-2">
+          {reportedCats.length} chats signalés
+        </Badge>
+      </div>
+
+      <Row xs={1} md={2} lg={3} className="g-4">
+        {reportedCats.map((catStatus) => {
+          const cat = catStatus.cat;
+          return (
+            <Col key={catStatus.catStatusId}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="cat-card shadow-sm h-100">
+                  <Card.Img
+                    variant="top"
+                    src={cat.imageCatData ? 
+                      `data:${cat.type};base64,${cat.imageCatData}` : 
+                      cat.photoUrl || "/images/noImageCat.png"
+                    }
+                    alt={cat.name}
+                    onError={(e) => {
+                      e.target.src = "/images/noImageCat.png";
+                      e.target.onerror = null;
+                    }}
+                    style={{ height: "200px", objectFit: "cover" }}
                   />
-                  <FaTimes
-                    style={{ cursor: 'pointer', color: '#dc3545' }}
-                    onClick={() => handleDelete(catStatus.catStatusId)}
-                  />
-                </div>
-                <Card.Body>
-                  <Card.Title>{catStatus.cat.name || "Nom inconnu"}</Card.Title>
-                  <Card.Text>
-                    <strong>Status:</strong> {catStatus.statusCat || "Statut inconnu"}
-                  </Card.Text>
-                  <Card.Text>
-                    <strong>Commentaire:</strong> {catStatus.comment || "Aucun commentaire"}
-                  </Card.Text>
-                  <Card.Text>
-                    <strong>Date de signalement:</strong> {new Date(catStatus.reportDate).toLocaleDateString() || "Date inconnue"}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
+                      <Badge
+                        bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                        className="ms-2"
+                      >
+                        {cat.gender || "Genre inconnu"}
+                      </Badge>
+                    </div>
+                    <Card.Text className="text-muted small">
+                      Status: {catStatus.statusCat || "Non spécifié"}
+                    </Card.Text>
+                    <Card.Text className="text-muted small">
+                      Signalé le: {new Date(catStatus.reportDate).toLocaleDateString()}
+                    </Card.Text>
+                    {catStatus.comment && (
+                      <Card.Text className="text-muted small">
+                        Commentaire: {catStatus.comment}
+                      </Card.Text>
+                    )}
+                    <div className="d-flex gap-2 mt-2">
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="flex-grow-1"
+                        onClick={() => handleEdit(catStatus)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(catStatus.catStatusId)}
+                      >
+                        <FaTimes />
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </motion.div>
             </Col>
-          ))}
-        </Row>
-      ) : (
-        <p>Aucun chat signalé.</p>
-      )}
+          );
+        })}
+      </Row>
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
@@ -98,9 +148,8 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                 onChange={handleChange}
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
-              <Form.Label>Statut</Form.Label>
+              <Form.Label>Status</Form.Label>
               <Form.Select
                 name="statusCat"
                 value={editForm.statusCat}
@@ -109,23 +158,21 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                 <option value="">Sélectionner un statut</option>
                 <option value="LOST">Perdu</option>
                 <option value="FOUND">Trouvé</option>
-                <option value="ADOPT">À adopter</option>
+                {/* <option value="ADOPT">À adopter</option> */}
+                <option value="OWN">Propriétaire</option>
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Commentaire</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
                 name="comment"
                 value={editForm.comment}
                 onChange={handleChange}
               />
             </Form.Group>
-
-            <div className="d-flex justify-content-end">
-              <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
                 Annuler
               </Button>
               <Button variant="primary" type="submit">
@@ -135,7 +182,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
           </Form>
         </Modal.Body>
       </Modal>
-    </div>
+    </>
   );
 };
 
