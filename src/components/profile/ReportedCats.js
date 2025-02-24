@@ -49,10 +49,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   return (
     <>
-      <Card.Title className="mb-4">
-        <FaPaw className="me-2" />
-        Chats Signalés
-      </Card.Title>
+
 
       {successMessage && (
         <Alert variant="success" className="mb-3">
