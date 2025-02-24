@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { FaPaw, FaEdit, FaTimes } from 'react-icons/fa';
+import {FaTimes } from 'react-icons/fa';
+
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const [showModal, setShowModal] = useState(false);
@@ -11,6 +12,8 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     statusCat: '',
     comment: ''
   });
+
+// après enregistrement de la modification reportedDate devient null + attention comment dans cat_status et dans cat voir lequel garder
 
   const handleDelete = (catStatusId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat signalé ?")) {

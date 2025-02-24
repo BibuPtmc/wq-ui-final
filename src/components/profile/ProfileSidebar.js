@@ -78,6 +78,7 @@ const ProfileSidebar = ({
             >
               <FaPaw className="me-2" />
               Chats Signalés
+              {/* voir pourquoi chats signalés ce trouve la et pas dans reportedCats */}
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
