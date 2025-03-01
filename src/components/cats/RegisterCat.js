@@ -32,8 +32,8 @@ function RegisterCat() {
     statusCat: "LOST", // Statut par défaut
     reportDate: today, // Date de signalement par défaut
     location: {
-      latitude: 46.8139, // Coordonnées par défaut (France)
-      longitude: 2.4539,
+      latitude: "", 
+      longitude: "",
       address: "",
       city: "",
       postalCode: ""
@@ -239,8 +239,8 @@ const handleRequestCurrentLocation = () => {
         statusCat: "",
         reportDate: today,
         location: {
-          latitude: 46.8139,
-          longitude: 2.4539,
+          latitude: "",
+          longitude: "",
           address: "",
           city: "",
           postalCode: ""
