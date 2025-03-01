@@ -56,38 +56,24 @@ function RegisterCat() {
 
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
     try {
-      setFormData(prev => {
-        if (prev.location.longitude === longitude && prev.location.latitude === latitude) {
-          return prev; // Évite une mise à jour inutile
-        }
-        return {
-          ...prev,
-          location: {
-            ...prev.location,
-            longitude,
-            latitude
-          }
-        };
-      });
-  
       const addressInfo = await reverseGeocode(longitude, latitude);
   
-      if (addressInfo) {
-        setFormData(prev => ({
-          ...prev,
-          location: {
-            ...prev.location,
-            address: addressInfo.address,
-            city: addressInfo.city,
-            postalCode: addressInfo.postalCode
-          }
-        }));
-      }
+      setFormData(prev => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          longitude,
+          latitude,
+          address: addressInfo?.address || "",
+          city: addressInfo?.city || "",
+          postalCode: addressInfo?.postalCode || ""
+        }
+      }));
     } catch (error) {
       console.error("Erreur lors de la récupération de l'adresse:", error);
       setMapError("Erreur lors de la récupération de l'adresse");
     }
-  }, [setFormData, setMapError]); // ✅ `setMapError` est maintenant bien défini
+  }, [setFormData, setMapError]);
 
 // Initialisation avec la position actuelle
 useEffect(() => {
@@ -516,6 +502,15 @@ const handleRequestCurrentLocation = () => {
                       <MapLocation 
                         location={formData.location}
                         onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
+                        onAddressChange={(addressData) => {
+                          setFormData({
+                            ...formData,
+                            location: {
+                              ...formData.location,
+                              ...addressData
+                            }
+                          });
+                        }}
                         isLocating={isLocating}
                         geoError={geoError}
                         onGeoErrorDismiss={() => setGeoError(null)}
@@ -532,6 +527,7 @@ const handleRequestCurrentLocation = () => {
                           value={formData.location.address}
                           onChange={handleLocationChange}
                           placeholder="Adresse du signalement"
+                          disabled // Optionnel: désactivez l'édition directe pour encourager l'utilisation de la recherche
                         />
                       </Form.Group>
                       <Row>

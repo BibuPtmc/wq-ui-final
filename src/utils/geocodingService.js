@@ -1,4 +1,3 @@
-// src/utils/geocodingService.js
 import mapboxgl from 'mapbox-gl';
 
 export const reverseGeocode = async (longitude, latitude) => {
