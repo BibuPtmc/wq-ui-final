@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Form, Button, Container, Row, Col, Card, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../hooks/useAxios";
@@ -6,10 +6,13 @@ import { motion } from "framer-motion";
 import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../styles/styles";
 import MapLocation from "../components/map/MapLocation";
+import useGeolocation from "../hooks/useGeolocation";
+
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const axios = useAxios();
+  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
   const [formData, setFormData] = useState({
     userName: "bibu",
     email: "bibu@gmail.com",
@@ -49,6 +52,35 @@ const RegistrationForm = () => {
     setEmailError("");
     return true;
   };
+
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    setFormData(prev => ({
+      ...prev,
+      longitude,
+      latitude
+    }));
+  }, []);
+
+  // Initialisation automatique de la géolocalisation au chargement
+  useEffect(() => {
+    getCurrentPosition()
+      .then(position => {
+        updateLocationFromCoordinates(position.longitude, position.latitude);
+      })
+      .catch(error => {
+        console.log("Erreur de géolocalisation:", error.message);
+      });
+  }, [getCurrentPosition, updateLocationFromCoordinates]);
+
+  const handleRequestCurrentLocation = async () => {
+    try {
+      const position = await getCurrentPosition();
+      updateLocationFromCoordinates(position.longitude, position.latitude);
+    } catch (error) {
+      console.error("Erreur de géolocalisation:", error);
+    }
+  };
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -356,6 +388,10 @@ const RegistrationForm = () => {
                         }}
                         onLocationChange={handleLocationChange}
                         onAddressChange={handleAddressChange}
+                        isLocating={isLocating}
+                        geoError={geoError}
+                        onGeoErrorDismiss={() => setGeoError("")}
+                        onRequestCurrentLocation={handleRequestCurrentLocation}
                         mapHeight="300px"
                       />
                     </Card.Body>
