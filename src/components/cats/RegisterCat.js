@@ -1,17 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect,useCallback  } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert, Card, Row, Col } from "react-bootstrap";
 import { useAxios } from "../../hooks/useAxios";
 import Select from "react-select";
 import { motion } from "framer-motion";
-import { FaPaw, FaCamera } from "react-icons/fa";
+import { FaPaw, FaCamera, FaMapMarkerAlt  } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
 import catBreeds from "../../CatBreeds";
 import { useAuth } from "../../hooks/authProvider";
+import mapboxgl from 'mapbox-gl';
+import "mapbox-gl/dist/mapbox-gl.css";
+import useGeolocation from "../../hooks/useGeolocation";
+import MapLocation from "../map/MapLocation";
+import { reverseGeocode } from "../../utils/geocodingService";
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function RegisterCat() {
   const today = new Date().toISOString().replace("T", " ").replace("Z", "");
-  console.log(today);
+
   const [formData, setFormData] = useState({
     name: "Mittens", // Nom par défaut
     breed: "Siamese", // Race par défaut
@@ -25,15 +31,70 @@ function RegisterCat() {
     comment: "Chat très amical et joueur.", // Commentaire par défaut
     statusCat: "LOST", // Statut par défaut
     reportDate: today, // Date de signalement par défaut
+    location: {
+      latitude: "", 
+      longitude: "",
+      address: "",
+      city: "",
+      postalCode: ""
+    }
+
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [mapError, setMapError] = useState(null);
+
 
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   const axios = useAxios();
   const [showLoginAlert, setShowLoginAlert] = useState(!isLoggedIn);
+
+  // Utiliser le hook de géolocalisation
+  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
+
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    try {
+      const addressInfo = await reverseGeocode(longitude, latitude);
+  
+      setFormData(prev => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          longitude,
+          latitude,
+          address: addressInfo?.address || "",
+          city: addressInfo?.city || "",
+          postalCode: addressInfo?.postalCode || ""
+        }
+      }));
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'adresse:", error);
+      setMapError("Erreur lors de la récupération de l'adresse");
+    }
+  }, [setFormData, setMapError]);
+
+// Initialisation avec la position actuelle
+useEffect(() => {
+  if (isLoggedIn) {
+    getCurrentPosition()
+      .then(position => {
+        updateLocationFromCoordinates(position.longitude, position.latitude);
+      })
+      .catch(error => {
+        console.log("Utilisation de la position par défaut:", error.message);
+      });
+  }
+}, [isLoggedIn, getCurrentPosition, updateLocationFromCoordinates]);
+
+// Gérer la demande de localisation actuelle par l'utilisateur
+const handleRequestCurrentLocation = () => {
+  getCurrentPosition()
+    .then(position => {
+      updateLocationFromCoordinates(position.longitude, position.latitude);
+    });
+};
 
   // Si l'utilisateur n'est pas connecté, afficher une alerte
   if (!isLoggedIn) {
@@ -71,6 +132,17 @@ function RegisterCat() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  
+  const handleLocationChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      location: {
+        ...formData.location,
+        [name]: value
+      }
+    });
+  };
 
   const handleSelectChange = (selectedOption, action) => {
     setFormData({
@@ -104,6 +176,15 @@ function RegisterCat() {
     const name = formData.name.trim() === "" ? "Inconnu" : formData.name;
     // Mettre à jour le nom du chat dans le formulaire
     setFormData({ ...formData, name: name });
+
+    // Créer l'objet de localisation
+    const localisation = {
+      latitude: formData.location.latitude,
+      longitude: formData.location.longitude,
+      address: formData.location.address,
+      city: formData.location.city,
+      postalCode: formData.location.postalCode
+    };
     const catStatus = {
       cat: {
         name: formData.name,
@@ -121,6 +202,9 @@ function RegisterCat() {
       comment: formData.comment,
       statusCat: formData.statusCat,
       reportDate: today,
+      //reportDate: formData.reportDate,
+      location: localisation // Ajout de la localisation
+
     };
     try {
       const response = await axios.post("/cat/register", catStatus);
@@ -140,7 +224,17 @@ function RegisterCat() {
         comment: "",
         statusCat: "",
         reportDate: today,
+        location: {
+          latitude: "",
+          longitude: "",
+          address: "",
+          city: "",
+          postalCode: ""
+        }
       });
+
+      setPreview(null);
+
       setTimeout(() => {
         setShowSuccessMessage(false);
       }, 5000);
@@ -395,6 +489,105 @@ function RegisterCat() {
                   </Card>
                 </Col>
               </Row>
+
+              {/* Section Localisation avec Mapbox */}
+              <Card className="mb-4">
+                <Card.Header className="bg-light d-flex align-items-center">
+                  <FaMapMarkerAlt className="me-2" />
+                  <h5 className="mb-0">Localisation du chat</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={7}>
+                      <MapLocation 
+                        location={formData.location}
+                        onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
+                        onAddressChange={(addressData) => {
+                          setFormData({
+                            ...formData,
+                            location: {
+                              ...formData.location,
+                              ...addressData
+                            }
+                          });
+                        }}
+                        isLocating={isLocating}
+                        geoError={geoError}
+                        onGeoErrorDismiss={() => setGeoError(null)}
+                        onRequestCurrentLocation={handleRequestCurrentLocation}
+                        mapHeight="300px"
+                      />
+                    </Col>
+                    <Col md={5}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Adresse</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="address"
+                          value={formData.location.address}
+                          onChange={handleLocationChange}
+                          placeholder="Adresse du signalement"
+                          disabled // Optionnel: désactivez l'édition directe pour encourager l'utilisation de la recherche
+                        />
+                      </Form.Group>
+                      <Row>
+                        <Col sm={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Ville</Form.Label>
+                            <Form.Control
+                              type="text"
+                              name="city"
+                              value={formData.location.city}
+                              onChange={handleLocationChange}
+                              placeholder="Ville"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Code postal</Form.Label>
+                            <Form.Control
+                              type="text"
+                              name="postalCode"
+                              value={formData.location.postalCode}
+                              onChange={handleLocationChange}
+                              placeholder="Code postal"
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col sm={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Latitude</Form.Label>
+                            <Form.Control
+                              type="number"
+                              step="0.000001"
+                              name="latitude"
+                              value={formData.location.latitude}
+                              onChange={handleLocationChange}
+                              placeholder="Latitude"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Longitude</Form.Label>
+                            <Form.Control
+                              type="number"
+                              step="0.000001"
+                              name="longitude"
+                              value={formData.location.longitude}
+                              onChange={handleLocationChange}
+                              placeholder="Longitude"
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
 
               <div className="text-center mt-4">
                 <p className="text-muted mb-4">* Champs obligatoires</p>

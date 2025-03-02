@@ -1,0 +1,65 @@
+/* Custom styles for Mapbox popups */
+.mapboxgl-popup-content {
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    max-width: 250px;
+  }
+  
+  .cat-popup-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #f8d35e;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .cat-popup-placeholder {
+    width: 100px;
+    height: 100px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  
+  .cat-popup-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0 5px;
+  }
+  
+  .cat-popup-date {
+    font-size: 12px;
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .cat-popup-info {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  
+  .cat-popup-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    display: block;
+    margin: 10px auto 0;
+    text-decoration: none;
+    text-align: center;
+  }
+  
+  .cat-popup-btn:hover {
+    background-color: #0069d9;
+  }
