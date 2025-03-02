@@ -3,6 +3,7 @@ import { Carousel, Container, Button } from "react-bootstrap";
 import img1 from "../../image/1.jpg";
 import img2 from "../../image/2.jpg";
 import img3 from "../../image/3.jpg";
+import LostCatsMap from "../../components/map/LostCatsMap";
 
 const HomePage = () => {
   return (
@@ -42,6 +43,10 @@ const HomePage = () => {
           </Carousel.Caption>
         </Carousel.Item>
       </Carousel>
+
+      <Container className="my-5">
+        <LostCatsMap />
+      </Container>
 
       <Container className="mt-5">
         <h2>Nos Valeurs</h2>
