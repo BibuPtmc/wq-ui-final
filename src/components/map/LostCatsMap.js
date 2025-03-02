@@ -107,10 +107,15 @@ const LostCatsMap = () => {
   if (error) {
     return (
       <Card className="shadow-sm">
-        <Card.Body>
-          <Alert variant="danger">
-            <Alert.Heading>Erreur de chargement</Alert.Heading>
-            <p>{error}</p>
+        <Card.Body className="text-center">
+          <Alert variant="success">
+            <Alert.Heading className="d-flex align-items-center justify-content-center">
+              <FaCat className="me-2" />
+              Bonne nouvelle !
+            </Alert.Heading>
+            <p className="mb-0">
+              Aucun chat n'est perdu dans votre région pour le moment.
+            </p>
           </Alert>
         </Card.Body>
       </Card>
