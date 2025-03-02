@@ -1,19 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import {FaTimes } from 'react-icons/fa';
-
+import { FaTimes, FaPaw } from 'react-icons/fa';
+import { useCats } from '../../hooks/useCats';
+import MatchingResults from '../cats/MatchingResults';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
+  const { findPotentialMatches } = useCats();
   const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
+  const [showMatches, setShowMatches] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [matchCounts, setMatchCounts] = useState({});
+  const [loadingMatches, setLoadingMatches] = useState({});
   const [editForm, setEditForm] = useState({
     name: '',
     statusCat: '',
     comment: ''
   });
 
-// après enregistrement de la modification reportedDate devient null + attention comment dans cat_status et dans cat voir lequel garder
+  useEffect(() => {
+    const fetchMatchCounts = async () => {
+      const counts = {};
+      const loading = {};
+      for (const catStatus of reportedCats) {
+        if (catStatus.statusCat === 'LOST') {
+          loading[catStatus.cat.catId] = true;
+          const matchResults = await findPotentialMatches(catStatus.cat.catId);
+          counts[catStatus.cat.catId] = matchResults.length;
+          loading[catStatus.cat.catId] = false;
+        }
+      }
+      setMatchCounts(counts);
+      setLoadingMatches(loading);
+    };
+    fetchMatchCounts();
+  }, [reportedCats]);
 
   const handleDelete = (catStatusId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat signalé ?")) {
@@ -44,6 +66,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     });
   };
 
+  const handleShowMatches = async (cat) => {
+    const matchResults = await findPotentialMatches(cat.catId);
+    setMatches(matchResults);
+    setShowMatches(true);
+  };
+
+  const handleCloseMatches = () => {
+    setShowMatches(false);
+  };
+
   if (reportedCats.length === 0) {
     return (
       <Alert variant="info">Vous n'avez pas de chats signalés.</Alert>
@@ -52,8 +84,6 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   return (
     <>
-
-
       {successMessage && (
         <Alert variant="success" className="mb-3">
           {successMessage}
@@ -128,6 +158,21 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         <FaTimes />
                       </Button>
                     </div>
+                    {catStatus.statusCat === 'LOST' && (
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        className="w-100 mt-2"
+                        onClick={() => handleShowMatches(cat)}
+                        disabled={loadingMatches[cat.catId]}
+                      >
+                        <FaPaw className="me-2" />
+                        {loadingMatches[cat.catId] ? 'Chargement...' : 
+                          matchCounts[cat.catId] ? 
+                          `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''} trouvée${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
+                          'Aucune correspondance'}
+                      </Button>
+                    )}
                   </Card.Body>
                 </Card>
               </motion.div>
@@ -161,7 +206,6 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                 <option value="">Sélectionner un statut</option>
                 <option value="LOST">Perdu</option>
                 <option value="FOUND">Trouvé</option>
-                {/* <option value="ADOPT">À adopter</option> */}
                 <option value="OWN">Propriétaire</option>
               </Form.Select>
             </Form.Group>
@@ -185,6 +229,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
           </Form>
         </Modal.Body>
       </Modal>
+
+      <MatchingResults
+        matches={matches}
+        show={showMatches}
+        handleClose={handleCloseMatches}
+        onViewDetails={(catStatus) => {
+          handleCloseMatches();
+          handleEdit(catStatus);
+        }}
+      />
     </>
   );
 };
