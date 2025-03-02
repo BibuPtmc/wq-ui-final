@@ -122,6 +122,16 @@ export const useCats = () => {
     }
   };
 
+  const findPotentialMatches = async (catId) => {
+    try {
+      const response = await axios.get(`cat/matches/${catId}`);
+      return response;
+    } catch (error) {
+      console.error("Erreur lors de la recherche des correspondances:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     if (sessionStorage.getItem("token")) {
       fetchCats();
@@ -136,6 +146,7 @@ export const useCats = () => {
     handleDeleteReportedCat,
     handleEditReportedCat,
     handleDeleteOwnedCat,
+    findPotentialMatches,
     fetchCats
   };
 };

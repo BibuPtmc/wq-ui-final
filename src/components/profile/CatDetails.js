@@ -1,13 +1,32 @@
-import React from 'react';
-import { Modal, Row, Col, Badge, Card } from 'react-bootstrap';
-import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { Modal, Row, Col, Badge, Card, Button } from 'react-bootstrap';
+import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaSearch } from 'react-icons/fa';
+import { useCats } from '../../hooks/useCats';
+import MatchingResults from '../cats/MatchingResults';
 
 function CatDetails({ selectedCatStatus, handleClose, show }) {
+  const { findPotentialMatches } = useCats();
+  const [showMatches, setShowMatches] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+
   if (!selectedCatStatus || !selectedCatStatus.cat) {
     return null;
   }
 
   const cat = selectedCatStatus.cat;
+
+  const handleShowMatches = async () => {
+    setLoadingMatches(true);
+    const matchResults = await findPotentialMatches(cat.catId);
+    setMatches(matchResults);
+    setLoadingMatches(false);
+    setShowMatches(true);
+  };
+
+  const handleCloseMatches = () => {
+    setShowMatches(false);
+  };
 
   return (
     <Modal show={show} onHide={handleClose} size="lg" centered>
@@ -128,9 +147,32 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 </Card.Body>
               </Card>
             )}
+
+            {selectedCatStatus.statusCat === 'LOST' && (
+              <Button
+                variant="primary"
+                className="w-100 mt-3"
+                onClick={handleShowMatches}
+                disabled={loadingMatches}
+              >
+                <FaSearch className="me-2" />
+                {loadingMatches ? 'Recherche en cours...' : 'Rechercher des correspondances'}
+              </Button>
+            )}
           </Col>
         </Row>
       </Modal.Body>
+
+      <MatchingResults
+        matches={matches}
+        show={showMatches}
+        handleClose={handleCloseMatches}
+        onViewDetails={(catStatus) => {
+          handleCloseMatches();
+          handleClose();
+          // You might want to implement a way to show details of the matched cat
+        }}
+      />
     </Modal>
   );
 }
