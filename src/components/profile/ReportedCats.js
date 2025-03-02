@@ -35,7 +35,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       setLoadingMatches(loading);
     };
     fetchMatchCounts();
-  }, [reportedCats, findPotentialMatches]);
+  }, [reportedCats]);
 
   const handleDelete = (catStatusId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat signalé ?")) {

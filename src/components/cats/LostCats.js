@@ -68,7 +68,7 @@ function LostCats() {
     if (lostCats.length > 0) {
       fetchMatchCounts();
     }
-  }, [lostCats, findPotentialMatches]);
+  }, [lostCats]);
 
   if (loading) {
     return (
