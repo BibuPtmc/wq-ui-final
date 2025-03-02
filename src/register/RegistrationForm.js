@@ -1,25 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Form, Button, Container, Row, Col, Card, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../hooks/useAxios";
 import { motion } from "framer-motion";
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../styles/styles";
+import MapLocation from "../components/map/MapLocation";
+import useGeolocation from "../hooks/useGeolocation";
+
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const axios = useAxios();
+  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
   const [formData, setFormData] = useState({
-    userName: "bibu", // Nom d'utilisateur par défaut
-    email: "bibu@gmail.com", // Email par défaut
-    password: "Patamon10#", // Mot de passe par défaut
-    matchingPassword: "Patamon10#", // Confirmation du mot de passe par défaut
-    firstName: "Anais", // Prénom par défaut
-    lastName: "Motquin", // Nom par défaut
-    birthDay: "", // Laisser vide pour la date de naissance
-    phone: "0123456789", // Numéro de téléphone par défaut
-    address: "123 Rue Exemple", // Adresse par défaut
-    gender: "Homme", // Genre par défaut
+    userName: "bibu",
+    email: "bibu@gmail.com",
+    password: "Patamon10#",
+    matchingPassword: "Patamon10#",
+    firstName: "Anais",
+    lastName: "Motquin",
+    birthDay: "",
+    phone: "0123456789",
+    gender: "Homme",
+    address: "",
+    city: "",
+    postalCode: "",
+    latitude: null,
+    longitude: null
   });
 
   const [passwordsMatch, setPasswordsMatch] = useState(true);
@@ -45,6 +53,35 @@ const RegistrationForm = () => {
     return true;
   };
 
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    setFormData(prev => ({
+      ...prev,
+      longitude,
+      latitude
+    }));
+  }, []);
+
+  // Initialisation automatique de la géolocalisation au chargement
+  useEffect(() => {
+    getCurrentPosition()
+      .then(position => {
+        updateLocationFromCoordinates(position.longitude, position.latitude);
+      })
+      .catch(error => {
+        console.log("Erreur de géolocalisation:", error.message);
+      });
+  }, [getCurrentPosition, updateLocationFromCoordinates]);
+
+  const handleRequestCurrentLocation = async () => {
+    try {
+      const position = await getCurrentPosition();
+      updateLocationFromCoordinates(position.longitude, position.latitude);
+    } catch (error) {
+      console.error("Erreur de géolocalisation:", error);
+    }
+  };
+  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -58,6 +95,23 @@ const RegistrationForm = () => {
     setRegistrationSuccess(false);
     setPasswordComplexityError(false);
     setError("");
+  };
+
+  const handleLocationChange = (longitude, latitude) => {
+    setFormData(prev => ({
+      ...prev,
+      longitude,
+      latitude
+    }));
+  };
+
+  const handleAddressChange = (addressData) => {
+    setFormData(prev => ({
+      ...prev,
+      address: addressData.address || prev.address,
+      city: addressData.city || prev.city,
+      postalCode: addressData.postalCode || prev.postalCode
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -318,17 +372,28 @@ const RegistrationForm = () => {
                           placeholder="Votre numéro de téléphone"
                         />
                       </Form.Group>
+                    </Card.Body>
+                  </Card>
 
-                      <Form.Group className="mb-3">
-                        <Form.Label>Adresse</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          value={formData.address}
-                          onChange={handleChange}
-                          placeholder="Votre adresse complète"
-                        />
-                      </Form.Group>
+                  <Card className="mb-4">
+                    <Card.Body>
+                      <h5 className="mb-3">Adresse</h5>
+                      <MapLocation
+                        location={{
+                          address: formData.address,
+                          city: formData.city,
+                          postalCode: formData.postalCode,
+                          latitude: formData.latitude,
+                          longitude: formData.longitude
+                        }}
+                        onLocationChange={handleLocationChange}
+                        onAddressChange={handleAddressChange}
+                        isLocating={isLocating}
+                        geoError={geoError}
+                        onGeoErrorDismiss={() => setGeoError("")}
+                        onRequestCurrentLocation={handleRequestCurrentLocation}
+                        mapHeight="300px"
+                      />
                     </Card.Body>
                   </Card>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Carousel, Container, Button } from "react-bootstrap";
+import { Carousel, Container, Button, Alert } from "react-bootstrap";
 import img1 from "../../image/1.jpg";
 import img2 from "../../image/2.jpg";
 import img3 from "../../image/3.jpg";
@@ -45,7 +45,13 @@ const HomePage = () => {
       </Carousel>
 
       <Container className="my-5">
-        <LostCatsMap />
+        <LostCatsMap 
+          noLostCatsMessage={
+            <Alert variant="success" className="text-center">
+              Bonne nouvelle ! Aucun chat n'est perdu dans votre région.
+            </Alert>
+          } 
+        />
       </Container>
 
       <Container className="mt-5">

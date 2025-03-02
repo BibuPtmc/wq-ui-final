@@ -498,7 +498,7 @@ const handleRequestCurrentLocation = () => {
                 </Card.Header>
                 <Card.Body>
                   <Row>
-                    <Col md={7}>
+                    <Col xs={12}>
                       <MapLocation 
                         location={formData.location}
                         onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
@@ -517,74 +517,7 @@ const handleRequestCurrentLocation = () => {
                         onRequestCurrentLocation={handleRequestCurrentLocation}
                         mapHeight="300px"
                       />
-                    </Col>
-                    <Col md={5}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Adresse</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          value={formData.location.address}
-                          onChange={handleLocationChange}
-                          placeholder="Adresse du signalement"
-                          disabled // Optionnel: désactivez l'édition directe pour encourager l'utilisation de la recherche
-                        />
-                      </Form.Group>
-                      <Row>
-                        <Col sm={6}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Ville</Form.Label>
-                            <Form.Control
-                              type="text"
-                              name="city"
-                              value={formData.location.city}
-                              onChange={handleLocationChange}
-                              placeholder="Ville"
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col sm={6}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Code postal</Form.Label>
-                            <Form.Control
-                              type="text"
-                              name="postalCode"
-                              value={formData.location.postalCode}
-                              onChange={handleLocationChange}
-                              placeholder="Code postal"
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col sm={6}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Latitude</Form.Label>
-                            <Form.Control
-                              type="number"
-                              step="0.000001"
-                              name="latitude"
-                              value={formData.location.latitude}
-                              onChange={handleLocationChange}
-                              placeholder="Latitude"
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col sm={6}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Longitude</Form.Label>
-                            <Form.Control
-                              type="number"
-                              step="0.000001"
-                              name="longitude"
-                              value={formData.location.longitude}
-                              onChange={handleLocationChange}
-                              placeholder="Longitude"
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    </Col>
+                      </Col>
                   </Row>
                 </Card.Body>
               </Card>
