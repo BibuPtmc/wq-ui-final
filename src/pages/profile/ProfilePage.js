@@ -40,6 +40,10 @@ const ProfilePage = () => {
     firstName: "",
     lastName: "",
     address: "",
+    city: "",
+    postalCode: "",
+    latitude: null,
+    longitude: null,
     gender: "",
     birthDay: "",
   });
@@ -64,7 +68,11 @@ const ProfilePage = () => {
         setFormData({
           firstName: response.firstName || "",
           lastName: response.lastName || "",
-          address: response.address || "",
+          address: response.address?.address || "",
+          city: response.address?.city || "",
+          postalCode: response.address?.postalCode || "",
+          latitude: response.address?.latitude || null,
+          longitude: response.address?.longitude || null,
           gender: response.gender || "",
           birthDay: response.birthDay || "",
         });

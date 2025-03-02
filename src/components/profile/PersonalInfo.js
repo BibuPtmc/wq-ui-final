@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { FaUser, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars } from 'react-icons/fa';
+import MapLocation from '../map/MapLocation';
 
 const PersonalInfo = ({ 
   formData, 
@@ -14,6 +15,23 @@ const PersonalInfo = ({
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleLocationChange = (longitude, latitude) => {
+    setFormData(prev => ({
+      ...prev,
+      longitude,
+      latitude
+    }));
+  };
+
+  const handleAddressChange = (addressData) => {
+    setFormData(prev => ({
+      ...prev,
+      address: addressData.address || prev.address,
+      city: addressData.city || prev.city,
+      postalCode: addressData.postalCode || prev.postalCode
     }));
   };
 
@@ -63,17 +81,22 @@ const PersonalInfo = ({
         </Col>
       </Row>
 
-      <Form.Group className="mb-3">
+      <Form.Group className="mb-4">
         <Form.Label>
           <FaMapMarkerAlt className="me-2" />
           Adresse
         </Form.Label>
-        <Form.Control
-          type="text"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          placeholder="Votre adresse"
+        <MapLocation
+          location={{
+            address: formData.address,
+            city: formData.city,
+            postalCode: formData.postalCode,
+            latitude: formData.latitude,
+            longitude: formData.longitude
+          }}
+          onLocationChange={handleLocationChange}
+          onAddressChange={handleAddressChange}
+          mapHeight="300px"
         />
       </Form.Group>
 
