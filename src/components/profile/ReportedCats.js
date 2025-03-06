@@ -6,7 +6,7 @@ import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
-  const { findPotentialMatches } = useCats();
+  const { findPotentialFoundCats } = useCats();
   const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
@@ -26,7 +26,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       for (const catStatus of reportedCats) {
         if (catStatus.statusCat === 'LOST') {
           loading[catStatus.cat.catId] = true;
-          const matchResults = await findPotentialMatches(catStatus.cat.catId);
+          const matchResults = await findPotentialFoundCats(catStatus.cat.catId);
           counts[catStatus.cat.catId] = matchResults.length;
           loading[catStatus.cat.catId] = false;
         }
@@ -67,7 +67,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   };
 
   const handleShowMatches = async (cat) => {
-    const matchResults = await findPotentialMatches(cat.catId);
+    const matchResults = await findPotentialFoundCats(cat.catId);
     setMatches(matchResults);
     setShowMatches(true);
   };

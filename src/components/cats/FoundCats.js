@@ -11,7 +11,7 @@ import MatchingResults from "./MatchingResults";
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
   const axios = useAxios();
-  const { findPotentialFoundMatches } = useCats();
+  const { findPotentialLostCats } = useCats();
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
@@ -28,7 +28,7 @@ function FoundCats() {
   };
 
   const handleShowMatches = async (cat) => {
-    const matchResults = await findPotentialFoundMatches(cat.catId);
+    const matchResults = await findPotentialLostCats(cat.catId);
     setMatches(matchResults);
     setShowMatches(true);
   };
@@ -59,7 +59,7 @@ function FoundCats() {
       const loading = {};
       for (const catStatus of foundCats) {
         loading[catStatus.cat.catId] = true;
-        const matchResults = await findPotentialFoundMatches(catStatus.cat.catId);
+        const matchResults = await findPotentialLostCats(catStatus.cat.catId);
         counts[catStatus.cat.catId] = matchResults.length;
         loading[catStatus.cat.catId] = false;
       }

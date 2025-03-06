@@ -122,7 +122,7 @@ export const useCats = () => {
     }
   };
 
-  const findPotentialMatches = async (catId) => {
+  async function findPotentialFoundCats(catId) {
     try {
       const response = await axios.get(`cat/potentialFoundCats/${catId}`);
       return response;
@@ -130,17 +130,17 @@ export const useCats = () => {
       console.error("Erreur lors de la recherche des correspondances:", error);
       return [];
     }
-  };
+  }
 
-  const findPotentialFoundMatches = async (catId) => {
+  async function findPotentialLostCats(catId) {
     try {
-        const response = await axios.get(`cat/potentialLostCats/${catId}`);
-        return response;
+      const response = await axios.get(`cat/potentialLostCats/${catId}`);
+      return response;
     } catch (error) {
-        console.error("Erreur lors de la recherche des chats trouvés correspondants:", error);
-        return [];
+      console.error("Erreur lors de la recherche des chats trouvés correspondants:", error);
+      return [];
     }
-  };
+  }
 
   useEffect(() => {
     if (sessionStorage.getItem("token")) {
@@ -156,8 +156,8 @@ export const useCats = () => {
     handleDeleteReportedCat,
     handleEditReportedCat,
     handleDeleteOwnedCat,
-    findPotentialMatches,
-    findPotentialFoundMatches,
+    findPotentialFoundCats,
+    findPotentialLostCats,
     fetchCats
   };
 };
