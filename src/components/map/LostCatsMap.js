@@ -4,6 +4,8 @@ import api from '../../hooks/api';
 import { Container, Card, Spinner, Alert, Badge } from 'react-bootstrap';
 import { FaCat, FaMapMarkedAlt } from 'react-icons/fa';
 import '../../styles/mapbox-popup.css'; 
+import '../../styles/styles'; 
+
 
 
 const LostCatsMap = () => {
@@ -140,7 +142,7 @@ const LostCatsMap = () => {
 
   return (
     <Card className="shadow-sm">
-      <Card.Header className="bg-primary text-white">
+      <Card.Header style={{ backgroundColor: 'var(--primary-color)' }} className="text-white">
         <div className="d-flex align-items-center">
           <FaMapMarkedAlt className="me-2" />
           <span>Carte des chats perdus</span>
@@ -157,7 +159,7 @@ const LostCatsMap = () => {
           markers={markers}
           showSearch={true}
         />
-        <Alert variant="info" className="mt-3">
+        <Alert style={{ backgroundColor: 'var(--secondary-color)' }} variant="info" className="text-white mt-3">
           <div className="d-flex align-items-center">
             <FaCat className="me-2" />
             <span>Cliquez sur les marqueurs pour voir les détails des chats perdus</span>
