@@ -5,7 +5,7 @@ import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
 
 function CatDetails({ selectedCatStatus, handleClose, show }) {
-  const { findPotentialMatches } = useCats();
+  const { findPotentialFoundCats } = useCats();
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
@@ -18,7 +18,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
 
   const handleShowMatches = async () => {
     setLoadingMatches(true);
-    const matchResults = await findPotentialMatches(cat.catId);
+    const matchResults = await findPotentialFoundCats(cat.catId);
     setMatches(matchResults);
     setLoadingMatches(false);
     setShowMatches(true);

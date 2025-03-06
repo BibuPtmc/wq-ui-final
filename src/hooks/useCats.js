@@ -124,11 +124,21 @@ export const useCats = () => {
 
   const findPotentialMatches = async (catId) => {
     try {
-      const response = await axios.get(`cat/matches/${catId}`);
+      const response = await axios.get(`cat/potentialFoundCats/${catId}`);
       return response;
     } catch (error) {
       console.error("Erreur lors de la recherche des correspondances:", error);
       return [];
+    }
+  };
+
+  const findPotentialFoundMatches = async (catId) => {
+    try {
+        const response = await axios.get(`cat/potentialLostCats/${catId}`);
+        return response;
+    } catch (error) {
+        console.error("Erreur lors de la recherche des chats trouvés correspondants:", error);
+        return [];
     }
   };
 
@@ -147,6 +157,7 @@ export const useCats = () => {
     handleEditReportedCat,
     handleDeleteOwnedCat,
     findPotentialMatches,
+    findPotentialFoundMatches,
     fetchCats
   };
 };
