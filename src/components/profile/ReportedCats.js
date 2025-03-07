@@ -7,6 +7,7 @@ import MatchingResults from '../cats/MatchingResults';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { findPotentialFoundCats } = useCats();
+  const { findPotentialLostCats } = useCats();
   const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
@@ -27,6 +28,11 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         if (catStatus.statusCat === 'LOST') {
           loading[catStatus.cat.catId] = true;
           const matchResults = await findPotentialFoundCats(catStatus.cat.catId);
+          counts[catStatus.cat.catId] = matchResults.length;
+          loading[catStatus.cat.catId] = false;
+        } else if (catStatus.statusCat === 'FOUND') {
+          loading[catStatus.cat.catId] = true;
+          const matchResults = await findPotentialLostCats(catStatus.cat.catId);
           counts[catStatus.cat.catId] = matchResults.length;
           loading[catStatus.cat.catId] = false;
         }
@@ -68,6 +74,12 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   const handleShowMatches = async (cat) => {
     const matchResults = await findPotentialFoundCats(cat.catId);
+    setMatches(matchResults);
+    setShowMatches(true);
+  };
+
+  const handleShowMatchesLost = async (cat) => {
+    const matchResults = await findPotentialLostCats(cat.catId);
     setMatches(matchResults);
     setShowMatches(true);
   };
@@ -164,6 +176,21 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         size="sm"
                         className="w-100 mt-2"
                         onClick={() => handleShowMatches(cat)}
+                        disabled={loadingMatches[cat.catId]}
+                      >
+                        <FaPaw className="me-2" />
+                        {loadingMatches[cat.catId] ? 'Chargement...' : 
+                          matchCounts[cat.catId] ? 
+                          `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''} trouvée${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
+                          'Aucune correspondance'}
+                      </Button>
+                    )}
+                    {catStatus.statusCat === 'FOUND' && (
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        className="w-100 mt-2"
+                        onClick={() => handleShowMatchesLost(cat)}
                         disabled={loadingMatches[cat.catId]}
                       >
                         <FaPaw className="me-2" />
