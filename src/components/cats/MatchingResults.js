@@ -1,6 +1,8 @@
 import React from 'react';
 import { Modal, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { FaPaw, FaPercentage } from 'react-icons/fa';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 function MatchingResults({ matches, show, handleClose, onViewDetails }) {
   return (
@@ -41,6 +43,83 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                           {match.matchScore}%
                         </Badge>
                       </div>
+
+                      {/* Jauges circulaires pour chaque critère */}
+                      <Row className="text-center mb-3">
+                        <Col sm={6}>
+                          <div style={{ width: 60, height: 60, margin: 'auto' }}>
+                            <CircularProgressbar 
+                              value={match.colorMatch || 0} 
+                              text={`${match.colorMatch || 0}%`} 
+                              styles={buildStyles({ 
+                                textColor: '#8B4513',
+                                pathColor: '#8B4513',
+                                trailColor: '#ddd',
+                              })}
+                            />
+                          </div>
+                          <div className="text-muted small mt-2">Couleur</div>
+                        </Col>
+                        <Col sm={6}>
+                          <div style={{ width: 60, height: 60, margin: 'auto' }}>
+                            <CircularProgressbar 
+                              value={match.breedMatch || 0} 
+                              text={`${match.breedMatch || 0}%`} 
+                              styles={buildStyles({ 
+                                textColor: '#8B4513',
+                                pathColor: '#8B4513',
+                                trailColor: '#ddd',
+                              })}
+                            />
+                          </div>
+                          <div className="text-muted small mt-2">Race</div>
+                        </Col>
+                      </Row>
+                      <Row className="text-center mb-3">
+                        <Col sm={6}>
+                          <div style={{ width: 60, height: 60, margin: 'auto' }}>
+                            <CircularProgressbar 
+                              value={match.furTypeMatch || 0} 
+                              text={`${match.furTypeMatch || 0}%`} 
+                              styles={buildStyles({ 
+                                textColor: '#8B4513',
+                                pathColor: '#8B4513',
+                                trailColor: '#ddd',
+                              })}
+                            />
+                          </div>
+                          <div className="text-muted small mt-2">Pelage</div>
+                        </Col>
+                        <Col sm={6}>
+                          <div style={{ width: 60, height: 60, margin: 'auto' }}>
+                            <CircularProgressbar 
+                              value={match.eyeColorMatch || 0} 
+                              text={`${match.eyeColorMatch || 0}%`} 
+                              styles={buildStyles({ 
+                                textColor: '#8B4513',
+                                pathColor: '#8B4513',
+                                trailColor: '#ddd',
+                              })}
+                            />
+                          </div>
+                          <div className="text-muted small mt-2">Yeux</div>
+                        </Col>
+                        <Col sm={6}>
+                        <div style={{ width: 60, height: 60, margin: 'auto' }}>
+                          <CircularProgressbar 
+                            value={match.distanceMatch || 0} 
+                            text={`${match.distanceMatch || 0}%`} 
+                            styles={buildStyles({ 
+                              textColor: '#8B4513',
+                              pathColor: '#8B4513',
+                              trailColor: '#ddd',
+                            })}
+                          />
+                        </div>
+                        <div className="text-muted small mt-2">Distance</div>
+                      </Col>
+                      </Row>
+
                       <Card.Text className="text-muted small mb-2">
                         Race: {cat.breed || "Inconnue"}
                       </Card.Text>
