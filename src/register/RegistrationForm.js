@@ -7,12 +7,12 @@ import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, Fa
 import { buttonStyles } from "../styles/styles";
 import MapLocation from "../components/map/MapLocation";
 import useGeolocation from "../hooks/useGeolocation";
-
+import { reverseGeocode } from "../utils/geocodingService";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const axios = useAxios();
-  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
+
   const [formData, setFormData] = useState({
     userName: "bibu",
     email: "bibu@gmail.com",
@@ -22,12 +22,14 @@ const RegistrationForm = () => {
     lastName: "Motquin",
     birthDay: "",
     phone: "0123456789",
-    gender: "Homme",
-    address: "",
-    city: "",
-    postalCode: "",
-    latitude: null,
-    longitude: null
+    gender: "Femme",
+    location: {
+      address: "",
+      city: "",
+      postalCode: "",
+      latitude: null,
+      longitude: null
+    }
   });
 
   const [passwordsMatch, setPasswordsMatch] = useState(true);
@@ -37,6 +39,8 @@ const RegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [mapError, setMapError] = useState(null);
+
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -53,12 +57,25 @@ const RegistrationForm = () => {
     return true;
   };
 
+  // Utiliser le hook de géolocalisation
+  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
+
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
-    setFormData(prev => ({
-      ...prev,
-      longitude,
-      latitude
-    }));
+    try {
+      const addressInfo = await reverseGeocode(longitude, latitude);
+      
+      setFormData(prev => ({
+        ...prev,
+        longitude,
+        latitude,
+        address: addressInfo?.address || "",
+        city: addressInfo?.city || "",
+        postalCode: addressInfo?.postalCode || ""
+      }));
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'adresse:", error);
+      setMapError("Erreur lors de la récupération de l'adresse");
+    }
   }, []);
 
   // Initialisation automatique de la géolocalisation au chargement
@@ -68,20 +85,17 @@ const RegistrationForm = () => {
         updateLocationFromCoordinates(position.longitude, position.latitude);
       })
       .catch(error => {
-        console.log("Erreur de géolocalisation:", error.message);
+        console.log("Utilisation de la position par défaut:", error.message);
       });
   }, [getCurrentPosition, updateLocationFromCoordinates]);
 
-  const handleRequestCurrentLocation = async () => {
-    try {
-      const position = await getCurrentPosition();
-      updateLocationFromCoordinates(position.longitude, position.latitude);
-    } catch (error) {
-      console.error("Erreur de géolocalisation:", error);
-    }
+  const handleRequestCurrentLocation = () => {
+    getCurrentPosition()
+      .then(position => {
+        updateLocationFromCoordinates(position.longitude, position.latitude);
+      });
   };
   
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -97,22 +111,6 @@ const RegistrationForm = () => {
     setError("");
   };
 
-  const handleLocationChange = (longitude, latitude) => {
-    setFormData(prev => ({
-      ...prev,
-      longitude,
-      latitude
-    }));
-  };
-
-  const handleAddressChange = (addressData) => {
-    setFormData(prev => ({
-      ...prev,
-      address: addressData.address || prev.address,
-      city: addressData.city || prev.city,
-      postalCode: addressData.postalCode || prev.postalCode
-    }));
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -386,8 +384,15 @@ const RegistrationForm = () => {
                           latitude: formData.latitude,
                           longitude: formData.longitude
                         }}
-                        onLocationChange={handleLocationChange}
-                        onAddressChange={handleAddressChange}
+                        onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
+                        onAddressChange={(addressData) => {
+                          setFormData({
+                            ...formData,
+                            address: addressData.address,
+                            city: addressData.city,
+                            postalCode: addressData.postalCode
+                          });
+                        }}
                         isLocating={isLocating}
                         geoError={geoError}
                         onGeoErrorDismiss={() => setGeoError("")}

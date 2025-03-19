@@ -75,26 +75,26 @@ function RegisterCat() {
     }
   }, [setFormData, setMapError]);
 
-// Initialisation avec la position actuelle
-useEffect(() => {
-  if (isLoggedIn) {
+  // Initialisation avec la position actuelle
+  useEffect(() => {
+    if (isLoggedIn) {
+      getCurrentPosition()
+        .then(position => {
+          updateLocationFromCoordinates(position.longitude, position.latitude);
+        })
+        .catch(error => {
+          console.log("Utilisation de la position par défaut:", error.message);
+        });
+    }
+  }, [isLoggedIn, getCurrentPosition, updateLocationFromCoordinates]);
+
+  // Gérer la demande de localisation actuelle par l'utilisateur
+  const handleRequestCurrentLocation = () => {
     getCurrentPosition()
       .then(position => {
         updateLocationFromCoordinates(position.longitude, position.latitude);
-      })
-      .catch(error => {
-        console.log("Utilisation de la position par défaut:", error.message);
       });
-  }
-}, [isLoggedIn, getCurrentPosition, updateLocationFromCoordinates]);
-
-// Gérer la demande de localisation actuelle par l'utilisateur
-const handleRequestCurrentLocation = () => {
-  getCurrentPosition()
-    .then(position => {
-      updateLocationFromCoordinates(position.longitude, position.latitude);
-    });
-};
+  };
 
   // Si l'utilisateur n'est pas connecté, afficher une alerte
   if (!isLoggedIn) {
