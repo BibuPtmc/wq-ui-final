@@ -2,21 +2,40 @@ import React, { useEffect, useState } from "react";
 import { useAxios } from "../../hooks/useAxios";
 import { Card, Button, Container, Row, Col, Spinner, Badge } from "react-bootstrap";
 import { motion } from "framer-motion";
+import { FaPaw } from "react-icons/fa";
 import "../../styles/global.css";
 import CatDetails from "../profile/CatDetails";
+import { useCats } from "../../hooks/useCats";
+import MatchingResults from "./MatchingResults";
 
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
   const axios = useAxios();
+  const { findPotentialLostCats } = useCats();
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
+  const [matchCounts, setMatchCounts] = useState({});
+  const [loadingMatches, setLoadingMatches] = useState({});
+  const [showMatches, setShowMatches] = useState(false);
+  const [matches, setMatches] = useState([]);
+
 
   const handleClose = () => setShow(false);
   const handleShow = (catStatus) => {
     setSelectedCatStatus(catStatus);
     setShow(true);
-  }
+  };
+
+  const handleShowMatches = async (cat) => {
+    const matchResults = await findPotentialLostCats(cat.catId);
+    setMatches(matchResults);
+    setShowMatches(true);
+  };
+
+  const handleCloseMatches = () => {
+    setShowMatches(false);
+  };
 
   useEffect(() => {
     const fetchFoundCats = async () => {
@@ -33,6 +52,24 @@ function FoundCats() {
       fetchFoundCats();
     }
   }, [axios, loading]);
+
+  useEffect(() => {
+    const fetchMatchCounts = async () => {
+      const counts = {};
+      const loading = {};
+      for (const catStatus of foundCats) {
+        loading[catStatus.cat.catId] = true;
+        const matchResults = await findPotentialLostCats(catStatus.cat.catId);
+        counts[catStatus.cat.catId] = matchResults.length;
+        loading[catStatus.cat.catId] = false;
+      }
+      setMatchCounts(counts);
+      setLoadingMatches(loading);
+    };
+    if (foundCats.length > 0) {
+      fetchMatchCounts();
+    }
+  }, [foundCats]);
 
   if (loading) {
     return (
@@ -91,17 +128,32 @@ function FoundCats() {
                         <Card.Text className="text-muted small mb-2">
                           Date de naissance: {cat.dateOfBirth ? new Date(cat.dateOfBirth).toLocaleDateString() : "Inconnue"}
                         </Card.Text>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted">
-                            Trouvé le: {new Date(catStatus.reportDate).toLocaleDateString()}
-                          </small>
+                        <div className="d-flex flex-column gap-2">
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-muted">
+                              Trouvé le: {new Date(catStatus.reportDate).toLocaleDateString()}
+                            </small>
+                            <Button
+                              variant="outline-success"
+                              size="sm"
+                              onClick={() => handleShow(catStatus)}
+                              className="rounded-pill"
+                            >
+                              Plus d'infos
+                            </Button>
+                          </div>
                           <Button
-                            variant="outline-success"
+                            variant="outline-info"
                             size="sm"
-                            onClick={() => handleShow(catStatus)}
-                            className="rounded-pill"
+                            className="w-100"
+                            onClick={() => handleShowMatches(cat)}
+                            disabled={loadingMatches[cat.catId]}
                           >
-                            Plus d'infos
+                            <FaPaw className="me-2" />
+                            {loadingMatches[cat.catId] ? 'Chargement...' : 
+                              matchCounts[cat.catId] ? 
+                              `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''} trouvée${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
+                              'Aucune correspondance'}
                           </Button>
                         </div>
                       </Card.Body>
@@ -126,6 +178,15 @@ function FoundCats() {
         selectedCatStatus={selectedCatStatus} 
         handleClose={handleClose} 
         show={show}
+      />
+      <MatchingResults
+        matches={matches}
+        show={showMatches}
+        handleClose={handleCloseMatches}
+        onViewDetails={(catStatus) => {
+          handleCloseMatches();
+          handleShow(catStatus);
+        }}
       />
     </Container>
   );
