@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAxios } from './useAxios';
 
 export const useCats = () => {
@@ -8,8 +8,14 @@ export const useCats = () => {
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Use a ref to track if we've already run the initial fetch
+  const initialFetchDone = React.useRef(false);
+
   const fetchCats = async () => {
     try {
+      // Skip if we've already fetched
+      if (initialFetchDone.current && !loading) return;
+      
       const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       
       // Fetch reported cats
@@ -30,9 +36,19 @@ export const useCats = () => {
     } catch (error) {
       console.error("Error fetching cats:", error);
     } finally {
+      initialFetchDone.current = true;
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Only fetch if we have a token
+    if (sessionStorage.getItem("token")) {
+      fetchCats();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // We're intentionally only running this once on mount
+  // and using the ref to prevent multiple fetches
 
   const handleDeleteReportedCat = async (catStatusId) => {
     try {
@@ -141,12 +157,6 @@ export const useCats = () => {
       return [];
     }
   }
-
-  useEffect(() => {
-    if (sessionStorage.getItem("token")) {
-      fetchCats();
-    }
-  }, []);
 
   return {
     reportedCats,
