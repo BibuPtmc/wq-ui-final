@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Row, Col, Badge, Card, Button } from 'react-bootstrap';
-import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaSearch } from 'react-icons/fa';
+import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaSearch, FaMapMarkerAlt } from 'react-icons/fa';
 import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
 
@@ -136,6 +136,43 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               </Card.Body>
             </Card>
 
+            {selectedCatStatus.location && (
+              <Card className="shadow-sm mb-3">
+                <Card.Body>
+                  <h5 className="mb-3">
+                    <FaMapMarkerAlt className="me-2" style={{ color: '#8B4513' }} />
+                    Localisation
+                  </h5>
+                  <Row className="g-3">
+                    {selectedCatStatus.location.address && (
+                      <Col xs={12}>
+                        <div className="text-muted mb-1">Adresse</div>
+                        <div className="fw-semibold">{selectedCatStatus.location.address}</div>
+                      </Col>
+                    )}
+                    {selectedCatStatus.location.city && (
+                      <Col sm={6}>
+                        <div className="text-muted mb-1">Ville</div>
+                        <div className="fw-semibold">{selectedCatStatus.location.city}</div>
+                      </Col>
+                    )}
+                    {selectedCatStatus.location.postalCode && (
+                      <Col sm={6}>
+                        <div className="text-muted mb-1">Code postal</div>
+                        <div className="fw-semibold">{selectedCatStatus.location.postalCode}</div>
+                      </Col>
+                    )}
+                    {selectedCatStatus.location.country && (
+                      <Col sm={6}>
+                        <div className="text-muted mb-1">Pays</div>
+                        <div className="fw-semibold">{selectedCatStatus.location.country}</div>
+                      </Col>
+                    )}
+                  </Row>
+                </Card.Body>
+              </Card>
+            )}
+
             {selectedCatStatus.comment && (
               <Card className="shadow-sm">
                 <Card.Body>
@@ -147,6 +184,37 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 </Card.Body>
               </Card>
             )}
+
+            {/* {selectedCatStatus.contactInfo && (
+              <Card className="shadow-sm mt-3">
+                <Card.Body>
+                  <h5 className="mb-3">
+                    <FaInfoCircle className="me-2" style={{ color: '#8B4513' }} />
+                    Contact
+                  </h5>
+                  <Row className="g-3">
+                    {selectedCatStatus.contactInfo.name && (
+                      <Col sm={6}>
+                        <div className="text-muted mb-1">Nom</div>
+                        <div className="fw-semibold">{selectedCatStatus.contactInfo.name}</div>
+                      </Col>
+                    )}
+                    {selectedCatStatus.contactInfo.email && (
+                      <Col sm={6}>
+                        <div className="text-muted mb-1">Email</div>
+                        <div className="fw-semibold">{selectedCatStatus.contactInfo.email}</div>
+                      </Col>
+                    )}
+                    {selectedCatStatus.contactInfo.phone && (
+                      <Col sm={6}>
+                        <div className="text-muted mb-1">Téléphone</div>
+                        <div className="fw-semibold">{selectedCatStatus.contactInfo.phone}</div>
+                      </Col>
+                    )}
+                  </Row>
+                </Card.Body>
+              </Card>
+            )} */}
 
             {selectedCatStatus.statusCat === 'LOST' && (
               <Button
