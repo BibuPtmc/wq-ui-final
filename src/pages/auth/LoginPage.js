@@ -8,7 +8,7 @@ import { FaUser, FaLock, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useAuth();
+  const { setIsLoggedIn, setUserData } = useAuth();
   const axios = useAxios();
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -17,16 +17,71 @@ function LoginPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  // Fonction pour décoder un token JWT
+  const parseJwt = (token) => {
+    try {
+      // Diviser le token en ses trois parties
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.error("Format de token JWT invalide");
+        return null;
+      }
+      
+      // Décoder l'en-tête (header)
+      const headerBase64 = parts[0];
+      const headerJson = atob(headerBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      const header = JSON.parse(headerJson);
+      console.log("JWT Header:", header);
+      
+      // Décoder la charge utile (payload)
+      const payloadBase64 = parts[1];
+      const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      const payload = JSON.parse(payloadJson);
+      console.log("JWT Payload:", payload);
+      
+      return payload;
+    } catch (e) {
+      console.error("Erreur lors du décodage du token JWT:", e);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = await axios.post("auth/login", formData);
+      console.log("Réponse de l'API login:", response);
+      
       if (response.token) {
         sessionStorage.setItem("token", response.token);
         setIsLoggedIn(true);
+        
+        // Décoder le token pour extraire les informations utilisateur
+        const decodedToken = parseJwt(response.token);
+        console.log("Token décodé:", decodedToken);
+        
+        if (decodedToken) {
+          // Créer un objet utilisateur avec les informations du token
+          // Essayer différentes propriétés possibles pour trouver le prénom
+          const userData = {
+            email: decodedToken.sub || decodedToken.email || formData.email,
+            firstName: decodedToken.firstName || decodedToken.given_name || decodedToken.name || formData.email.split('@')[0],
+            // Ajouter d'autres champs si disponibles dans le token
+            id: decodedToken.id || decodedToken.userId || decodedToken.user_id,
+            role: decodedToken.role || decodedToken.roles
+          };
+          
+          console.log("Données utilisateur extraites du token:", userData);
+          setUserData(userData);
+          
+          // Stocker également l'email dans le localStorage pour référence future
+          localStorage.setItem("userEmail", userData.email);
+        }
+        
         navigate("/");
       }
     } catch (error) {
+      console.error("Erreur de connexion:", error);
       setError("Email ou mot de passe incorrect");
     }
   };

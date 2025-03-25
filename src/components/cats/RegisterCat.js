@@ -16,11 +16,22 @@ import { reverseGeocode } from "../../utils/geocodingService";
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function RegisterCat() {
-  const today = new Date().toISOString().replace("T", " ").replace("Z", "");
+  // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
+  const now = new Date();
+  const formattedDate = now.getFullYear() + '-' + 
+                      String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(now.getDate()).padStart(2, '0') + ' ' + 
+                      String(now.getHours()).padStart(2, '0') + ':' + 
+                      String(now.getMinutes()).padStart(2, '0') + ':' + 
+                      String(now.getSeconds()).padStart(2, '0') + '.' +
+                      String(now.getMilliseconds()).padStart(3, '0');
+  
+  // Format today's date as YYYY-MM-DD for the date input display
+  const todayForInput = now.toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
     name: "Mittens", // Nom par défaut
-    breed: "Siamese", // Race par défaut
+    breed: "SIAMESE", // Race par défaut
     color: "BLANC", // Couleur par défaut
     dateOfBirth: "", // Laisser vide
     photo: "",
@@ -30,7 +41,7 @@ function RegisterCat() {
     eyeColor: "BLEU", // Couleur des yeux par défaut
     comment: "Chat très amical et joueur.", // Commentaire par défaut
     statusCat: "LOST", // Statut par défaut
-    reportDate: today, // Date de signalement par défaut
+    reportDate: todayForInput, // Date de signalement par défaut
     location: {
       latitude: "", 
       longitude: "",
@@ -201,8 +212,7 @@ function RegisterCat() {
       },
       comment: formData.comment,
       statusCat: formData.statusCat,
-      reportDate: today,
-      //reportDate: formData.reportDate,
+      reportDate: formattedDate,
       location: localisation // Ajout de la localisation
 
     };
@@ -210,6 +220,8 @@ function RegisterCat() {
       const response = await axios.post("/cat/register", catStatus);
       console.log(response);
       setShowSuccessMessage(true);
+      // Faire défiler la page vers le haut pour voir le message de succès
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setFormData({
         ...formData,
         name: "",
@@ -223,7 +235,7 @@ function RegisterCat() {
         eyeColor: "",
         comment: "",
         statusCat: "",
-        reportDate: today,
+        reportDate: todayForInput,
         location: {
           latitude: "",
           longitude: "",
