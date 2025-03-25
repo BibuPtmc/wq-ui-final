@@ -20,7 +20,7 @@ function RegisterCat() {
 
   const [formData, setFormData] = useState({
     name: "Mittens", // Nom par défaut
-    breed: "Siamese", // Race par défaut
+    breed: "SIAMESE", // Race par défaut
     color: "BLANC", // Couleur par défaut
     dateOfBirth: "", // Laisser vide
     photo: "",
