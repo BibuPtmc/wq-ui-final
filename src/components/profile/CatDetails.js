@@ -10,6 +10,17 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
   const [matches, setMatches] = useState([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
 
+  // Fonction pour formater les valeurs avec underscore en format plus lisible
+  const formatValue = (value) => {
+    if (!value) return "";
+    
+    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   if (!selectedCatStatus || !selectedCatStatus.cat) {
     return null;
   }
@@ -84,19 +95,19 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 <Row className="g-3">
                   <Col sm={6}>
                     <div className="text-muted mb-1">Race</div>
-                    <div className="fw-semibold">{cat.breed || "Inconnue"}</div>
+                    <div className="fw-semibold">{formatValue(cat.breed) || "Inconnue"}</div>
                   </Col>
                   <Col sm={6}>
                     <div className="text-muted mb-1">Couleur</div>
-                    <div className="fw-semibold">{cat.color || "Inconnue"}</div>
+                    <div className="fw-semibold">{formatValue(cat.color) || "Inconnue"}</div>
                   </Col>
                   <Col sm={6}>
                     <div className="text-muted mb-1">Type de fourrure</div>
-                    <div className="fw-semibold">{cat.furType || "Non spécifié"}</div>
+                    <div className="fw-semibold">{formatValue(cat.furType) || "Non spécifié"}</div>
                   </Col>
                   <Col sm={6}>
                     <div className="text-muted mb-1">Couleur des yeux</div>
-                    <div className="fw-semibold">{cat.eyeColor || "Non spécifié"}</div>
+                    <div className="fw-semibold">{formatValue(cat.eyeColor) || "Non spécifié"}</div>
                   </Col>
                   {cat.chipNumber && (
                     <Col xs={12}>

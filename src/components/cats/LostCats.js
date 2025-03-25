@@ -25,6 +25,17 @@ function LostCats() {
   const [showFilters, setShowFilters] = useState(false);
   // const { } = useGeolocation();
 
+  // Fonction pour formater les valeurs avec underscore en format plus lisible
+  const formatValue = (value) => {
+    if (!value) return "";
+    
+    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   // Filtres
   const [filters, setFilters] = useState({
     breed: "",
@@ -42,27 +53,27 @@ function LostCats() {
   // Options pour les filtres
   const colorOptions = [
     { value: "", label: "Toutes les couleurs" },
-    { value: "NOIR", label: "Noir" },
-    { value: "BLANC", label: "Blanc" },
-    { value: "GRIS", label: "Gris" },
-    { value: "ROUX", label: "Roux" },
-    { value: "MIXTE", label: "Mixte" },
-    { value: "AUTRE", label: "Autre" }
+    { value: "NOIR", label: formatValue("NOIR") },
+    { value: "BLANC", label: formatValue("BLANC") },
+    { value: "GRIS", label: formatValue("GRIS") },
+    { value: "ROUX", label: formatValue("ROUX") },
+    { value: "MIXTE", label: formatValue("MIXTE") },
+    { value: "AUTRE", label: formatValue("AUTRE") }
   ];
 
   const eyeColorOptions = [
     { value: "", label: "Toutes les couleurs d'yeux" },
-    { value: "BLEU", label: "Bleu" },
-    { value: "VERT", label: "Vert" },
-    { value: "JAUNE", label: "Jaune" },
-    { value: "MARRON", label: "Marron" },
-    { value: "NOISETTE", label: "Noisette" },
-    { value: "AUTRE", label: "Autre" }
+    { value: "BLEU", label: formatValue("BLEU") },
+    { value: "VERT", label: formatValue("VERT") },
+    { value: "JAUNE", label: formatValue("JAUNE") },
+    { value: "MARRON", label: formatValue("MARRON") },
+    { value: "NOISETTE", label: formatValue("NOISETTE") },
+    { value: "AUTRE", label: formatValue("AUTRE") }
   ];
 
   const breedOptions = [
     { value: "", label: "Toutes les races" },
-    ...catBreeds
+    ...catBreeds.map(breed => ({ value: breed.value, label: formatValue(breed.value) }))
   ];
 
   const handleClose = () => setShow(false);
@@ -468,11 +479,11 @@ function LostCats() {
                             bg={cat.gender === "Mâle" ? "primary" : "danger"}
                             className="ms-2"
                           >
-                            {cat.gender}
+                            {formatValue(cat.gender)}
                           </Badge>
                         </div>
                         <Card.Text className="text-muted small mb-2">
-                          Race: {cat.breed || "Inconnue"}
+                          Race: {formatValue(cat.breed) || "Inconnue"}
                         </Card.Text>
                         <Card.Text className="text-muted small mb-2">
                           Date de naissance: {cat.dateOfBirth ? new Date(cat.dateOfBirth).toLocaleDateString() : "Inconnue"}

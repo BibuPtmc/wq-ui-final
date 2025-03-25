@@ -20,6 +20,17 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     comment: ''
   });
 
+  // Fonction pour formater les valeurs avec underscore en format plus lisible
+  const formatValue = (value) => {
+    if (!value) return "";
+    
+    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   useEffect(() => {
     const fetchMatchCounts = async () => {
       const counts = {};
@@ -41,7 +52,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       setLoadingMatches(loading);
     };
     fetchMatchCounts();
-  }, [reportedCats]);
+  }, [reportedCats, findPotentialFoundCats, findPotentialLostCats]);
 
   const handleDelete = (catStatusId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat signalé ?")) {
@@ -139,11 +150,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         bg={cat.gender === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {cat.gender || "Genre inconnu"}
+                        {formatValue(cat.gender) || "Genre inconnu"}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Status: {catStatus.statusCat || "Non spécifié"}
+                      Race: {formatValue(cat.breed) || "Inconnue"}
+                    </Card.Text>
+                    <Card.Text className="text-muted small">
+                      Status: {formatValue(catStatus.statusCat) || "Non spécifié"}
                     </Card.Text>
                     <Card.Text className="text-muted small">
                       Signalé le: {new Date(catStatus.reportDate).toLocaleDateString()}

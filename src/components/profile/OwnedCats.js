@@ -5,6 +5,17 @@ import { FaPaw, FaTrash } from 'react-icons/fa';
 
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, successMessage }) => {
+  // Fonction pour formater les valeurs avec underscore en format plus lisible
+  const formatValue = (value) => {
+    if (!value) return "";
+    
+    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   if (ownedCats.length === 0) {
     return (
       <Alert variant="info">Vous n'avez pas encore de chats.</Alert>
@@ -59,14 +70,14 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, successMessage })
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
                       <Badge
-                        bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                        bg={formatValue(cat.gender) === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {cat.gender}
+                        {formatValue(cat.gender)}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {cat.breed || "Inconnue"}
+                      Race: {formatValue(cat.breed) || "Inconnue"}
                     </Card.Text>
                     <div className="d-flex gap-2 mt-2">
                       <Button
