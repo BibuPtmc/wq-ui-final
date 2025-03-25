@@ -6,8 +6,7 @@ import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
-  const { findPotentialFoundCats } = useCats();
-  const { findPotentialLostCats } = useCats();
+  const { findPotentialFoundCats, findPotentialLostCats } = useCats();
   const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
@@ -33,26 +32,70 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   useEffect(() => {
     const fetchMatchCounts = async () => {
-      const counts = {};
-      const loading = {};
-      for (const catStatus of reportedCats) {
-        if (catStatus.statusCat === 'LOST') {
-          loading[catStatus.cat.catId] = true;
-          const matchResults = await findPotentialFoundCats(catStatus.cat.catId);
-          counts[catStatus.cat.catId] = matchResults.length;
-          loading[catStatus.cat.catId] = false;
-        } else if (catStatus.statusCat === 'FOUND') {
-          loading[catStatus.cat.catId] = true;
-          const matchResults = await findPotentialLostCats(catStatus.cat.catId);
-          counts[catStatus.cat.catId] = matchResults.length;
-          loading[catStatus.cat.catId] = false;
+      // Skip if no cats or if we're already loading matches
+      if (reportedCats.length === 0 || Object.values(loadingMatches).some(isLoading => isLoading)) {
+        return;
+      }
+
+      // Check if we already have match counts for all cats
+      const allCatsHaveMatchCounts = reportedCats.every(
+        catStatus => typeof matchCounts[catStatus.cat.catId] !== 'undefined'
+      );
+      
+      // Skip if we already have all match counts
+      if (allCatsHaveMatchCounts) {
+        return;
+      }
+      
+      // Only fetch for cats that don't have match counts yet
+      const catsToFetch = reportedCats.filter(
+        catStatus => typeof matchCounts[catStatus.cat.catId] === 'undefined'
+      );
+      
+      if (catsToFetch.length === 0) {
+        return;
+      }
+      
+      const counts = { ...matchCounts };
+      const loading = { ...loadingMatches };
+      
+      // Set loading state for cats we're about to fetch
+      catsToFetch.forEach(catStatus => {
+        loading[catStatus.cat.catId] = true;
+      });
+      setLoadingMatches(loading);
+      
+      // Fetch match counts sequentially to avoid too many simultaneous requests
+      for (const catStatus of catsToFetch) {
+        const catId = catStatus.cat.catId;
+        try {
+          if (catStatus.statusCat === 'LOST') {
+            const matchResults = await findPotentialFoundCats(catId);
+            counts[catId] = matchResults.length;
+          } else if (catStatus.statusCat === 'FOUND') {
+            const matchResults = await findPotentialLostCats(catId);
+            counts[catId] = matchResults.length;
+          } else {
+            counts[catId] = 0; // Set to 0 for other statuses
+          }
+          
+          loading[catId] = false;
+          
+          // Update state after each fetch to show progress
+          setMatchCounts({ ...counts });
+          setLoadingMatches({ ...loading });
+        } catch (error) {
+          console.error(`Error fetching matches for cat ${catId}:`, error);
+          counts[catId] = 0;
+          loading[catId] = false;
         }
       }
-      setMatchCounts(counts);
-      setLoadingMatches(loading);
     };
+    
     fetchMatchCounts();
-  }, [reportedCats, findPotentialFoundCats, findPotentialLostCats]);
+  }, [reportedCats, matchCounts, loadingMatches, findPotentialFoundCats, findPotentialLostCats]); // eslint-disable-line react-hooks/exhaustive-deps
+  // We're intentionally not re-running this effect when findPotential*Cats functions change
+  // to prevent an infinite loop of API calls
 
   const handleDelete = (catStatusId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat signalé ?")) {
