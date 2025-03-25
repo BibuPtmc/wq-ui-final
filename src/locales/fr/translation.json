@@ -1,0 +1,40 @@
+{
+  "navbar": {
+    "home": "Accueil",
+    "contact": "Contact",
+    "report": "Signaler",
+    "lost": "Perdu",
+    "found": "Trouvé",
+    "gpsCollars": "Colliers GPS",
+    "login": "Connexion",
+    "register": "Inscription",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "hello": "Bonjour"
+  },
+  "auth": {
+    "loginTitle": "Connexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "loginButton": "Se connecter",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "registerHere": "Inscrivez-vous ici",
+    "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?"
+  },
+  "filters": {
+    "breed": "Race",
+    "color": "Couleur",
+    "eyeColor": "Couleur des yeux",
+    "location": "Localisation",
+    "postalCode": "Code postal",
+    "useCurrentLocation": "Utiliser ma position actuelle",
+    "clearLocation": "Effacer ma position",
+    "searchRadius": "Rayon de recherche (km)"
+  },
+  "language": {
+    "select": "Langue",
+    "fr": "Français",
+    "en": "Anglais",
+    "nl": "Néerlandais"
+  }
+}

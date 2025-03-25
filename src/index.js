@@ -17,6 +17,7 @@ import { CartProvider } from './components/ecommerce/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import { AuthProvider, useAuth } from "./hooks/authProvider";
+import './i18n';
 
 const container = document.getElementById("root");
 const root = createRoot(container);

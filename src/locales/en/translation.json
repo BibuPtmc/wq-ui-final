@@ -1,0 +1,40 @@
+{
+  "navbar": {
+    "home": "Home",
+    "contact": "Contact",
+    "report": "Report",
+    "lost": "Lost",
+    "found": "Found",
+    "gpsCollars": "GPS Collars",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile",
+    "logout": "Logout",
+    "hello": "Hello"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Login",
+    "noAccount": "Don't have an account?",
+    "registerHere": "Register here",
+    "logoutConfirm": "Are you sure you want to log out?"
+  },
+  "filters": {
+    "breed": "Breed",
+    "color": "Color",
+    "eyeColor": "Eye Color",
+    "location": "Location",
+    "postalCode": "Postal Code",
+    "useCurrentLocation": "Use my current location",
+    "clearLocation": "Clear my location",
+    "searchRadius": "Search radius (km)"
+  },
+  "language": {
+    "select": "Language",
+    "fr": "French",
+    "en": "English",
+    "nl": "Dutch"
+  }
+}

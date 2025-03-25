@@ -5,12 +5,14 @@ import { useAuth } from "../../hooks/authProvider";
 import { useAxios } from "../../hooks/useAxios";
 import { motion } from "framer-motion";
 import { FaUser, FaLock, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useTranslation } from 'react-i18next';
 
 function LoginPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn, setUserData } = useAuth();
   const axios = useAxios();
   const [error, setError] = useState("");
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: "bibu@gmail.com", // Email préenregistré
     password: "Patamon10#",   // Mot de passe préenregistré
@@ -98,7 +100,7 @@ function LoginPage() {
             <Card className="shadow-sm">
               <Card.Body className="p-4">
                 <div className="text-center mb-4">
-                  <h2>Connexion</h2>
+                  <h2>{t('auth.loginTitle')}</h2>
                   <p className="text-muted">Accédez à votre compte WhiskerQuest</p>
                 </div>
 
@@ -112,7 +114,7 @@ function LoginPage() {
                   <Form.Group className="mb-3">
                     <Form.Label>
                       <FaUser className="me-2" />
-                      Email
+                      {t('auth.email')}
                     </Form.Label>
                     <Form.Control
                       type="email"
@@ -128,7 +130,7 @@ function LoginPage() {
                   <Form.Group className="mb-4">
                     <Form.Label>
                       <FaLock className="me-2" />
-                      Mot de passe
+                      {t('auth.password')}
                     </Form.Label>
                     <div className="input-group">
                       <Form.Control
@@ -151,7 +153,7 @@ function LoginPage() {
 
                   <div className="d-grid">
                     <Button variant="primary" type="submit" size="lg">
-                      Se connecter
+                      {t('auth.loginButton')}
                     </Button>
                   </div>
                 </Form>
@@ -161,7 +163,7 @@ function LoginPage() {
             <Card className="mt-4 shadow-sm">
               <Card.Body className="p-4 text-center">
                 <FaUserPlus className="text-primary mb-3" size={24} />
-                <h4>Pas encore de compte ?</h4>
+                <h4>{t('auth.noAccount')}</h4>
                 <p className="text-muted mb-4">
                   Rejoignez WhiskerQuest pour profiter de toutes nos fonctionnalités
                 </p>
@@ -172,7 +174,7 @@ function LoginPage() {
                   size="lg"
                   className="px-5"
                 >
-                  S'inscrire
+                  {t('auth.registerHere')}
                 </Button>
               </Card.Body>
             </Card>

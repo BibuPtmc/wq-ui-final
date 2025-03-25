@@ -3,17 +3,17 @@ import { Navbar, Nav, Button, Container, Dropdown } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "../../image/log.webp";
 import { useAuth } from "../../hooks/authProvider";
-import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
+import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag, FaGlobe } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import Cart from '../ecommerce/Cart';
-import { useCart } from '../ecommerce/CartContext';
+import { useTranslation } from 'react-i18next';
 
 const NavBar = () => {
   const { isLoggedIn, userData, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const { clearCart } = useCart();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,10 +30,14 @@ const NavBar = () => {
   }, [scrolled]);
 
   const handleLogout = () => {
-    if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+    if (window.confirm(t('auth.logoutConfirm'))) {
       logout();
       navigate("/");
     }
+  };
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
   };
 
   const navbarStyle = {
@@ -92,7 +96,7 @@ const NavBar = () => {
               to="/" 
               style={location.pathname === '/' ? activeLinkStyle : linkStyle}
             >
-              <FaHome className="me-1" /> Accueil
+              <FaHome className="me-1" /> {t('navbar.home')}
             </Nav.Link>
             
             <Nav.Link 
@@ -100,7 +104,7 @@ const NavBar = () => {
               to="/contact" 
               style={location.pathname === '/contact' ? activeLinkStyle : linkStyle}
             >
-              <FaEnvelope className="me-1" /> Contact
+              <FaEnvelope className="me-1" /> {t('navbar.contact')}
             </Nav.Link>
 
             <Nav.Link 
@@ -108,7 +112,7 @@ const NavBar = () => {
               to="/registerCat" 
               style={location.pathname === '/registerCat' ? activeLinkStyle : linkStyle}
             >
-              <FaExclamationTriangle className="me-1" /> Signaler
+              <FaExclamationTriangle className="me-1" /> {t('navbar.report')}
             </Nav.Link>
 
             <Nav.Link 
@@ -116,7 +120,7 @@ const NavBar = () => {
               to="/lostCats" 
               style={location.pathname === '/lostCats' ? activeLinkStyle : linkStyle}
             >
-              <FaSearch className="me-1" /> Perdu
+              <FaSearch className="me-1" /> {t('navbar.lost')}
             </Nav.Link>
 
             <Nav.Link 
@@ -124,7 +128,7 @@ const NavBar = () => {
               to="/foundCats" 
               style={location.pathname === '/foundCats' ? activeLinkStyle : linkStyle}
             >
-              <FaPaw className="me-1" /> Trouvé
+              <FaPaw className="me-1" /> {t('navbar.found')}
             </Nav.Link>
 
             <Nav.Link 
@@ -132,11 +136,29 @@ const NavBar = () => {
               to="/gps-collars" 
               style={location.pathname === '/gps-collars' ? activeLinkStyle : linkStyle}
             >
-              <FaTag className="me-1" /> Colliers GPS
+              <FaTag className="me-1" /> {t('navbar.gpsCollars')}
             </Nav.Link>
           </Nav>
 
           <Nav>
+            {/* Sélecteur de langue */}
+            <Dropdown align="end" className="me-2">
+              <Dropdown.Toggle variant="link" id="language-dropdown" style={linkStyle}>
+                <FaGlobe className="me-1" /> {t('language.select')}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => changeLanguage('fr')} active={i18n.language === 'fr'}>
+                  {t('language.fr')}
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => changeLanguage('en')} active={i18n.language === 'en'}>
+                  {t('language.en')}
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => changeLanguage('nl')} active={i18n.language === 'nl'}>
+                  {t('language.nl')}
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
             {isLoggedIn ? (
               <>
                 <div className="me-3">
@@ -144,15 +166,15 @@ const NavBar = () => {
                 </div>
                 <Dropdown align="end">
                   <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
-                    <FaUser className="me-1" /> {userData ? `Bonjour ${userData.firstName}` : 'Bonjour'}
+                    <FaUser className="me-1" /> {userData ? `${t('navbar.hello')} ${userData.firstName}` : t('navbar.hello')}
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
                     <Dropdown.Item as={Link} to="/profile">
-                      <FaUser className="me-2" /> Profil
+                      <FaUser className="me-2" /> {t('navbar.profile')}
                     </Dropdown.Item>
                     <Dropdown.Item onClick={handleLogout}>
-                      <FaSignOutAlt className="me-2" /> Déconnexion
+                      <FaSignOutAlt className="me-2" /> {t('navbar.logout')}
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
@@ -166,7 +188,7 @@ const NavBar = () => {
                     variant="outline-primary"
                     className="rounded-pill px-4"
                   >
-                    Connexion
+                    {t('navbar.login')}
                   </Button>
                 </motion.div>
 
@@ -177,7 +199,7 @@ const NavBar = () => {
                     variant="primary"
                     className="rounded-pill px-4"
                   >
-                    Inscription
+                    {t('navbar.register')}
                   </Button>
                 </motion.div>
               </div>

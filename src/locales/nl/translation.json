@@ -1,0 +1,40 @@
+{
+  "navbar": {
+    "home": "Home",
+    "contact": "Contact",
+    "report": "Melden",
+    "lost": "Verloren",
+    "found": "Gevonden",
+    "gpsCollars": "GPS-halsbanden",
+    "login": "Inloggen",
+    "register": "Registreren",
+    "profile": "Profiel",
+    "logout": "Uitloggen",
+    "hello": "Hallo"
+  },
+  "auth": {
+    "loginTitle": "Inloggen",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "loginButton": "Inloggen",
+    "noAccount": "Nog geen account?",
+    "registerHere": "Registreer hier",
+    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?"
+  },
+  "filters": {
+    "breed": "Ras",
+    "color": "Kleur",
+    "eyeColor": "Oogkleur",
+    "location": "Locatie",
+    "postalCode": "Postcode",
+    "useCurrentLocation": "Gebruik mijn huidige locatie",
+    "clearLocation": "Wis mijn locatie",
+    "searchRadius": "Zoekradius (km)"
+  },
+  "language": {
+    "select": "Taal",
+    "fr": "Frans",
+    "en": "Engels",
+    "nl": "Nederlands"
+  }
+}
