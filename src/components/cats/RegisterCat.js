@@ -220,6 +220,8 @@ function RegisterCat() {
       const response = await axios.post("/cat/register", catStatus);
       console.log(response);
       setShowSuccessMessage(true);
+      // Faire défiler la page vers le haut pour voir le message de succès
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setFormData({
         ...formData,
         name: "",
