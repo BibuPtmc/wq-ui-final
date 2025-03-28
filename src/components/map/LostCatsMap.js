@@ -17,6 +17,19 @@ const LostCatsMap = () => {
     latitude: 50.8503
   });
 
+  // Fonction pour calculer l'âge à partir de la date de naissance
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return '';
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   useEffect(() => {
     const fetchLostCats = async () => {
       try {
@@ -79,19 +92,6 @@ const LostCatsMap = () => {
       `
     };
   }).filter(marker => marker !== null); // Filtrer les marqueurs null
-
-  // Fonction pour calculer l'âge à partir de la date de naissance
-  const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return '';
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
 
   if (loading) {
     return (

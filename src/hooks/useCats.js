@@ -125,6 +125,77 @@ export const useCats = () => {
     }
   };
 
+  const handleEditOwnedCat = async (catId, updatedData) => {
+    try {
+      const headers = {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      };
+
+      const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
+      if (!currentCatStatus) {
+        throw new Error("Chat non trouvé");
+      }
+
+      const currentCat = currentCatStatus.cat;
+
+      const catDTO = {
+        catId: catId,
+        name: updatedData.name || currentCat.name,
+        color: updatedData.color || currentCat.color,
+        eyeColor: updatedData.eyeColor || currentCat.eyeColor,
+        breed: updatedData.breed || currentCat.breed,
+        furType: currentCat.furType,
+        gender: updatedData.gender || currentCat.gender,
+        chipNumber: updatedData.chipNumber || currentCat.chipNumber,
+        type: currentCat.type,
+        dateOfBirth: updatedData.dateOfBirth || currentCat.dateOfBirth,
+        imageCatData: currentCat.imageCatData
+      };
+
+      await axios.put(`cat/update`, catDTO, { headers });
+
+      // Si le chat a un statut (perdu/trouvé), mettre à jour également le commentaire
+      if (currentCatStatus.catStatusId) {
+        const catStatusDTO = {
+          catStatusId: currentCatStatus.catStatusId,
+          statusCat: currentCatStatus.statusCat,
+          comment: updatedData.comment || currentCatStatus.comment,
+          cat: {
+            catId: catId
+          }
+        };
+        await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
+      }
+      
+      // Mettre à jour l'état local
+      setOwnedCats(prevCats => prevCats.map(catStatus => 
+        catStatus.cat.catId === catId 
+          ? { 
+              ...catStatus,
+              cat: { 
+                ...catStatus.cat, 
+                name: updatedData.name || catStatus.cat.name,
+                color: updatedData.color || catStatus.cat.color,
+                eyeColor: updatedData.eyeColor || catStatus.cat.eyeColor,
+                breed: updatedData.breed || catStatus.cat.breed,
+                gender: updatedData.gender || catStatus.cat.gender,
+                chipNumber: updatedData.chipNumber || catStatus.cat.chipNumber,
+                dateOfBirth: updatedData.dateOfBirth || catStatus.cat.dateOfBirth
+              },
+              comment: updatedData.comment || catStatus.comment
+            }
+          : catStatus
+      ));
+      
+      setSuccessMessage('Les informations du chat ont été mises à jour avec succès !');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la modification du chat:", error);
+      return false;
+    }
+  };
+
   const handleDeleteOwnedCat = async (catId) => {
     try {
       await axios.delete(`cat/delete?id=${catId}`);
@@ -165,6 +236,7 @@ export const useCats = () => {
     successMessage,
     handleDeleteReportedCat,
     handleEditReportedCat,
+    handleEditOwnedCat,
     handleDeleteOwnedCat,
     findPotentialFoundCats,
     findPotentialLostCats,

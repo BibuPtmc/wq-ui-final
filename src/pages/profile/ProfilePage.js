@@ -21,6 +21,7 @@ const ProfilePage = () => {
     loading: catsLoading,
     handleDeleteReportedCat,
     handleEditReportedCat,
+    handleEditOwnedCat,
     handleDeleteOwnedCat,
     successMessage
   } = useCats();
@@ -341,6 +342,7 @@ const ProfilePage = () => {
                           ownedCats={ownedCats}
                           onShowCatDetails={handleShowCatDetails}
                           onDeleteCat={handleDeleteOwnedCat}
+                          onEditCat={handleEditOwnedCat}
                           successMessage={successMessage}
                         />
                       </Card.Body>
