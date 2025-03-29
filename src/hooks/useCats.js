@@ -29,9 +29,29 @@ export const useCats = () => {
   const [ownedCats, setOwnedCats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
+  const [userAddress, setUserAddress] = useState(null);
 
   // Use a ref to track if we've already run the initial fetch
   const initialFetchDone = React.useRef(false);
+
+  const fetchUserAddress = async () => {
+    try {
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+      const response = await axios.get("users/me", { headers });
+      
+      if (response && response.address) {
+        setUserAddress({
+          address: response.address.address || "",
+          city: response.address.city || "",
+          postalCode: response.address.postalCode || "",
+          latitude: response.address.latitude || null,
+          longitude: response.address.longitude || null
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'adresse de l'utilisateur:", error);
+    }
+  };
 
   const fetchCats = async () => {
     try {
@@ -55,10 +75,14 @@ export const useCats = () => {
       } catch (error) {
         setOwnedCats([]);
       }
+
+      // Fetch user address
+      await fetchUserAddress();
+      
+      setLoading(false);
+      initialFetchDone.current = true;
     } catch (error) {
       console.error("Error fetching cats:", error);
-    } finally {
-      initialFetchDone.current = true;
       setLoading(false);
     }
   };
@@ -119,11 +143,31 @@ export const useCats = () => {
       // Formater la date pour Java LocalDateTime
       const formattedDate = formatDateForJava(currentCat.reportDate);
 
+      if (formattedDate === null) {
+        throw new Error("Erreur lors du formatage de la date");
+      }
+
+      // Utiliser l'adresse de l'utilisateur pour le chat possédé
+      // Si l'adresse n'est pas disponible, récupérer l'adresse
+      if (!userAddress) {
+        await fetchUserAddress();
+      }
+
+      // Créer l'objet de localisation basé sur l'adresse de l'utilisateur
+      const userLocation = userAddress ? {
+        address: userAddress.address,
+        city: userAddress.city,
+        postalCode: userAddress.postalCode,
+        latitude: userAddress.latitude,
+        longitude: userAddress.longitude
+      } : currentCat.location; // Utiliser la localisation actuelle si l'adresse de l'utilisateur n'est pas disponible
+
       const catStatusDTO = {
         catStatusId: catStatusId,
         statusCat: updatedData.statusCat,
         comment: updatedData.comment,
         reportDate: formattedDate, // Utiliser la date formatée
+        location: userLocation, // Utiliser la localisation de l'utilisateur
         cat: {
           catId: currentCat.cat.catId
         }
@@ -131,16 +175,23 @@ export const useCats = () => {
 
       await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
       
-      setReportedCats(prevCats => prevCats.map(cat => 
-        cat.catStatusId === catStatusId 
-          ? { 
-              ...cat,
-              cat: { ...cat.cat, name: updatedData.name },
-              statusCat: updatedData.statusCat,
-              comment: updatedData.comment
-            }
-          : cat
-      ));
+      // Retirer le chat de la liste des chats signalés
+      setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
+      
+      // Ajouter le chat à la liste des chats possédés avec les données mises à jour
+      const updatedCat = {
+        catStatusId: catStatusId,
+        statusCat: updatedData.statusCat,
+        comment: updatedData.comment,
+        reportDate: formattedDate,
+        location: userLocation, // Utiliser la localisation de l'utilisateur
+        cat: {
+          ...currentCat.cat,
+          name: updatedData.name || currentCat.cat.name
+        }
+      };
+      
+      setOwnedCats(prevCats => [...prevCats, updatedCat]);
       
       setSuccessMessage('Les informations du chat ont été mises à jour avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
@@ -180,14 +231,21 @@ export const useCats = () => {
 
       await axios.put(`cat/update`, catDTO, { headers });
 
+      // Formater la date pour Java LocalDateTime (même si pas de statut)
+      let formattedDate = null;
+      if (currentCatStatus.reportDate) {
+        formattedDate = formatDateForJava(currentCatStatus.reportDate);
+        
+        if (formattedDate === null) {
+          throw new Error("Erreur lors du formatage de la date");
+        }
+      }
+
       // Si le chat a un statut (perdu/trouvé), mettre à jour également le commentaire
       if (currentCatStatus.catStatusId) {
-        // Formater la date pour Java LocalDateTime
-        const formattedDate = formatDateForJava(currentCatStatus.reportDate);
-
         const catStatusDTO = {
           catStatusId: currentCatStatus.catStatusId,
-          statusCat: currentCatStatus.statusCat,
+          statusCat: updatedData.statusCat || currentCatStatus.statusCat,
           comment: updatedData.comment || currentCatStatus.comment,
           reportDate: formattedDate, // Utiliser la date formatée
           cat: {
@@ -197,11 +255,14 @@ export const useCats = () => {
         await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
       }
       
-      // Mettre à jour l'état local
+      // Mettre à jour l'état local avec toutes les données mises à jour
       setOwnedCats(prevCats => prevCats.map(catStatus => 
         catStatus.cat.catId === catId 
           ? { 
               ...catStatus,
+              statusCat: updatedData.statusCat || catStatus.statusCat,
+              comment: updatedData.comment || catStatus.comment,
+              reportDate: formattedDate, // Maintenant formattedDate est toujours défini
               cat: { 
                 ...catStatus.cat, 
                 name: updatedData.name || catStatus.cat.name,
@@ -212,8 +273,7 @@ export const useCats = () => {
                 gender: updatedData.gender || catStatus.cat.gender,
                 chipNumber: updatedData.chipNumber || catStatus.cat.chipNumber,
                 dateOfBirth: updatedData.dateOfBirth || catStatus.cat.dateOfBirth
-              },
-              comment: updatedData.comment || catStatus.comment
+              }
             }
           : catStatus
       ));
@@ -265,6 +325,7 @@ export const useCats = () => {
     ownedCats,
     loading,
     successMessage,
+    userAddress,
     handleDeleteReportedCat,
     handleEditReportedCat,
     handleEditOwnedCat,
