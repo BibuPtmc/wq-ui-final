@@ -1,6 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useAxios } from './useAxios';
 
+// Fonction utilitaire pour formater la date au format attendu par le backend Java
+const formatDateForJava = (dateString) => {
+  if (!dateString || typeof dateString !== 'string') return null;
+  
+  try {
+    // Créer un objet Date à partir de la chaîne
+    const date = new Date(dateString);
+    
+    // Formater la date exactement comme dans RegisterCat: "YYYY-MM-DD HH:MM:SS.SSS"
+    return date.getFullYear() + '-' + 
+           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(date.getDate()).padStart(2, '0') + ' ' + 
+           String(date.getHours()).padStart(2, '0') + ':' + 
+           String(date.getMinutes()).padStart(2, '0') + ':' + 
+           String(date.getSeconds()).padStart(2, '0') + '.' +
+           String(date.getMilliseconds()).padStart(3, '0');
+  } catch (error) {
+    console.error("Erreur lors du formatage de la date:", error);
+    return null;
+  }
+};
+
 export const useCats = () => {
   const axios = useAxios();
   const [reportedCats, setReportedCats] = useState([]);
@@ -94,10 +116,14 @@ export const useCats = () => {
 
       await axios.put(`cat/update`, catDTO, { headers });
 
+      // Formater la date pour Java LocalDateTime
+      const formattedDate = formatDateForJava(currentCat.reportDate);
+
       const catStatusDTO = {
         catStatusId: catStatusId,
         statusCat: updatedData.statusCat,
         comment: updatedData.comment,
+        reportDate: formattedDate, // Utiliser la date formatée
         cat: {
           catId: currentCat.cat.catId
         }
@@ -144,7 +170,7 @@ export const useCats = () => {
         color: updatedData.color || currentCat.color,
         eyeColor: updatedData.eyeColor || currentCat.eyeColor,
         breed: updatedData.breed || currentCat.breed,
-        furType: currentCat.furType,
+        furType: updatedData.furType || currentCat.furType,
         gender: updatedData.gender || currentCat.gender,
         chipNumber: updatedData.chipNumber || currentCat.chipNumber,
         type: currentCat.type,
@@ -156,10 +182,14 @@ export const useCats = () => {
 
       // Si le chat a un statut (perdu/trouvé), mettre à jour également le commentaire
       if (currentCatStatus.catStatusId) {
+        // Formater la date pour Java LocalDateTime
+        const formattedDate = formatDateForJava(currentCatStatus.reportDate);
+
         const catStatusDTO = {
           catStatusId: currentCatStatus.catStatusId,
           statusCat: currentCatStatus.statusCat,
           comment: updatedData.comment || currentCatStatus.comment,
+          reportDate: formattedDate, // Utiliser la date formatée
           cat: {
             catId: catId
           }
@@ -178,6 +208,7 @@ export const useCats = () => {
                 color: updatedData.color || catStatus.cat.color,
                 eyeColor: updatedData.eyeColor || catStatus.cat.eyeColor,
                 breed: updatedData.breed || catStatus.cat.breed,
+                furType: updatedData.furType || catStatus.cat.furType,
                 gender: updatedData.gender || catStatus.cat.gender,
                 chipNumber: updatedData.chipNumber || catStatus.cat.chipNumber,
                 dateOfBirth: updatedData.dateOfBirth || catStatus.cat.dateOfBirth
