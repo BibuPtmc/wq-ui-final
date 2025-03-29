@@ -101,7 +101,7 @@ export const useCats = () => {
       const headers = {
         Authorization: `Bearer ${sessionStorage.getItem("token")}`,
       };
-      await axios.delete(`cat/delete?id=${catStatusId}`, { headers });
+      await axios.delete(`/cat/delete?id=${catStatusId}`, { headers });
       setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
       setSuccessMessage('Le chat a été supprimé avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
@@ -138,7 +138,7 @@ export const useCats = () => {
         imageCatData: currentCat.cat.imageCatData
       };
 
-      await axios.put(`cat/update`, catDTO, { headers });
+      await axios.put(`/cat/update`, catDTO, { headers });
 
       // Formater la date pour Java LocalDateTime
       const formattedDate = formatDateForJava(currentCat.reportDate);
@@ -173,7 +173,7 @@ export const useCats = () => {
         }
       };
 
-      await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
+      await axios.put(`/cat/updateStatus`, catStatusDTO, { headers });
       
       // Retirer le chat de la liste des chats signalés
       setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
@@ -229,7 +229,7 @@ export const useCats = () => {
         imageCatData: currentCat.imageCatData
       };
 
-      await axios.put(`cat/update`, catDTO, { headers });
+      await axios.put(`/cat/update`, catDTO, { headers });
 
       // Formater la date pour Java LocalDateTime (même si pas de statut)
       let formattedDate = null;
@@ -252,7 +252,7 @@ export const useCats = () => {
             catId: catId
           }
         };
-        await axios.put(`cat/updateStatus`, catStatusDTO, { headers });
+        await axios.put(`/cat/updateStatus`, catStatusDTO, { headers });
       }
       
       // Mettre à jour l'état local avec toutes les données mises à jour
@@ -289,7 +289,7 @@ export const useCats = () => {
 
   const handleDeleteOwnedCat = async (catId) => {
     try {
-      await axios.delete(`cat/delete?id=${catId}`);
+      await axios.delete(`/cat/delete?id=${catId}`);
       setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
       setSuccessMessage('Le chat a été supprimé avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
@@ -300,9 +300,82 @@ export const useCats = () => {
     }
   };
 
+  // Fonction pour déclarer un chat possédé comme perdu avec une localisation personnalisée
+  const handleReportCatAsLost = async (catId, lostData) => {
+    try {
+      const headers = {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      };
+
+      const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
+      if (!currentCatStatus) {
+        throw new Error("Chat non trouvé");
+      }
+
+      // Formater la date actuelle pour Java LocalDateTime
+      const now = new Date();
+      const formattedDate = formatDateForJava(now.toISOString());
+
+      // Créer l'objet de localisation
+      const location = {
+        latitude: lostData.location.latitude,
+        longitude: lostData.location.longitude,
+        address: lostData.location.address,
+        city: lostData.location.city,
+        postalCode: lostData.location.postalCode
+      };
+
+      // Créer l'objet catStatus pour déclarer le chat comme perdu (structure similaire à RegisterCat)
+      const catStatus = {
+        cat: {
+          catId: catId,
+          name: currentCatStatus.cat.name,
+          breed: currentCatStatus.cat.breed,
+          color: currentCatStatus.cat.color,
+          dateOfBirth: currentCatStatus.cat.dateOfBirth,
+          imageCatData: currentCatStatus.cat.imageCatData,
+          type: currentCatStatus.cat.type,
+          gender: currentCatStatus.cat.gender,
+          chipNumber: currentCatStatus.cat.chipNumber,
+          furType: currentCatStatus.cat.furType,
+          eyeColor: currentCatStatus.cat.eyeColor
+        },
+        comment: lostData.comment || "Chat perdu",
+        statusCat: "LOST", // Statut perdu
+        reportDate: formattedDate,
+        location: location
+      };
+
+      // Mettre à jour le statut du chat
+      const response = await axios.post(`/cat/register`, catStatus, { headers });
+      
+      // Mettre à jour l'état local
+      setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
+      
+      // Ajouter le chat à la liste des chats signalés
+      const updatedCat = {
+        catStatusId: response.catStatusId,
+        statusCat: "LOST",
+        comment: lostData.comment || "Chat perdu",
+        reportDate: formattedDate,
+        location: location,
+        cat: currentCatStatus.cat
+      };
+      
+      setReportedCats(prevCats => [...prevCats, updatedCat]);
+      
+      setSuccessMessage('Votre chat a été déclaré comme perdu avec succès !');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la déclaration du chat comme perdu:", error);
+      return false;
+    }
+  };
+
   async function findPotentialFoundCats(catId) {
     try {
-      const response = await axios.get(`cat/potentialFoundCats/${catId}`);
+      const response = await axios.get(`/cat/potentialFoundCats/${catId}`);
       return response;
     } catch (error) {
       console.error("Erreur lors de la recherche des correspondances:", error);
@@ -312,7 +385,7 @@ export const useCats = () => {
 
   async function findPotentialLostCats(catId) {
     try {
-      const response = await axios.get(`cat/potentialLostCats/${catId}`);
+      const response = await axios.get(`/cat/potentialLostCats/${catId}`);
       return response;
     } catch (error) {
       console.error("Erreur lors de la recherche des chats trouvés correspondants:", error);
@@ -330,6 +403,7 @@ export const useCats = () => {
     handleEditReportedCat,
     handleEditOwnedCat,
     handleDeleteOwnedCat,
+    handleReportCatAsLost,
     findPotentialFoundCats,
     findPotentialLostCats,
     fetchCats

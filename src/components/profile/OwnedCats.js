@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { FaPaw, FaTrash, FaEdit } from 'react-icons/fa';
+import { FaPaw, FaTrash, FaEdit, FaSearch } from 'react-icons/fa';
+import MapLocation from '../map/MapLocation';
+import useGeolocation from "../../hooks/useGeolocation";
+import { reverseGeocode } from "../../utils/geocodingService";
 
-const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, successMessage }) => {
+const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showLostModal, setShowLostModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
+  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
   const [editForm, setEditForm] = useState({
     name: '',
     breed: '',
@@ -16,6 +21,16 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, succes
     chipNumber: '',
     furType: '',
     comment: ''
+  });
+  const [lostForm, setLostForm] = useState({
+    comment: '',
+    location: {
+      latitude: null,
+      longitude: null,
+      address: '',
+      city: '',
+      postalCode: ''
+    }
   });
 
   // Options pour les sélecteurs basées sur RegisterCat.js
@@ -108,6 +123,39 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, succes
     }
   }, [selectedCat]);
 
+  // Réinitialiser le formulaire lorsqu'un nouveau chat est sélectionné
+  useEffect(() => {
+    if (selectedCat) {
+      // Pour le modal d'édition
+      setEditForm({
+        name: selectedCat.cat.name || '',
+        breed: selectedCat.cat.breed || '',
+        color: selectedCat.cat.color || '',
+        eyeColor: selectedCat.cat.eyeColor || '',
+        gender: selectedCat.cat.gender || '',
+        dateOfBirth: selectedCat.cat.dateOfBirth ? selectedCat.cat.dateOfBirth.substring(0, 10) : '',
+        chipNumber: selectedCat.cat.chipNumber || '',
+        furType: selectedCat.cat.furType || '',
+        comment: selectedCat.comment || ''
+      });
+
+      // Pour le modal de signalement de perte
+      if (showLostModal) {
+        // Initialiser avec l'adresse de l'utilisateur si disponible
+        setLostForm({
+          comment: '',
+          location: {
+            latitude: selectedCat.location?.latitude || null,
+            longitude: selectedCat.location?.longitude || null,
+            address: selectedCat.location?.address || '',
+            city: selectedCat.location?.city || '',
+            postalCode: selectedCat.location?.postalCode || ''
+          }
+        });
+      }
+    }
+  }, [selectedCat, showLostModal]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Soumission du formulaire:", editForm);
@@ -123,6 +171,40 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, succes
       [name]: value
     }));
   };
+
+  // Fonction pour mettre à jour la localisation à partir des coordonnées
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    try {
+      const addressInfo = await reverseGeocode(longitude, latitude);
+      
+      setLostForm(prev => ({
+        ...prev,
+        location: {
+          latitude: latitude,
+          longitude: longitude,
+          address: addressInfo.address || '',
+          city: addressInfo.city || '',
+          postalCode: addressInfo.postalCode || ''
+        }
+      }));
+    } catch (error) {
+      console.error("Erreur lors de la géolocalisation inverse:", error);
+    }
+  }, []);
+
+  // Fonction pour demander la position actuelle
+  const handleRequestCurrentLocation = useCallback(async () => {
+    setGeoError(null);
+    try {
+      const position = await getCurrentPosition();
+      if (position && position.coords) {
+        const { longitude, latitude } = position.coords;
+        await updateLocationFromCoordinates(longitude, latitude);
+      }
+    } catch (error) {
+      setGeoError(error.message);
+    }
+  }, [getCurrentPosition, updateLocationFromCoordinates, setGeoError]);
 
   if (ownedCats.length === 0) {
     return (
@@ -212,6 +294,17 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, succes
                         }}
                       >
                         <FaTrash />
+                      </Button>
+                      <Button
+                        variant="outline-warning"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowLostModal(true);
+                          setSelectedCat(catStatus);
+                        }}
+                      >
+                        <FaSearch />
                       </Button>
                     </div>
                   </Card.Body>
@@ -376,6 +469,80 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, succes
               </Button>
               <Button variant="primary" type="submit">
                 Enregistrer
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal pour signaler un chat perdu */}
+      <Modal 
+        show={showLostModal} 
+        onHide={() => setShowLostModal(false)}
+        onShow={() => {
+          if (selectedCat) {
+            // Initialiser avec l'adresse du chat sélectionné
+            setLostForm({
+              comment: '',
+              location: {
+                latitude: selectedCat.location?.latitude || null,
+                longitude: selectedCat.location?.longitude || null,
+                address: selectedCat.location?.address || '',
+                city: selectedCat.location?.city || '',
+                postalCode: selectedCat.location?.postalCode || ''
+              }
+            });
+          }
+        }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Signaler un chat perdu</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={(e) => {
+            e.preventDefault();
+            onReportAsLost(selectedCat.cat.catId, lostForm);
+            setShowLostModal(false);
+          }}>
+            <Form.Group className="mb-3">
+              <Form.Label>Commentaire</Form.Label>
+              <Form.Control
+                as="textarea"
+                name="comment"
+                value={lostForm.comment}
+                onChange={(e) => setLostForm(prev => ({ ...prev, comment: e.target.value }))}
+                placeholder="Informations supplémentaires sur la disparition de votre chat"
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Localisation</Form.Label>
+              <MapLocation 
+                location={lostForm.location}
+                onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
+                onAddressChange={(addressData) => {
+                  setLostForm(prev => ({
+                    ...prev,
+                    location: {
+                      ...prev.location,
+                      ...addressData
+                    }
+                  }));
+                }}
+                isLocating={isLocating}
+                geoError={geoError}
+                onGeoErrorDismiss={() => setGeoError(null)}
+                onRequestCurrentLocation={handleRequestCurrentLocation}
+                mapHeight="300px"
+              />
+            </Form.Group>
+            
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={() => setShowLostModal(false)}>
+                Annuler
+              </Button>
+              <Button variant="primary" type="submit">
+                Signaler
               </Button>
             </div>
           </Form>
