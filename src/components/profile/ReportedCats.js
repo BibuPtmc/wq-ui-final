@@ -287,10 +287,10 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                 value={editForm.statusCat}
                 onChange={handleChange}
               >
-                <option value="">Sélectionner un statut</option>
-                <option value="LOST">Perdu</option>
-                <option value="FOUND">Trouvé</option>
-                <option value="OWN">Propriétaire</option>
+                <option key="empty" value="">Sélectionner un statut</option>
+                <option key="lost" value="LOST">Perdu</option>
+                <option key="found" value="FOUND">Trouvé</option>
+                <option key="own" value="OWN">Propriétaire</option>
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">
