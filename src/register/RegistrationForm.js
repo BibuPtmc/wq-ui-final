@@ -148,11 +148,17 @@ const RegistrationForm = () => {
       })
       .catch((error) => {
         console.error("Erreur lors de l'inscription :", error);
-        if (error.response?.data?.message === "Email already exists") {
+        const errorMessage = error.response?.data?.message;
+        
+        if (errorMessage === "Email already exists") {
           setError("Cette adresse email est déjà utilisée");
+        } else if (errorMessage === "Username already exists") {
+          setError("Ce nom d'utilisateur est déjà utilisé");
+        } else if (errorMessage === "Phone number already exists") {
+          setError("Ce numéro de téléphone est déjà utilisé");
         } else {
           setError(
-            error.response?.data?.message ||
+            errorMessage ||
               "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
           );
         }
