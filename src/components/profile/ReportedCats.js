@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { FaTimes, FaPaw } from 'react-icons/fa';
+import { FaTimes, FaPaw, FaLink } from 'react-icons/fa';
 import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
+import { CatLinkRequestButton } from '../cats/CatLinkRequest';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { findPotentialFoundCats, findPotentialLostCats } = useCats();
@@ -142,6 +143,12 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     setShowMatches(false);
   };
 
+  const refreshCats = () => {
+    // Cette fonction sera appelée après une liaison réussie
+    // Le composant parent (ProfilePage) s'occupera de rafraîchir la liste des chats
+    window.location.reload(); // Simple refresh pour l'instant
+  };
+
   if (reportedCats.length === 0) {
     return (
       <Alert variant="info">Vous n'avez pas de chats signalés.</Alert>
@@ -227,6 +234,29 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         <FaTimes />
                       </Button>
                     </div>
+                    
+                    {/* Bouton pour lier un chat perdu à un chat trouvé */}
+                    {catStatus.statusCat === 'LOST' && (
+                      <div className="mt-2">
+                        <CatLinkRequestButton 
+                          lostCatStatusId={catStatus.catStatusId} 
+                          onSuccess={refreshCats}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Afficher l'ID unique pour les chats trouvés */}
+                    {catStatus.statusCat === 'FOUND' && (
+                      <div className="mt-2 text-center">
+                        <Badge bg="info" className="px-3 py-2">
+                          ID: #{catStatus.catStatusId}
+                        </Badge>
+                        <div className="small text-muted mt-1">
+                          Communiquez cet ID au propriétaire
+                        </div>
+                      </div>
+                    )}
+                    
                     {catStatus.statusCat === 'LOST' && (
                       <Button
                         variant="outline-info"

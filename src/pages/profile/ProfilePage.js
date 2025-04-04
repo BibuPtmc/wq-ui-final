@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
 import { useAxios } from "../../hooks/useAxios";
 import { useAuth } from "../../hooks/authProvider";
 import { useCats } from '../../hooks/useCats';
-import { FaUser, FaPaw, FaLock, FaHistory} from 'react-icons/fa';
+import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';
 import ReportedCats from '../../components/profile/ReportedCats';
 import OwnedCats from '../../components/profile/OwnedCats';
 import CatDetails from '../../components/profile/CatDetails';
@@ -11,6 +11,7 @@ import PersonalInfo from '../../components/profile/PersonalInfo';
 import SecuritySettings from '../../components/profile/SecuritySettings';
 import OrderHistory from '../../components/profile/OrderHistory';
 import ProfileSidebar from '../../components/profile/ProfileSidebar';
+import PendingLinkRequests from '../../components/profile/PendingLinkRequests';
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -92,7 +93,7 @@ const ProfilePage = () => {
   }, [axios, loading]);
 
   // Fonction pour récupérer les commandes
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (activeTab === 'orders') {
       setOrdersLoading(true);
       try {
@@ -104,11 +105,11 @@ const ProfilePage = () => {
         setOrdersLoading(false);
       }
     }
-  };
+  }, [activeTab, axios]);
 
   useEffect(() => {
     fetchOrders();
-  }, [activeTab]);
+  }, [fetchOrders]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -190,10 +191,6 @@ const ProfilePage = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
-
   const handleDeleteAccount = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
       try {
@@ -208,12 +205,8 @@ const ProfilePage = () => {
     }
   };
 
-  const formatPhoneNumber = (phoneNumber) => {
-    let cleaned = ("" + phoneNumber).replace(/\D/g, "");
-    return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
-  };
-
   const handleCloseCatDetails = () => setShowCatDetails(false);
+
   const handleShowCatDetails = (catStatus) => {
     setSelectedCatStatus(catStatus);
     setShowCatDetails(true);
@@ -347,6 +340,18 @@ const ProfilePage = () => {
                           onReportAsLost={handleReportCatAsLost}
                           successMessage={successMessage}
                         />
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+                  
+                  <Tab.Pane active={activeTab === "pendingLinks"}>
+                    <Card className="shadow-sm mb-4">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <FaLink className="me-2" />
+                          Demandes de liaison en attente
+                        </Card.Title>
+                        <PendingLinkRequests />
                       </Card.Body>
                     </Card>
                   </Tab.Pane>

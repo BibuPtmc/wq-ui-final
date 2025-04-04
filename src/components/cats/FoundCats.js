@@ -10,6 +10,7 @@ import { useCats } from "../../hooks/useCats";
 import MatchingResults from "./MatchingResults";
 import Select from "react-select";
 import catBreeds from "../../CatBreeds";
+import { CatFoundIdDisplay } from "./CatLinkRequest";
 
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
@@ -652,12 +653,19 @@ function FoundCats() {
         </div>
       )}
       
-      {/* Move CatDetails outside the map function */}
       <CatDetails 
         selectedCatStatus={selectedCatStatus} 
         handleClose={handleClose} 
         show={show}
       />
+      
+      {/* Afficher l'ID unique du chat trouvé dans le modal de détails */}
+      {show && selectedCatStatus && (
+        <div className="mt-3">
+          <CatFoundIdDisplay catStatusId={selectedCatStatus.catStatusId} />
+        </div>
+      )}
+
       <MatchingResults
         matches={matches}
         show={showMatches}

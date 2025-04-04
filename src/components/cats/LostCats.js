@@ -9,6 +9,7 @@ import { useCats } from "../../hooks/useCats";
 import MatchingResults from "./MatchingResults";
 import Select from "react-select";
 import catBreeds from "../../CatBreeds";
+import { CatLinkRequestButton } from "./CatLinkRequest";
 
 function LostCats() {
   const [lostCats, setLostCats] = useState([]);
@@ -658,6 +659,13 @@ function LostCats() {
         handleClose={handleClose} 
         show={show}
       />
+      
+      {/* Ajouter le bouton de liaison pour les chats perdus */}
+      {show && selectedCatStatus && (
+        <div className="mt-3">
+          <CatLinkRequestButton lostCatStatusId={selectedCatStatus.catStatusId} onSuccess={() => setShow(false)} />
+        </div>
+      )}
 
       <MatchingResults
         matches={matches}
