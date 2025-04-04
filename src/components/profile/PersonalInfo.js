@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { FaUser, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars } from 'react-icons/fa';
 import MapLocation from '../map/MapLocation';
+import { reverseGeocode } from '../../utils/geocodingService';
 
 const PersonalInfo = ({ 
   formData, 
@@ -18,12 +19,26 @@ const PersonalInfo = ({
     }));
   };
 
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    try {
+      const addressInfo = await reverseGeocode(longitude, latitude);
+      
+      setFormData(prev => ({
+        ...prev,
+        longitude,
+        latitude,
+        address: addressInfo?.address || prev.address,
+        city: addressInfo?.city || prev.city,
+        postalCode: addressInfo?.postalCode || prev.postalCode
+      }));
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'adresse:", error);
+    }
+  }, [setFormData]);
+
   const handleLocationChange = (longitude, latitude) => {
-    setFormData(prev => ({
-      ...prev,
-      longitude,
-      latitude
-    }));
+    // Appeler la fonction de géocodage inverse pour obtenir l'adresse
+    updateLocationFromCoordinates(longitude, latitude);
   };
 
   const handleAddressChange = (addressData) => {
