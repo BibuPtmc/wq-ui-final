@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { FaTimes, FaPaw, FaLink } from 'react-icons/fa';
+import { FaTimes, FaPaw } from 'react-icons/fa';
 import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
 import { CatLinkRequestButton } from '../cats/CatLinkRequest';
+import CatDetails from './CatDetails';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { findPotentialFoundCats, findPotentialLostCats } = useCats();
   const [showModal, setShowModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
@@ -112,6 +114,15 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       comment: catStatus.comment || ''
     });
     setShowModal(true);
+  };
+
+  const handleViewDetails = (catStatus) => {
+    setSelectedCat(catStatus);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false);
   };
 
   const handleSubmit = (e) => {
@@ -344,13 +355,19 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         </Modal.Body>
       </Modal>
 
+      <CatDetails 
+        selectedCatStatus={selectedCat}
+        show={showDetailsModal}
+        handleClose={handleCloseDetails}
+      />
+
       <MatchingResults
         matches={matches}
         show={showMatches}
         handleClose={handleCloseMatches}
         onViewDetails={(catStatus) => {
           handleCloseMatches();
-          handleEdit(catStatus);
+          handleViewDetails(catStatus);
         }}
       />
     </>
