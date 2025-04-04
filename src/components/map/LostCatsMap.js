@@ -1,21 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import MapLocation from './MapLocation';
 import api from '../../hooks/api';
-import { Container, Card, Spinner, Alert, Badge } from 'react-bootstrap';
-import { FaCat, FaMapMarkedAlt } from 'react-icons/fa';
+import { Card, Spinner, Alert, Badge, Button } from 'react-bootstrap';
+import { FaCat, FaMapMarkerAlt } from 'react-icons/fa';
 import '../../styles/mapbox-popup.css'; 
-import '../../styles/styles'; 
+import useGeolocation from '../../hooks/useGeolocation';
+import { reverseGeocode } from '../../utils/geocodingService';
 
-
-
-const LostCatsMap = () => {
+const LostCatsMap = ({ noLostCatsMessage }) => {
   const [lostCats, setLostCats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState({
     longitude: 4.3517,  // Bruxelles
-    latitude: 50.8503
+    latitude: 50.8503,
+    address: '',
+    city: '',
+    postalCode: ''
   });
+  const [mapError, setMapError] = useState(null);
+  
+  // Utiliser le hook de géolocalisation
+  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
 
   // Fonction pour calculer l'âge à partir de la date de naissance
   const calculateAge = (dateOfBirth) => {
@@ -29,6 +35,43 @@ const LostCatsMap = () => {
     }
     return age;
   };
+
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    try {
+      const addressInfo = await reverseGeocode(longitude, latitude);
+  
+      setSelectedLocation({
+        longitude,
+        latitude,
+        address: addressInfo?.address || "",
+        city: addressInfo?.city || "",
+        postalCode: addressInfo?.postalCode || ""
+      });
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'adresse:", error);
+      setMapError("Erreur lors de la récupération de l'adresse");
+    }
+  }, []);
+
+  // Fonction simplifiée pour mettre à jour uniquement les coordonnées sans géocodification inverse
+  const handleLocationChange = useCallback((longitude, latitude) => {
+    setSelectedLocation(prev => ({
+      ...prev,
+      longitude,
+      latitude
+    }));
+  }, []);
+
+  // Initialisation avec la position actuelle
+  useEffect(() => {
+    getCurrentPosition()
+      .then(position => {
+        updateLocationFromCoordinates(position.longitude, position.latitude);
+      })
+      .catch(error => {
+        console.log("Utilisation de la position par défaut:", error.message);
+      });
+  }, [getCurrentPosition, updateLocationFromCoordinates]);
 
   useEffect(() => {
     const fetchLostCats = async () => {
@@ -46,6 +89,15 @@ const LostCatsMap = () => {
     fetchLostCats();
   }, []);
 
+  // Fonction pour formater les valeurs avec underscores
+  const formatValue = (value) => {
+    if (!value || typeof value !== 'string') return '';
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   // Création des marqueurs avec les photos des chats
   const markers = lostCats.map(catStatus => {
     // Vérifier que location existe
@@ -62,11 +114,10 @@ const LostCatsMap = () => {
         })
       : 'Date inconnue';
     
-    // Vérifier la disponibilité de l'image
-    // Si vous avez un endpoint qui sert les images des chats par ID
-    const catImageUrl = catStatus.cat.catId 
-      ? `/api/cats/${catStatus.cat.catId}/image` 
-      : null;
+    // Utiliser l'image du chat depuis les données
+    const catImage = catStatus.cat.imageCatData 
+      ? `data:${catStatus.cat.type};base64,${catStatus.cat.imageCatData}` 
+      : catStatus.cat.photoUrl || "/images/noImageCat.png";
 
     // Construction du HTML pour le popup sans inclure les styles inline
     return {
@@ -74,24 +125,23 @@ const LostCatsMap = () => {
       latitude: catStatus.location.latitude,
       popupContent: `
         <div class="cat-popup">
-          ${catImageUrl 
-            ? `<img src="${catImageUrl}" alt="${catStatus.cat.name}" class="cat-popup-img">`
-            : `<div class="cat-popup-placeholder">
-                <span>No Photo</span>
-              </div>`
-          }
+          <img src="${catImage}" alt="${catStatus.cat.name || 'Chat sans nom'}" class="cat-popup-img" onerror="this.src='/images/noImageCat.png'; this.onerror=null;">
           <h5 class="cat-popup-title">${catStatus.cat.name || 'Chat sans nom'}</h5>
           <p class="cat-popup-date">Signalé perdu le: ${reportDate}</p>
           
-          <p class="cat-popup-info"><strong>Race:</strong> ${catStatus.cat.breed || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Race:</strong> ${formatValue(catStatus.cat.breed) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Genre:</strong> ${formatValue(catStatus.cat.gender) || 'Non spécifié'}</p>
+          <p class="cat-popup-info"><strong>Couleur:</strong> ${formatValue(catStatus.cat.color) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Couleur des yeux:</strong> ${formatValue(catStatus.cat.eyeColor) || 'Non spécifiée'}</p>
           ${catStatus.cat.dateOfBirth ? `<p class="cat-popup-info"><strong>Âge:</strong> ${calculateAge(catStatus.cat.dateOfBirth)} ans</p>` : ''}
-          ${catStatus.comment ? `<p class="cat-popup-info"><strong>Commentaire:</strong> ${catStatus.comment}</p>` : ''}
           
-          <a href="/chat/${catStatus.cat.catId}" class="cat-popup-btn">Voir plus</a>
+          <a href="/lostCats" class="cat-popup-btn">Voir plus</a>
         </div>
       `
     };
   }).filter(marker => marker !== null); // Filtrer les marqueurs null
+
+  const mapRef = useRef(null);
 
   if (loading) {
     return (
@@ -132,9 +182,11 @@ const LostCatsMap = () => {
             <FaCat className="me-2" />
             Chats perdus dans votre région
           </Card.Title>
-          <Alert variant="info">
-            Aucun chat perdu n'a été signalé dans votre région.
-          </Alert>
+          {noLostCatsMessage || (
+            <Alert variant="info">
+              Aucun chat perdu n'a été signalé dans votre région.
+            </Alert>
+          )}
         </Card.Body>
       </Card>
     );
@@ -144,7 +196,7 @@ const LostCatsMap = () => {
     <Card className="shadow-sm">
       <Card.Header style={{ backgroundColor: 'var(--primary-color)' }} className="text-white">
         <div className="d-flex align-items-center">
-          <FaMapMarkedAlt className="me-2" />
+          <FaMapMarkerAlt className="me-2" />
           <span>Carte des chats perdus</span>
           <Badge bg="light" text="dark" pill className="ms-2">
             {lostCats.length}
@@ -152,13 +204,55 @@ const LostCatsMap = () => {
         </div>
       </Card.Header>
       <Card.Body>
+        <div className="mb-3">
+          <Button 
+            variant="outline-primary" 
+            className="w-100"
+            onClick={() => {
+              getCurrentPosition().then(position => {
+                // Centrer la carte sur la position actuelle
+                if (mapRef && mapRef.current) {
+                  mapRef.current.flyTo({
+                    center: [position.longitude, position.latitude],
+                    essential: true,
+                    zoom: 13
+                  });
+                }
+              }).catch(error => {
+                setGeoError(error.message);
+              });
+            }}
+            disabled={isLocating}
+          >
+            <FaMapMarkerAlt className="me-2" />
+            {isLocating ? 'Localisation en cours...' : 'Centrer sur ma position'}
+          </Button>
+        </div>
         <MapLocation
           location={selectedLocation}
-          onLocationChange={(lng, lat) => setSelectedLocation({ longitude: lng, latitude: lat })}
+          onLocationChange={handleLocationChange}
+          onAddressChange={(addressData) => {
+            setSelectedLocation({
+              ...selectedLocation,
+              ...addressData
+            });
+          }}
+          isLocating={isLocating}
+          geoError={geoError}
+          onGeoErrorDismiss={() => setGeoError(null)}
+          onRequestCurrentLocation={getCurrentPosition}
           mapHeight="500px"
           markers={markers}
-          showSearch={true}
+          showSearch={false} // Désactiver la recherche d'adresse
+          fitBoundsToMarkers={false} // Désactiver l'ajustement automatique aux marqueurs
+          disableMapClick={true} // Désactiver les clics sur la carte pour ne pas interférer avec les marqueurs
+          mapRef={mapRef}
         />
+        {mapError && (
+          <Alert variant="danger" className="mt-3" onClose={() => setMapError(null)} dismissible>
+            {mapError}
+          </Alert>
+        )}
         <Alert style={{ backgroundColor: 'var(--secondary-color)' }} variant="info" className="text-white mt-3">
           <div className="d-flex align-items-center">
             <FaCat className="me-2" />

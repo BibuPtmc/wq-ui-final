@@ -17,7 +17,10 @@ const MapLocation = ({
   onRequestCurrentLocation,
   mapHeight = "300px",
   markers = [],
-  showSearch = true
+  showSearch = true,
+  fitBoundsToMarkers = true,
+  disableMapClick = false,
+  mapRef = null // Nouvelle prop pour exposer la référence à la carte
 }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -30,8 +33,8 @@ const MapLocation = ({
     if (!mapContainer.current || map.current) return;
 
     // Utiliser des coordonnées par défaut si non définies
-    const lng = longitude || 4.3517;  // Bruxelles par défaut
-    const lat = latitude || 50.8503;  // Bruxelles par défaut
+    const lng = longitude || 4.3517;  
+    const lat = latitude || 50.8503;  
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -42,7 +45,8 @@ const MapLocation = ({
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     
-    if (onLocationChange) {
+    // Ne pas ajouter le marqueur principal si disableMapClick est true
+    if (onLocationChange && !disableMapClick) {
       marker.current = new mapboxgl.Marker({ draggable: true })
         .setLngLat([lng, lat])
         .addTo(map.current);
@@ -53,37 +57,22 @@ const MapLocation = ({
       });
 
       map.current.on('click', (e) => {
-        marker.current.setLngLat([e.lngLat.lng, e.lngLat.lat]);
-        onLocationChange(e.lngLat.lng, e.lngLat.lat);
+        if (!e.features || !e.features.length) {
+          marker.current.setLngLat([e.lngLat.lng, e.lngLat.lat]);
+          onLocationChange(e.lngLat.lng, e.lngLat.lat);
+        }
       });
     }
 
     map.current.on('load', () => {
       map.current.resize();
-      
-      // Add markers
-      markers.forEach((markerData, index) => {
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setHTML(markerData.popupContent);
-
-        const newMarker = new mapboxgl.Marker()
-          .setLngLat([markerData.longitude, markerData.latitude])
-          .setPopup(popup)
-          .addTo(map.current);
-
-        markerRefs.current.push(newMarker);
-      });
-
-      // Fit bounds if there are markers
-      if (markers.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        markers.forEach(marker => {
-          bounds.extend([marker.longitude, marker.latitude]);
-        });
-        map.current.fitBounds(bounds, { padding: 50 });
-      }
     });
-  }, [onLocationChange, markers]);
+
+    // Exposer la référence à la carte au composant parent
+    if (mapRef) {
+      mapRef.current = map.current;
+    }
+  }, [onLocationChange, disableMapClick, mapRef]);
 
   useEffect(() => {
     // Si nous avons des coordonnées valides, initialiser la carte
@@ -140,6 +129,65 @@ const MapLocation = ({
       });
     }
   };
+
+  // Ajouter les marqueurs des chats
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Supprimer les anciens marqueurs
+    markerRefs.current.forEach(marker => marker.remove());
+    markerRefs.current = [];
+
+    if (markers.length > 0) {
+      // Créer un élément pour l'icône de chat
+      const createCatIcon = () => {
+        const el = document.createElement('div');
+        el.className = 'cat-marker';
+        el.style.width = '30px';
+        el.style.height = '30px';
+        el.style.backgroundColor = 'white';
+        el.style.borderRadius = '50%';
+        el.style.display = 'flex';
+        el.style.justifyContent = 'center';
+        el.style.alignItems = 'center';
+        el.style.fontSize = '18px';
+        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        el.style.cursor = 'pointer';
+        el.innerHTML = '🐈';
+        
+        return el;
+      };
+
+      const bounds = new mapboxgl.LngLatBounds();
+
+      markers.forEach(markerData => {
+        if (markerData.longitude && markerData.latitude) {
+          bounds.extend([markerData.longitude, markerData.latitude]);
+          
+          // Créer un marqueur avec l'icône de chat
+          const catMarker = new mapboxgl.Marker({
+            element: createCatIcon()
+          })
+            .setLngLat([markerData.longitude, markerData.latitude])
+            .addTo(map.current);
+
+          if (markerData.popupContent) {
+            catMarker.setPopup(
+              new mapboxgl.Popup({ offset: 25 })
+                .setHTML(markerData.popupContent)
+            );
+          }
+
+          markerRefs.current.push(catMarker);
+        }
+      });
+
+      // Ajuster la carte pour montrer tous les marqueurs si nécessaire
+      if (fitBoundsToMarkers && bounds.isEmpty() === false) {
+        map.current.fitBounds(bounds, { padding: 50 });
+      }
+    }
+  }, [markers, fitBoundsToMarkers]);
 
   return (
     <div className="map-component">
