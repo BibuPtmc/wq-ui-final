@@ -57,6 +57,9 @@ const ProfilePage = () => {
     matchingPassword: ""
   });
 
+  // État pour suivre si les commandes ont déjà été chargées
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!sessionStorage.getItem("token")) {
@@ -94,19 +97,32 @@ const ProfilePage = () => {
 
   // Fonction pour récupérer les commandes
   const fetchOrders = useCallback(async () => {
-    if (activeTab === 'orders') {
+    // Ne charger les commandes que si l'onglet est actif et qu'elles n'ont pas déjà été chargées
+    if (activeTab === 'orders' && !ordersLoaded) {
       setOrdersLoading(true);
       try {
         const response = await axios.get('/ecommerce/orders');
         setOrders(response);
+        // Marquer les commandes comme chargées
+        setOrdersLoaded(true);
       } catch (error) {
         console.error('Error fetching orders:', error);
+        // Marquer comme chargé même en cas d'erreur pour éviter les boucles
+        setOrdersLoaded(true);
       } finally {
         setOrdersLoading(false);
       }
     }
-  }, [activeTab, axios]);
+  }, [activeTab, axios, ordersLoaded]);
 
+  // Réinitialiser l'état lorsque l'onglet change
+  useEffect(() => {
+    if (activeTab !== 'orders') {
+      setOrdersLoaded(false);
+    }
+  }, [activeTab]);
+
+  // Charger les commandes lorsque nécessaire
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);

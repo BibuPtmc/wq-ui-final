@@ -40,10 +40,42 @@ const MapLocation = ({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v11',
       center: [lng, lat],
-      zoom: 11
+      zoom: 11,
+      maxZoom: 16, // Limiter le zoom maximum pour réduire le chargement de tuiles détaillées
+      minZoom: 8,  // Limiter le zoom minimum
+      attributionControl: false, // Désactiver le contrôle d'attribution pour économiser des ressources
+      preserveDrawingBuffer: false, // Améliore les performances
+      localIdeographFontFamily: "'Noto Sans', 'Noto Sans CJK SC', sans-serif", // Utiliser les polices locales si disponibles
+      fadeDuration: 0, // Désactiver les animations de fondu pour améliorer les performances
+      trackResize: false // Désactiver le redimensionnement automatique
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // Gérer les images manquantes
+    map.current.on('styleimagemissing', (e) => {
+      // Créer une image de remplacement pour les images manquantes
+      const canvas = document.createElement('canvas');
+      canvas.width = 20;
+      canvas.height = 20;
+      const ctx = canvas.getContext('2d');
+      
+      // Dessiner un cercle jaune comme image de remplacement
+      ctx.beginPath();
+      ctx.arc(10, 10, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffcc00';
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      // Ajouter l'image à la carte
+      map.current.addImage(e.id, { width: 20, height: 20, data: new Uint8Array(ctx.getImageData(0, 0, 20, 20).data.buffer) });
+    });
+
+    // Ajouter le contrôle de navigation avec moins d'options
+    map.current.addControl(new mapboxgl.NavigationControl({
+      showCompass: false, // Masquer la boussole pour économiser des ressources
+      showZoom: true
+    }), 'top-right');
     
     // Ne pas ajouter le marqueur principal si disableMapClick est true
     if (onLocationChange && !disableMapClick) {
@@ -77,10 +109,19 @@ const MapLocation = ({
   useEffect(() => {
     // Si nous avons des coordonnées valides, initialiser la carte
     if (location.longitude && location.latitude) {
-      initializeMap(location.longitude, location.latitude);
+      // Vérifier si la carte existe déjà et si les coordonnées ont changé significativement
+      if (map.current) {
+        // Mettre à jour le centre de la carte sans réinitialiser
+        map.current.setCenter([location.longitude, location.latitude]);
+      } else {
+        // Initialiser la carte seulement si elle n'existe pas
+        initializeMap(location.longitude, location.latitude);
+      }
     } else {
       // Sinon utiliser les coordonnées par défaut
-      initializeMap(2.3488, 48.8534);
+      if (!map.current) {
+        initializeMap(2.3488, 48.8534);
+      }
     }
     
     return () => {
