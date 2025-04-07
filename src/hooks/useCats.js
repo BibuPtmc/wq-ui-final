@@ -176,10 +176,7 @@ export const useCats = () => {
 
       await axios.put(`/cat/updateStatus`, catStatusDTO, { headers });
       
-      // Retirer le chat de la liste des chats signalés
-      setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
-      
-      // Ajouter le chat à la liste des chats possédés avec les données mises à jour
+      // Créer l'objet chat mis à jour
       const updatedCat = {
         catStatusId: catStatusId,
         statusCat: updatedData.statusCat,
@@ -192,7 +189,18 @@ export const useCats = () => {
         }
       };
       
-      setOwnedCats(prevCats => [...prevCats, updatedCat]);
+      // Mettre à jour les listes en fonction du nouveau statut
+      if (updatedData.statusCat === 'OWN') {
+        // Si le nouveau statut est OWN, retirer de reportedCats et ajouter à ownedCats
+        setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
+        setOwnedCats(prevCats => [...prevCats, updatedCat]);
+      } else {
+        // Si le nouveau statut est LOST ou FOUND, mettre à jour dans reportedCats
+        setReportedCats(prevCats => {
+          const filteredCats = prevCats.filter(cat => cat.catStatusId !== catStatusId);
+          return [...filteredCats, updatedCat];
+        });
+      }
       
       setSuccessMessage('Les informations du chat ont été mises à jour avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
