@@ -101,7 +101,8 @@ export const useCats = () => {
       const headers = {
         Authorization: `Bearer ${sessionStorage.getItem("token")}`,
       };
-      await axios.delete(`/cat/delete?id=${catStatusId}`, { headers });
+      // Utiliser le nouvel endpoint pour supprimer un statut de chat
+      await axios.delete(`/cat-status/delete?id=${catStatusId}`, { headers });
       setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
       setSuccessMessage('Le chat a été supprimé avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
