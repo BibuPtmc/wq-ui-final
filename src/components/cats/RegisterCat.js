@@ -51,6 +51,13 @@ function RegisterCat() {
     }
 
   });
+  
+  // État pour gérer les erreurs de validation
+  const [validationErrors, setValidationErrors] = useState({
+    dateOfBirth: "",
+    reportDate: "",
+    dateComparison: "" // Pour les erreurs de comparaison entre dates
+  });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -141,7 +148,78 @@ function RegisterCat() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    
+    // Créer une copie des erreurs de validation actuelles
+    const newValidationErrors = { ...validationErrors };
+    
+    // Créer une copie des données du formulaire avec la nouvelle valeur
+    const updatedFormData = { ...formData, [name]: value };
+    
+    // Validation spécifique pour la date de naissance
+    if (name === "dateOfBirth") {
+      if (value) {
+        const selectedDate = new Date(value);
+        const today = new Date();
+        
+        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate > today) {
+          newValidationErrors.dateOfBirth = "La date de naissance ne peut pas être dans le futur";
+        } else {
+          newValidationErrors.dateOfBirth = "";
+        }
+        
+        // Vérifier la cohérence avec la date de signalement
+        if (updatedFormData.reportDate) {
+          const reportDate = new Date(updatedFormData.reportDate);
+          if (selectedDate > reportDate) {
+            newValidationErrors.dateComparison = "La date de naissance ne peut pas être postérieure à la date de signalement";
+          } else {
+            newValidationErrors.dateComparison = "";
+          }
+        }
+      } else {
+        // Si la date de naissance est vide, on supprime l'erreur de comparaison
+        newValidationErrors.dateOfBirth = "";
+        newValidationErrors.dateComparison = "";
+      }
+    }
+    
+    // Validation spécifique pour la date de signalement
+    if (name === "reportDate") {
+      if (value) {
+        const selectedDate = new Date(value);
+        const today = new Date();
+        
+        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate > today) {
+          newValidationErrors.reportDate = "La date de signalement ne peut pas être dans le futur";
+        } else {
+          newValidationErrors.reportDate = "";
+        }
+        
+        // Vérifier la cohérence avec la date de naissance
+        if (updatedFormData.dateOfBirth) {
+          const birthDate = new Date(updatedFormData.dateOfBirth);
+          if (birthDate > selectedDate) {
+            newValidationErrors.dateComparison = "La date de signalement ne peut pas être antérieure à la date de naissance";
+          } else {
+            newValidationErrors.dateComparison = "";
+          }
+        }
+      } else {
+        newValidationErrors.reportDate = "";
+      }
+    }
+    
+    // Mettre à jour les erreurs de validation
+    setValidationErrors(newValidationErrors);
+    
+    // Mettre à jour les données du formulaire
+    setFormData(updatedFormData);
   };
   
   const handleLocationChange = (e) => {
@@ -183,6 +261,12 @@ function RegisterCat() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Vérifier s'il y a des erreurs de validation
+    if (validationErrors.dateOfBirth || validationErrors.reportDate || validationErrors.dateComparison) {
+      return; // Ne pas soumettre le formulaire s'il y a des erreurs
+    }
+    
     // Vérifier si le nom du chat est vide
     const name = formData.name.trim() === "" ? "Inconnu" : formData.name;
     // Mettre à jour le nom du chat dans le formulaire
@@ -344,6 +428,11 @@ function RegisterCat() {
                       <h5 className="mb-0">Dates</h5>
                     </Card.Header>
                     <Card.Body>
+                      {validationErrors.dateComparison && (
+                        <Alert variant="danger" className="mb-3">
+                          {validationErrors.dateComparison}
+                        </Alert>
+                      )}
                       <Row>
                         <Col sm={6}>
                           <Form.Group className="mb-3">
@@ -353,7 +442,14 @@ function RegisterCat() {
                               name="dateOfBirth"
                               value={formData.dateOfBirth}
                               onChange={handleChange}
+                              max={todayForInput} // Empêche la sélection de dates futures dans le calendrier
+                              isInvalid={!!validationErrors.dateOfBirth}
                             />
+                            {validationErrors.dateOfBirth && (
+                              <Form.Control.Feedback type="invalid">
+                                {validationErrors.dateOfBirth}
+                              </Form.Control.Feedback>
+                            )}
                           </Form.Group>
                         </Col>
                         <Col sm={6}>
@@ -364,8 +460,15 @@ function RegisterCat() {
                               name="reportDate"
                               value={formData.reportDate}
                               onChange={handleChange}
+                              max={todayForInput} // Empêche la sélection de dates futures dans le calendrier
+                              isInvalid={!!validationErrors.reportDate}
                               required
                             />
+                            {validationErrors.reportDate && (
+                              <Form.Control.Feedback type="invalid">
+                                {validationErrors.reportDate}
+                              </Form.Control.Feedback>
+                            )}
                           </Form.Group>
                         </Col>
                       </Row>
