@@ -19,7 +19,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const [editForm, setEditForm] = useState({
     name: '',
     statusCat: '',
-    comment: ''
+    comment: '',
+    breed: '',
+    color: '',
+    dateOfBirth: '',
+    gender: '',
+    chipNumber: '',
+    furType: '',
+    eyeColor: ''
   });
 
   // Fonction pour formater les valeurs avec underscore en format plus lisible
@@ -111,7 +118,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     setEditForm({
       name: catStatus.cat.name || '',
       statusCat: catStatus.statusCat || '',
-      comment: catStatus.comment || ''
+      comment: catStatus.comment || '',
+      breed: catStatus.cat.breed || '',
+      color: catStatus.cat.color || '',
+      dateOfBirth: catStatus.cat.dateOfBirth || '',
+      gender: catStatus.cat.gender || '',
+      chipNumber: catStatus.cat.chipNumber || '',
+      furType: catStatus.cat.furType || '',
+      eyeColor: catStatus.cat.eyeColor || ''
     });
     setShowModal(true);
   };
@@ -306,44 +320,187 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         })}
       </Row>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Modifier les informations du chat</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Nom du chat</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={editForm.name}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                name="statusCat"
-                value={editForm.statusCat}
-                onChange={handleChange}
-              >
-                <option key="empty" value="">Sélectionner un statut</option>
-                <option key="lost" value="LOST">Perdu</option>
-                <option key="found" value="FOUND">Trouvé</option>
-                <option key="own" value="OWN">Propriétaire</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Commentaire</Form.Label>
-              <Form.Control
-                as="textarea"
-                name="comment"
-                value={editForm.comment}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <div className="d-flex justify-content-end gap-2">
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Nom du chat</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Status</Form.Label>
+                  <Form.Select
+                    name="statusCat"
+                    value={editForm.statusCat}
+                    onChange={handleChange}
+                  >
+                    <option key="empty" value="">Sélectionner un statut</option>
+                    <option key="lost" value="LOST">Perdu</option>
+                    <option key="found" value="FOUND">Trouvé</option>
+                    <option key="own" value="OWN">Propriétaire</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Race</Form.Label>
+                  <Form.Select
+                    name="breed"
+                    value={editForm.breed}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner une race</option>
+                    <option value="SIAMESE">Siamois</option>
+                    <option value="PERSIAN">Persan</option>
+                    <option value="MAINE_COON">Maine Coon</option>
+                    <option value="BRITISH_SHORTHAIR">British Shorthair</option>
+                    <option value="RAGDOLL">Ragdoll</option>
+                    <option value="BENGAL">Bengal</option>
+                    <option value="SPHYNX">Sphynx</option>
+                    <option value="RUSSIAN_BLUE">Bleu Russe</option>
+                    <option value="ABYSSINIAN">Abyssin</option>
+                    <option value="SCOTTISH_FOLD">Scottish Fold</option>
+                    <option value="BIRMAN">Birman</option>
+                    <option value="AMERICAN_SHORTHAIR">Américain à poil court</option>
+                    <option value="NORWEGIAN_FOREST_CAT">Chat des forêts norvégiennes</option>
+                    <option value="EXOTIC_SHORTHAIR">Exotic Shorthair</option>
+                    <option value="EUROPEAN_SHORTHAIR">Européen à poil court</option>
+                    <option value="OTHER">Autre</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Couleur</Form.Label>
+                  <Form.Select
+                    name="color"
+                    value={editForm.color}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner une couleur</option>
+                    <option value="NOIR">Noir</option>
+                    <option value="BLANC">Blanc</option>
+                    <option value="GRIS">Gris</option>
+                    <option value="ROUX">Roux</option>
+                    <option value="MIXTE">Mixte</option>
+                    <option value="AUTRE">Autre</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Date de naissance</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="dateOfBirth"
+                    value={editForm.dateOfBirth}
+                    onChange={handleChange}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Genre</Form.Label>
+                  <Form.Select
+                    name="gender"
+                    value={editForm.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner un genre</option>
+                    <option value="Mâle">Mâle</option>
+                    <option value="Femelle">Femelle</option>
+                    <option value="Inconnu">Inconnu</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Numéro de puce</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="chipNumber"
+                    value={editForm.chipNumber}
+                    onChange={handleChange}
+                    placeholder="Optionnel"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Type de pelage</Form.Label>
+                  <Form.Select
+                    name="furType"
+                    value={editForm.furType}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner un type de pelage</option>
+                    <option value="Courte">Courte</option>
+                    <option value="Moyenne">Moyenne</option>
+                    <option value="Longue">Longue</option>
+                    <option value="Sans poils">Sans poils</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Couleur des yeux</Form.Label>
+                  <Form.Select
+                    name="eyeColor"
+                    value={editForm.eyeColor}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner une couleur d'yeux</option>
+                    <option value="BLEU">Bleu</option>
+                    <option value="MARRON">Marron</option>
+                    <option value="VERT">Vert</option>
+                    <option value="GRIS">Gris</option>
+                    <option value="NOISETTE">Noisette</option>
+                    <option value="JAUNE">Jaune</option>
+                    <option value="ORANGE">Orange</option>
+                    <option value="AUTRE">Autre</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Commentaire</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    name="comment"
+                    value={editForm.comment}
+                    onChange={handleChange}
+                    style={{ height: '100px' }}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <div className="d-flex justify-content-end gap-2 mt-3">
               <Button variant="secondary" onClick={() => setShowModal(false)}>
                 Annuler
               </Button>

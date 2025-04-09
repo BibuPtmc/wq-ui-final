@@ -124,18 +124,26 @@ export const useCats = () => {
         throw new Error("Chat non trouvé");
       }
 
+      // Convertir les valeurs des énumérations en majuscules pour correspondre au format attendu par le backend
+      const convertToEnum = (value, defaultValue) => {
+        if (!value) return defaultValue;
+        // Convertir la valeur en format d'énumération (majuscules, sans accents, espaces remplacés par des underscores)
+        return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .toUpperCase().replace(/\s+/g, "_");
+      };
+
       const catDTO = {
         catId: currentCat.cat.catId,
         name: updatedData.name,
-        color: currentCat.cat.color,
-        eyeColor: currentCat.cat.eyeColor,
-        breed: currentCat.cat.breed,
-        furType: currentCat.cat.furType,
-        gender: currentCat.cat.gender,
-        chipNumber: currentCat.cat.chipNumber,
+        color: convertToEnum(updatedData.color, currentCat.cat.color),
+        eyeColor: convertToEnum(updatedData.eyeColor, currentCat.cat.eyeColor),
+        breed: convertToEnum(updatedData.breed, currentCat.cat.breed),
+        furType: updatedData.furType || currentCat.cat.furType,
+        gender: updatedData.gender || currentCat.cat.gender,
+        chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
         type: currentCat.cat.type,
-        dateOfBirth: currentCat.cat.dateOfBirth,
-        comment: currentCat.cat.comment,
+        dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
+        comment: updatedData.comment,
         imageCatData: currentCat.cat.imageCatData
       };
 
@@ -185,7 +193,14 @@ export const useCats = () => {
         location: userLocation, // Utiliser la localisation de l'utilisateur
         cat: {
           ...currentCat.cat,
-          name: updatedData.name || currentCat.cat.name
+          name: updatedData.name || currentCat.cat.name,
+          color: updatedData.color || currentCat.cat.color,
+          eyeColor: updatedData.eyeColor || currentCat.cat.eyeColor,
+          breed: updatedData.breed || currentCat.cat.breed,
+          furType: updatedData.furType || currentCat.cat.furType,
+          gender: updatedData.gender || currentCat.cat.gender,
+          chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
+          dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth
         }
       };
       
