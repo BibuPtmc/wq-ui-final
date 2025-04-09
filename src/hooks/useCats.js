@@ -143,54 +143,78 @@ export const useCats = () => {
         chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
         type: currentCat.cat.type,
         dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
-        comment: updatedData.comment,
+        comment: updatedData.comment, // Stocker le commentaire dans le chat
         imageCatData: currentCat.cat.imageCatData
       };
 
       await axios.put(`/cat/update`, catDTO, { headers });
 
-      // Formater la date pour Java LocalDateTime
-      const formattedDate = formatDateForJava(currentCat.reportDate);
+      // Vérifier si le statut du chat a changé
+      const statusHasChanged = updatedData.statusCat && updatedData.statusCat !== currentCat.statusCat;
+      
+      // Ne mettre à jour le statut et la localisation que si le statut a changé
+      if (statusHasChanged) {
+        // Formater la date pour Java LocalDateTime
+        const formattedDate = formatDateForJava(currentCat.reportDate);
 
-      if (formattedDate === null) {
-        throw new Error("Erreur lors du formatage de la date");
-      }
-
-      // Utiliser l'adresse de l'utilisateur pour le chat possédé
-      // Si l'adresse n'est pas disponible, récupérer l'adresse
-      if (!userAddress) {
-        await fetchUserAddress();
-      }
-
-      // Créer l'objet de localisation basé sur l'adresse de l'utilisateur
-      const userLocation = userAddress ? {
-        address: userAddress.address,
-        city: userAddress.city,
-        postalCode: userAddress.postalCode,
-        latitude: userAddress.latitude,
-        longitude: userAddress.longitude
-      } : currentCat.location; // Utiliser la localisation actuelle si l'adresse de l'utilisateur n'est pas disponible
-
-      const catStatusDTO = {
-        catStatusId: catStatusId,
-        statusCat: updatedData.statusCat,
-        comment: updatedData.comment,
-        reportDate: formattedDate, // Utiliser la date formatée
-        location: userLocation, // Utiliser la localisation de l'utilisateur
-        cat: {
-          catId: currentCat.cat.catId
+        if (formattedDate === null) {
+          throw new Error("Erreur lors du formatage de la date");
         }
-      };
 
-      await axios.put(`/cat/updateStatus`, catStatusDTO, { headers });
+        // Utiliser l'adresse de l'utilisateur pour le chat possédé
+        // Si l'adresse n'est pas disponible, récupérer l'adresse
+        if (!userAddress) {
+          await fetchUserAddress();
+        }
+
+        // Créer l'objet de localisation basé sur l'adresse de l'utilisateur
+        const userLocation = userAddress ? {
+          address: userAddress.address,
+          city: userAddress.city,
+          postalCode: userAddress.postalCode,
+          latitude: userAddress.latitude,
+          longitude: userAddress.longitude
+        } : currentCat.location; // Utiliser la localisation actuelle si l'adresse de l'utilisateur n'est pas disponible
+
+        // Créer un objet CatDTO complet pour mettre à jour le chat
+        const catDTO = {
+          catId: currentCat.cat.catId,
+          name: currentCat.cat.name,
+          color: currentCat.cat.color,
+          eyeColor: currentCat.cat.eyeColor,
+          breed: currentCat.cat.breed,
+          furType: currentCat.cat.furType,
+          gender: currentCat.cat.gender,
+          chipNumber: currentCat.cat.chipNumber,
+          type: currentCat.cat.type,
+          dateOfBirth: currentCat.cat.dateOfBirth,
+          comment: updatedData.comment, // Mettre à jour le commentaire du chat
+          imageCatData: currentCat.cat.imageCatData
+        };
+        
+        // D'abord mettre à jour le chat pour s'assurer que le commentaire est enregistré
+        await axios.put(`/cat/update`, catDTO, { headers });
+        
+        // Ensuite mettre à jour le statut du chat
+        const catStatusDTO = {
+          catStatusId: catStatusId,
+          statusCat: updatedData.statusCat,
+          reportDate: formattedDate, // Utiliser la date formatée
+          location: userLocation, // Utiliser la localisation de l'utilisateur
+          cat: {
+            catId: currentCat.cat.catId
+          }
+        };
+
+        await axios.put(`/cat/updateStatus`, catStatusDTO, { headers });
+      }
       
       // Créer l'objet chat mis à jour
       const updatedCat = {
         catStatusId: catStatusId,
-        statusCat: updatedData.statusCat,
-        comment: updatedData.comment,
-        reportDate: formattedDate,
-        location: userLocation, // Utiliser la localisation de l'utilisateur
+        statusCat: statusHasChanged ? updatedData.statusCat : currentCat.statusCat,
+        reportDate: currentCat.reportDate,
+        location: currentCat.location, // Conserver la localisation actuelle si le statut n'a pas changé
         cat: {
           ...currentCat.cat,
           name: updatedData.name || currentCat.cat.name,
@@ -200,7 +224,8 @@ export const useCats = () => {
           furType: updatedData.furType || currentCat.cat.furType,
           gender: updatedData.gender || currentCat.cat.gender,
           chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
-          dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth
+          dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
+          comment: updatedData.comment // Stocker le commentaire dans le chat
         }
       };
       
@@ -250,6 +275,7 @@ export const useCats = () => {
         chipNumber: updatedData.chipNumber || currentCat.chipNumber,
         type: currentCat.type,
         dateOfBirth: updatedData.dateOfBirth || currentCat.dateOfBirth,
+        comment: updatedData.comment || currentCat.comment, // Ajouter le commentaire
         imageCatData: currentCat.imageCatData
       };
 
@@ -265,11 +291,11 @@ export const useCats = () => {
         }
       }
 
-      // Si le chat a un statut (perdu/trouvé), mettre à jour également le commentaire
-      if (currentCatStatus.catStatusId) {
+      // Si le chat a un statut ET que le statut a changé, mettre à jour le statut
+      if (currentCatStatus.catStatusId && updatedData.statusCat && updatedData.statusCat !== currentCatStatus.statusCat) {
         const catStatusDTO = {
           catStatusId: currentCatStatus.catStatusId,
-          statusCat: updatedData.statusCat || currentCatStatus.statusCat,
+          statusCat: updatedData.statusCat,
           comment: updatedData.comment || currentCatStatus.comment,
           reportDate: formattedDate, // Utiliser la date formatée
           cat: {
@@ -285,7 +311,6 @@ export const useCats = () => {
           ? { 
               ...catStatus,
               statusCat: updatedData.statusCat || catStatus.statusCat,
-              comment: updatedData.comment || catStatus.comment,
               reportDate: formattedDate, // Maintenant formattedDate est toujours défini
               cat: { 
                 ...catStatus.cat, 
@@ -296,7 +321,8 @@ export const useCats = () => {
                 furType: updatedData.furType || catStatus.cat.furType,
                 gender: updatedData.gender || catStatus.cat.gender,
                 chipNumber: updatedData.chipNumber || catStatus.cat.chipNumber,
-                dateOfBirth: updatedData.dateOfBirth || catStatus.cat.dateOfBirth
+                dateOfBirth: updatedData.dateOfBirth || catStatus.cat.dateOfBirth,
+                comment: updatedData.comment || catStatus.cat.comment
               }
             }
           : catStatus

@@ -93,6 +93,7 @@ function FoundCats() {
     { value: "VERT", label: formatValue("VERT") },
     { value: "JAUNE", label: formatValue("JAUNE") },
     { value: "MARRON", label: formatValue("MARRON") },
+    { value: "GRIS", label: formatValue("GRIS") },
     { value: "NOISETTE", label: formatValue("NOISETTE") },
     { value: "AUTRE", label: formatValue("AUTRE") }
   ];

@@ -529,6 +529,7 @@ function RegisterCat() {
                           <option value="JAUNE">Jaune</option>
                           <option value="MARRON">Marron</option>
                           <option value="NOISETTE">Noisette</option>
+                          <option value="GRIS">Gris</option>
                           <option value="AUTRE">Autre</option>
                         </Form.Select>
                       </Form.Group>

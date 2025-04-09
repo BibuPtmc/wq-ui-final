@@ -45,7 +45,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   ];
   
   const eyeColorOptions = [
-    'BLEU', 'VERT', 'JAUNE', 'MARRON', 'NOISETTE', 'AUTRE'
+    'BLEU', 'VERT', 'JAUNE', 'MARRON', 'NOISETTE', 'GRIS', 'AUTRE'
   ];
   
   const genderOptions = ['Mâle', 'Femelle', 'Inconnu'];
@@ -85,7 +85,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       dateOfBirth: formattedDate,
       chipNumber: catStatus.cat.chipNumber || '',
       furType: catStatus.cat.furType || 'Courte',
-      comment: catStatus.comment || ''
+      comment: catStatus.cat.comment || ''
     };
     
     console.log("Données du formulaire:", newFormData);

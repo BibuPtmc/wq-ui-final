@@ -113,21 +113,39 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     }
   };
 
+  // Fonction pour s'assurer que les valeurs des énumérations sont correctement initialisées
+  const getEnumValue = (value) => {
+    if (!value) return '';
+    // Si la valeur est déjà en majuscules et contient des underscores, c'est probablement déjà une énumération
+    if (value === value.toUpperCase() && value.includes('_')) {
+      return value;
+    }
+    // Sinon, convertir en format d'énumération (majuscules, sans accents, espaces remplacés par des underscores)
+    return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase().replace(/\s+/g, "_");
+  };
+
   const handleEdit = (catStatus) => {
     setSelectedCat(catStatus);
     setEditForm({
       name: catStatus.cat.name || '',
       statusCat: catStatus.statusCat || '',
-      comment: catStatus.comment || '',
-      breed: catStatus.cat.breed || '',
-      color: catStatus.cat.color || '',
+      comment: catStatus.cat.comment || '', // Utiliser le commentaire du chat au lieu du commentaire du statut
+      breed: getEnumValue(catStatus.cat.breed) || '',
+      color: getEnumValue(catStatus.cat.color) || '',
       dateOfBirth: catStatus.cat.dateOfBirth || '',
       gender: catStatus.cat.gender || '',
       chipNumber: catStatus.cat.chipNumber || '',
       furType: catStatus.cat.furType || '',
-      eyeColor: catStatus.cat.eyeColor || ''
+      eyeColor: getEnumValue(catStatus.cat.eyeColor) || ''
     });
     setShowModal(true);
+    
+    // Afficher les valeurs dans la console pour débogage
+    console.log('Cat data:', catStatus.cat);
+    console.log('Eye color:', catStatus.cat.eyeColor);
+    console.log('Normalized eye color:', getEnumValue(catStatus.cat.eyeColor));
+    console.log('Comment from cat:', catStatus.cat.comment);
   };
 
   const handleViewDetails = (catStatus) => {
