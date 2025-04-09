@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
-import { FaUser, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars } from 'react-icons/fa';
+import { FaUser, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaPhone } from 'react-icons/fa';
 import MapLocation from '../map/MapLocation';
 import { reverseGeocode } from '../../utils/geocodingService';
 
@@ -11,12 +11,98 @@ const PersonalInfo = ({
   updateSuccess, 
   updateError 
 }) => {
+  const [birthDayError, setBirthDayError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  
+  // Format today's date as YYYY-MM-DD for the date input max attribute
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Fonction pour formater le numéro de téléphone pendant la saisie
+  const formatPhoneNumber = (phoneNumber) => {
+    // Supprimer tous les caractères non numériques sauf le + au début
+    let cleaned = phoneNumber.replace(/[^\d+]/g, "");
+    
+    // Si le numéro commence par +, on le conserve
+    if (cleaned.startsWith("+")) {
+      // Format international: +32 493 96 33 75
+      if (cleaned.length > 3) {
+        let formatted = "+" + cleaned.substring(1, 3);
+        if (cleaned.length > 5) formatted += " " + cleaned.substring(3, 6);
+        if (cleaned.length > 7) formatted += " " + cleaned.substring(6, 8);
+        if (cleaned.length > 9) formatted += " " + cleaned.substring(8, 10);
+        if (cleaned.length > 10) formatted += " " + cleaned.substring(10);
+        return formatted;
+      }
+      return cleaned;
+    } else {
+      // Format belge: 0493 96 33 75
+      if (cleaned.length > 4) cleaned = cleaned.substring(0, 4) + " " + cleaned.substring(4);
+      if (cleaned.length > 7) cleaned = cleaned.substring(0, 7) + " " + cleaned.substring(7);
+      if (cleaned.length > 10) cleaned = cleaned.substring(0, 10) + " " + cleaned.substring(10);
+      return cleaned;
+    }
+  };
+  
+  // Fonction pour valider le format du numéro de téléphone
+  const validatePhone = (phone) => {
+    // Accepte les formats: 0123456789, 0493 96 33 75, 01-23-45-67-89, +32123456789, etc.
+    const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
+    
+    if (!phone) {
+      // Le téléphone n'est pas obligatoire
+      setPhoneError("");
+      return true;
+    }
+    
+    if (!phoneRegex.test(phone)) {
+      setPhoneError("Le format du numéro de téléphone n'est pas valide");
+      return false;
+    }
+    
+    setPhoneError("");
+    return true;
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Traitement spécial pour le numéro de téléphone
+    if (name === 'phone') {
+      const formattedPhone = formatPhoneNumber(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: formattedPhone
+      }));
+      validatePhone(formattedPhone);
+    } 
+    // Validation de la date de naissance
+    else if (name === 'birthDay') {
+      if (value) {
+        const selectedDate = new Date(value);
+        const currentDate = new Date();
+        
+        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
+        currentDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate > currentDate) {
+          setBirthDayError("La date de naissance ne peut pas être dans le futur");
+        } else {
+          setBirthDayError("");
+        }
+      } else {
+        setBirthDayError("");
+      }
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    } 
+    // Autres champs
+    else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
@@ -116,7 +202,7 @@ const PersonalInfo = ({
       </Form.Group>
 
       <Row>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>
               <FaVenusMars className="me-2" />
@@ -134,7 +220,7 @@ const PersonalInfo = ({
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>
               <FaBirthdayCake className="me-2" />
@@ -145,7 +231,35 @@ const PersonalInfo = ({
               name="birthDay"
               value={formData.birthDay}
               onChange={handleChange}
+              max={today}
+              isInvalid={!!birthDayError}
             />
+            {birthDayError && (
+              <Form.Control.Feedback type="invalid">
+                {birthDayError}
+              </Form.Control.Feedback>
+            )}
+          </Form.Group>
+        </Col>
+        <Col md={4}>
+          <Form.Group className="mb-3">
+            <Form.Label>
+              <FaPhone className="me-2" />
+              Téléphone
+            </Form.Label>
+            <Form.Control
+              type="tel"
+              name="phone"
+              value={formData.phone || ""}
+              onChange={handleChange}
+              placeholder="Ex: 0493 96 33 75"
+              isInvalid={!!phoneError}
+            />
+            {phoneError && (
+              <Form.Control.Feedback type="invalid">
+                {phoneError}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
         </Col>
       </Row>

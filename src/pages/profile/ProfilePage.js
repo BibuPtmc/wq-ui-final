@@ -49,6 +49,7 @@ const ProfilePage = () => {
     longitude: null,
     gender: "",
     birthDay: "",
+    phone: "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -81,6 +82,7 @@ const ProfilePage = () => {
           longitude: response.address?.longitude || null,
           gender: response.gender || "",
           birthDay: response.birthDay || "",
+          phone: response.phone || "",
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -131,6 +133,29 @@ const ProfilePage = () => {
     e.preventDefault();
     setUpdateSuccess(false);
     setUpdateError("");
+    
+    // Vérification de la date de naissance
+    if (formData.birthDay) {
+      const selectedDate = new Date(formData.birthDay);
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      
+      if (selectedDate > currentDate) {
+        setUpdateError("La date de naissance ne peut pas être dans le futur");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+    
+    // Validation du numéro de téléphone si présent
+    if (formData.phone) {
+      const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        setUpdateError("Le format du numéro de téléphone n'est pas valide");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
     
     try {
       const response = await axios.put("users/update", formData);
