@@ -183,6 +183,17 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         </div>
                       </div>
                     </Col>
+                    <Col xs={12}>
+                      <div className="d-flex align-items-center">
+                        <FaPaw className="me-2" style={{ color: '#8B4513' }} />
+                        <div>
+                          <div className="text-muted small">Pelage</div>
+                          <div className="fw-semibold">
+                            {cat.furType || "Inconnu"}
+                          </div>
+                        </div>
+                      </div>
+                    </Col>
                   </Row>
                 </Card.Body>
               </Card>
