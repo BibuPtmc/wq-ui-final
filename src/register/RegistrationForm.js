@@ -21,7 +21,7 @@ const RegistrationForm = () => {
     firstName: "Anais",
     lastName: "Motquin",
     birthDay: "",
-    phone: "0123456789",
+    phone: "0493 96 33 75",
     gender: "Femme",
     location: {
       address: "",
@@ -39,7 +39,12 @@ const RegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [birthDayError, setBirthDayError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [mapError, setMapError] = useState(null);
+  
+  // Format today's date as YYYY-MM-DD for the date input max attribute
+  const today = new Date().toISOString().split('T')[0];
 
 
   const validateEmail = (email) => {
@@ -55,6 +60,52 @@ const RegistrationForm = () => {
     }
     setEmailError("");
     return true;
+  };
+  
+  // Fonction pour valider le format du numéro de téléphone
+  const validatePhone = (phone) => {
+    // Accepte les formats: 0123456789, 01 23 45 67 89, 01-23-45-67-89, +32123456789, etc.
+    const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
+    
+    if (!phone) {
+      // Le téléphone n'est pas obligatoire
+      setPhoneError("");
+      return true;
+    }
+    
+    if (!phoneRegex.test(phone)) {
+      setPhoneError("Le format du numéro de téléphone n'est pas valide");
+      return false;
+    }
+    
+    setPhoneError("");
+    return true;
+  };
+  
+  // Fonction pour formater le numéro de téléphone pendant la saisie
+  const formatPhoneNumber = (phoneNumber) => {
+    // Supprimer tous les caractères non numériques sauf le + au début
+    let cleaned = phoneNumber.replace(/[^\d+]/g, "");
+    
+    // Si le numéro commence par +, on le conserve
+    if (cleaned.startsWith("+")) {
+      // Format international: +32 493 96 33 75
+      if (cleaned.length > 3) {
+        let formatted = "+" + cleaned.substring(1, 3);
+        if (cleaned.length > 5) formatted += " " + cleaned.substring(3, 6);
+        if (cleaned.length > 7) formatted += " " + cleaned.substring(6, 8);
+        if (cleaned.length > 9) formatted += " " + cleaned.substring(8, 10);
+        if (cleaned.length > 10) formatted += " " + cleaned.substring(10);
+        return formatted;
+      }
+      return cleaned;
+    } else {
+      // Format belge: 0493 96 33 75
+      if (cleaned.length > 4) cleaned = cleaned.substring(0, 4) + " " + cleaned.substring(4);
+      if (cleaned.length > 7) cleaned = cleaned.substring(0, 7) + " " + cleaned.substring(7);
+      if (cleaned.length > 10) cleaned = cleaned.substring(0, 10) + " " + cleaned.substring(10);
+      return cleaned;
+    }
   };
 
   // Utiliser le hook de géolocalisation
@@ -98,11 +149,38 @@ const RegistrationForm = () => {
   
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    
+    // Traitement spécial pour le numéro de téléphone
+    if (name === 'phone') {
+      const formattedPhone = formatPhoneNumber(value);
+      setFormData({ ...formData, [name]: formattedPhone });
+      validatePhone(formattedPhone);
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
     
     // Validation de l'email en temps réel
     if (name === 'email') {
       validateEmail(value);
+    }
+    
+    // Validation de la date de naissance en temps réel
+    if (name === 'birthDay') {
+      if (value) {
+        const selectedDate = new Date(value);
+        const currentDate = new Date();
+        
+        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
+        currentDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate > currentDate) {
+          setBirthDayError("La date de naissance ne peut pas être dans le futur");
+        } else {
+          setBirthDayError("");
+        }
+      } else {
+        setBirthDayError("");
+      }
     }
     
     setPasswordsMatch(true);
@@ -117,6 +195,16 @@ const RegistrationForm = () => {
 
     // Validation de l'email
     if (!validateEmail(formData.email)) {
+      return;
+    }
+
+    // Vérification de la date de naissance
+    if (birthDayError) {
+      return;
+    }
+    
+    // Validation du numéro de téléphone
+    if (!validatePhone(formData.phone)) {
       return;
     }
 
@@ -148,11 +236,17 @@ const RegistrationForm = () => {
       })
       .catch((error) => {
         console.error("Erreur lors de l'inscription :", error);
-        if (error.response?.data?.message === "Email already exists") {
+        const errorMessage = error.response?.data?.message;
+        
+        if (errorMessage === "Email already exists") {
           setError("Cette adresse email est déjà utilisée");
+        } else if (errorMessage === "Username already exists") {
+          setError("Ce nom d'utilisateur est déjà utilisé");
+        } else if (errorMessage === "Phone number already exists") {
+          setError("Ce numéro de téléphone est déjà utilisé");
         } else {
           setError(
-            error.response?.data?.message ||
+            errorMessage ||
               "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
           );
         }
@@ -332,8 +426,15 @@ const RegistrationForm = () => {
                               name="birthDay"
                               value={formData.birthDay}
                               onChange={handleChange}
+                              max={today}
+                              isInvalid={!!birthDayError}
                               required
                             />
+                            {birthDayError && (
+                              <Form.Control.Feedback type="invalid">
+                                {birthDayError}
+                              </Form.Control.Feedback>
+                            )}
                           </Form.Group>
                         </Col>
                         <Col md={6}>
@@ -367,8 +468,14 @@ const RegistrationForm = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder="Votre numéro de téléphone"
+                          placeholder="Votre numéro de téléphone (ex: 0493 96 33 75)"
+                          isInvalid={!!phoneError}
                         />
+                        {phoneError && (
+                          <Form.Control.Feedback type="invalid">
+                            {phoneError}
+                          </Form.Control.Feedback>
+                        )}
                       </Form.Group>
                     </Card.Body>
                   </Card>

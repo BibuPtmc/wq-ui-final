@@ -46,7 +46,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
 
                       {/* Jauges circulaires pour chaque critère */}
                       <Row className="text-center mb-3">
-                        <Col sm={6}>
+                        <Col sm={6} key={`color-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
                             <CircularProgressbar 
                               value={match.colorMatch || 0} 
@@ -60,7 +60,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                           </div>
                           <div className="text-muted small mt-2">Couleur</div>
                         </Col>
-                        <Col sm={6}>
+                        <Col sm={6} key={`breed-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
                             <CircularProgressbar 
                               value={match.breedMatch || 0} 
@@ -76,7 +76,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                         </Col>
                       </Row>
                       <Row className="text-center mb-3">
-                        <Col sm={6}>
+                        <Col sm={6} key={`fur-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
                             <CircularProgressbar 
                               value={match.furTypeMatch || 0} 
@@ -90,7 +90,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                           </div>
                           <div className="text-muted small mt-2">Pelage</div>
                         </Col>
-                        <Col sm={6}>
+                        <Col sm={6} key={`eye-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
                             <CircularProgressbar 
                               value={match.eyeColorMatch || 0} 
@@ -104,20 +104,22 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                           </div>
                           <div className="text-muted small mt-2">Yeux</div>
                         </Col>
-                        <Col sm={6}>
-                        <div style={{ width: 60, height: 60, margin: 'auto' }}>
-                          <CircularProgressbar 
-                            value={match.distanceMatch || 0} 
-                            text={`${match.distanceMatch || 0}%`} 
-                            styles={buildStyles({ 
-                              textColor: '#8B4513',
-                              pathColor: '#8B4513',
-                              trailColor: '#ddd',
-                            })}
-                          />
-                        </div>
-                        <div className="text-muted small mt-2">Distance</div>
-                      </Col>
+                      </Row>
+                      <Row className="text-center mb-3">
+                        <Col sm={6} key={`distance-${match.matchedCat.catStatusId}`}>
+                          <div style={{ width: 60, height: 60, margin: 'auto' }}>
+                            <CircularProgressbar 
+                              value={match.distanceMatch || 0} 
+                              text={`${match.distanceMatch || 0}%`} 
+                              styles={buildStyles({ 
+                                textColor: '#8B4513',
+                                pathColor: '#8B4513',
+                                trailColor: '#ddd',
+                              })}
+                            />
+                          </div>
+                          <div className="text-muted small mt-2">Distance</div>
+                        </Col>
                       </Row>
 
                       <Card.Text className="text-muted small mb-2">

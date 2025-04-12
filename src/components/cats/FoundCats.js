@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useAxios } from "../../hooks/useAxios";
 import { Card, Button, Container, Row, Col, Spinner, Badge, Form, InputGroup } from "react-bootstrap";
 import { motion } from "framer-motion";
-import { FaPaw, FaFilter, FaSearch, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
+import { BiCalendar } from "react-icons/bi";
 import "../../styles/global.css";
 import CatDetails from "../profile/CatDetails";
 import { useCats } from "../../hooks/useCats";
 import MatchingResults from "./MatchingResults";
 import Select from "react-select";
 import catBreeds from "../../CatBreeds";
-// import { useGeolocation } from "../../hooks/useGeolocation";
+import { CatFoundIdDisplay } from "./CatLinkRequest";
 
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
@@ -24,7 +25,6 @@ function FoundCats() {
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
-  // const { getCurrentPosition } = useGeolocation();
 
   // Fonction pour formater les valeurs avec underscore en format plus lisible
   const formatValue = (value) => {
@@ -35,6 +35,31 @@ function FoundCats() {
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
+  };
+
+  // Fonction pour calculer l'âge à partir de la date de naissance
+  const calculateAge = (dateOfBirth) => {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Si le mois de naissance n'est pas encore arrivé cette année ou 
+    // si c'est le même mois mais que le jour n'est pas encore arrivé
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    // Format de l'âge
+    if (age < 1) {
+      // Calculer l'âge en mois
+      const ageInMonths = today.getMonth() - birthDate.getMonth() + 
+        (today.getFullYear() - birthDate.getFullYear()) * 12;
+      return `${ageInMonths} mois`;
+    } else {
+      return `${age} an${age > 1 ? 's' : ''}`;
+    }
   };
 
   // Filtres
@@ -68,6 +93,7 @@ function FoundCats() {
     { value: "VERT", label: formatValue("VERT") },
     { value: "JAUNE", label: formatValue("JAUNE") },
     { value: "MARRON", label: formatValue("MARRON") },
+    { value: "GRIS", label: formatValue("GRIS") },
     { value: "NOISETTE", label: formatValue("NOISETTE") },
     { value: "AUTRE", label: formatValue("AUTRE") }
   ];
@@ -503,60 +529,110 @@ function FoundCats() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Card className="cat-card shadow-sm">
-                      <Card.Img
-                        variant="top"
-                        src={`data:${cat.type};base64,${cat.imageCatData}`}
-                        alt={cat.name}
-                        onError={(e) => {
-                          e.target.src = "/images/noImageCat.png";
-                          e.target.onerror = null; // Empêche les erreurs en boucle
-                        }}
-                        style={{ height: "200px", objectFit: "cover" }}
-                      />
-                      <Card.Body>
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
+                    <Card className="cat-card shadow-sm h-100">
+                      <div className="position-relative">
+                        <Card.Img
+                          variant="top"
+                          src={`data:${cat.type};base64,${cat.imageCatData}`}
+                          alt={cat.name}
+                          onError={(e) => {
+                            e.target.src = "/images/noImageCat.png";
+                            e.target.onerror = null; // Empêche les erreurs en boucle
+                          }}
+                          style={{ 
+                            height: "220px", 
+                            width: "100%",
+                            objectFit: "cover",
+                            backgroundColor: "#f8f9fa"
+                          }}
+                        />
+                        <div 
+                          className="position-absolute top-0 end-0 m-2"
+                        >
                           <Badge
-                            bg={cat.gender === "Mâle" ? "primary" : "danger"}
-                            className="ms-2"
+                            bg={cat.gender === "MALE" ? "primary" : "danger"}
+                            className="px-2 py-1"
+                            style={{ fontSize: '0.8rem' }}
                           >
                             {formatValue(cat.gender)}
                           </Badge>
                         </div>
-                        <Card.Text className="text-muted small mb-2">
-                          Race: {formatValue(cat.breed) || "Inconnue"}
-                        </Card.Text>
-                        <Card.Text className="text-muted small mb-2">
-                          Date de naissance: {cat.dateOfBirth ? new Date(cat.dateOfBirth).toLocaleDateString() : "Inconnue"}
-                        </Card.Text>
-                        <div className="d-flex flex-column gap-2">
-                          <div className="d-flex justify-content-between align-items-center">
+                        <div 
+                          className="position-absolute bottom-0 start-0 w-100 p-2"
+                          style={{ 
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                            borderBottomLeftRadius: 'calc(0.375rem - 1px)',
+                            borderBottomRightRadius: 'calc(0.375rem - 1px)'
+                          }}
+                        >
+                          <h5 className="card-title text-white mb-0">{cat.name || "Chat sans nom"}</h5>
+                          <p className="card-text text-white-50 small mb-0">
+                            {formatValue(cat.breed) || "Race inconnue"}
+                          </p>
+                        </div>
+                      </div>
+                      <Card.Body className="d-flex flex-column">
+                        <div className="mb-3">
+                          <div className="d-flex align-items-center mb-2">
+                            <div 
+                              className="rounded-circle me-2" 
+                              style={{ 
+                                width: '12px', 
+                                height: '12px', 
+                                backgroundColor: cat.color ? cat.color.toLowerCase() : '#ccc',
+                                border: '1px solid rgba(0,0,0,0.2)'
+                              }}
+                            ></div>
                             <small className="text-muted">
-                              Trouvé le: {new Date(catStatus.reportDate).toLocaleDateString()}
+                              Couleur: {formatValue(cat.color) || "Inconnue"}
                             </small>
+                          </div>
+                          <div className="d-flex align-items-center mb-2">
+                            <BiCalendar className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></BiCalendar>
+                            <small className="text-muted">
+                              Âge: {cat.dateOfBirth ? calculateAge(cat.dateOfBirth) : "Inconnu"}
+                            </small>
+                          </div>
+                          <div className="d-flex align-items-center">
+                            <FaMapMarkerAlt className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></FaMapMarkerAlt>
+                            <small className="text-muted">
+                              Trouvé le: {new Date(catStatus.reportDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </small>
+                          </div>
+                        </div>
+                        <div className="mt-auto">
+                          <div className="d-grid gap-2">
                             <Button
                               variant="outline-success"
                               size="sm"
                               onClick={() => handleShow(catStatus)}
-                              className="rounded-pill"
+                              className="d-flex align-items-center justify-content-center"
                             >
-                              Plus d'infos
+                              <i className="bi bi-info-circle me-1"></i>
+                              Plus d'informations
+                            </Button>
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              className="d-flex align-items-center justify-content-center"
+                              onClick={() => handleShowMatches(cat)}
+                              disabled={loadingMatches[cat.catId]}
+                            >
+                              {loadingMatches[cat.catId] ? (
+                                <>
+                                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                  Recherche...
+                                </>
+                              ) : (
+                                <>
+                                  <FaSearch className="me-1" />
+                                  {matchCounts[cat.catId] ? 
+                                    `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
+                                    'Rechercher des correspondances'}
+                                </>
+                              )}
                             </Button>
                           </div>
-                          <Button
-                            variant="outline-info"
-                            size="sm"
-                            className="w-100"
-                            onClick={() => handleShowMatches(cat)}
-                            disabled={loadingMatches[cat.catId]}
-                          >
-                            <FaPaw className="me-2" />
-                            {loadingMatches[cat.catId] ? 'Chargement...' : 
-                              matchCounts[cat.catId] ? 
-                              `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''} trouvée${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
-                              'Aucune correspondance'}
-                          </Button>
                         </div>
                       </Card.Body>
                     </Card>
@@ -578,12 +654,19 @@ function FoundCats() {
         </div>
       )}
       
-      {/* Move CatDetails outside the map function */}
       <CatDetails 
         selectedCatStatus={selectedCatStatus} 
         handleClose={handleClose} 
         show={show}
       />
+      
+      {/* Afficher l'ID unique du chat trouvé dans le modal de détails */}
+      {show && selectedCatStatus && (
+        <div className="mt-3">
+          <CatFoundIdDisplay catStatusId={selectedCatStatus.catStatusId} />
+        </div>
+      )}
+
       <MatchingResults
         matches={matches}
         show={showMatches}

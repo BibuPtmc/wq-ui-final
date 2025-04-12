@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
 import { useAxios } from "../../hooks/useAxios";
 import { useAuth } from "../../hooks/authProvider";
 import { useCats } from '../../hooks/useCats';
-import { FaUser, FaPaw, FaLock, FaHistory} from 'react-icons/fa';
+import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';
 import ReportedCats from '../../components/profile/ReportedCats';
 import OwnedCats from '../../components/profile/OwnedCats';
 import CatDetails from '../../components/profile/CatDetails';
@@ -11,6 +11,7 @@ import PersonalInfo from '../../components/profile/PersonalInfo';
 import SecuritySettings from '../../components/profile/SecuritySettings';
 import OrderHistory from '../../components/profile/OrderHistory';
 import ProfileSidebar from '../../components/profile/ProfileSidebar';
+import PendingLinkRequests from '../../components/profile/PendingLinkRequests';
 
 const ProfilePage = () => {
   const axios = useAxios();
@@ -21,7 +22,9 @@ const ProfilePage = () => {
     loading: catsLoading,
     handleDeleteReportedCat,
     handleEditReportedCat,
+    handleEditOwnedCat,
     handleDeleteOwnedCat,
+    handleReportCatAsLost,
     successMessage
   } = useCats();
   
@@ -46,6 +49,7 @@ const ProfilePage = () => {
     longitude: null,
     gender: "",
     birthDay: "",
+    phone: "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -53,6 +57,9 @@ const ProfilePage = () => {
     newPassword: "",
     matchingPassword: ""
   });
+
+  // État pour suivre si les commandes ont déjà été chargées
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -75,6 +82,7 @@ const ProfilePage = () => {
           longitude: response.address?.longitude || null,
           gender: response.gender || "",
           birthDay: response.birthDay || "",
+          phone: response.phone || "",
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -90,28 +98,64 @@ const ProfilePage = () => {
   }, [axios, loading]);
 
   // Fonction pour récupérer les commandes
-  const fetchOrders = async () => {
-    if (activeTab === 'orders') {
+  const fetchOrders = useCallback(async () => {
+    // Ne charger les commandes que si l'onglet est actif et qu'elles n'ont pas déjà été chargées
+    if (activeTab === 'orders' && !ordersLoaded) {
       setOrdersLoading(true);
       try {
         const response = await axios.get('/ecommerce/orders');
         setOrders(response);
+        // Marquer les commandes comme chargées
+        setOrdersLoaded(true);
       } catch (error) {
         console.error('Error fetching orders:', error);
+        // Marquer comme chargé même en cas d'erreur pour éviter les boucles
+        setOrdersLoaded(true);
       } finally {
         setOrdersLoading(false);
       }
     }
-  };
+  }, [activeTab, axios, ordersLoaded]);
 
+  // Réinitialiser l'état lorsque l'onglet change
+  useEffect(() => {
+    if (activeTab !== 'orders') {
+      setOrdersLoaded(false);
+    }
+  }, [activeTab]);
+
+  // Charger les commandes lorsque nécessaire
   useEffect(() => {
     fetchOrders();
-  }, [activeTab]);
+  }, [fetchOrders]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setUpdateSuccess(false);
     setUpdateError("");
+    
+    // Vérification de la date de naissance
+    if (formData.birthDay) {
+      const selectedDate = new Date(formData.birthDay);
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      
+      if (selectedDate > currentDate) {
+        setUpdateError("La date de naissance ne peut pas être dans le futur");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+    
+    // Validation du numéro de téléphone si présent
+    if (formData.phone) {
+      const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        setUpdateError("Le format du numéro de téléphone n'est pas valide");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
     
     try {
       const response = await axios.put("users/update", formData);
@@ -188,10 +232,6 @@ const ProfilePage = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
-
   const handleDeleteAccount = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
       try {
@@ -206,12 +246,8 @@ const ProfilePage = () => {
     }
   };
 
-  const formatPhoneNumber = (phoneNumber) => {
-    let cleaned = ("" + phoneNumber).replace(/\D/g, "");
-    return cleaned.startsWith("32") ? "+" + cleaned : "+32" + cleaned;
-  };
-
   const handleCloseCatDetails = () => setShowCatDetails(false);
+
   const handleShowCatDetails = (catStatus) => {
     setSelectedCatStatus(catStatus);
     setShowCatDetails(true);
@@ -341,8 +377,22 @@ const ProfilePage = () => {
                           ownedCats={ownedCats}
                           onShowCatDetails={handleShowCatDetails}
                           onDeleteCat={handleDeleteOwnedCat}
+                          onEditCat={handleEditOwnedCat}
+                          onReportAsLost={handleReportCatAsLost}
                           successMessage={successMessage}
                         />
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+                  
+                  <Tab.Pane active={activeTab === "pendingLinks"}>
+                    <Card className="shadow-sm mb-4">
+                      <Card.Body>
+                        <Card.Title className="mb-4">
+                          <FaLink className="me-2" />
+                          Demandes de liaison en attente
+                        </Card.Title>
+                        <PendingLinkRequests />
                       </Card.Body>
                     </Card>
                   </Tab.Pane>

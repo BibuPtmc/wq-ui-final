@@ -4,10 +4,13 @@ import { motion } from 'framer-motion';
 import { FaTimes, FaPaw } from 'react-icons/fa';
 import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
+import { CatLinkRequestButton } from '../cats/CatLinkRequest';
+import CatDetails from './CatDetails';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { findPotentialFoundCats, findPotentialLostCats } = useCats();
   const [showModal, setShowModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
@@ -16,7 +19,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const [editForm, setEditForm] = useState({
     name: '',
     statusCat: '',
-    comment: ''
+    comment: '',
+    breed: '',
+    color: '',
+    dateOfBirth: '',
+    gender: '',
+    chipNumber: '',
+    furType: '',
+    eyeColor: ''
   });
 
   // Fonction pour formater les valeurs avec underscore en format plus lisible
@@ -103,14 +113,48 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     }
   };
 
+  // Fonction pour s'assurer que les valeurs des énumérations sont correctement initialisées
+  const getEnumValue = (value) => {
+    if (!value) return '';
+    // Si la valeur est déjà en majuscules et contient des underscores, c'est probablement déjà une énumération
+    if (value === value.toUpperCase() && value.includes('_')) {
+      return value;
+    }
+    // Sinon, convertir en format d'énumération (majuscules, sans accents, espaces remplacés par des underscores)
+    return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase().replace(/\s+/g, "_");
+  };
+
   const handleEdit = (catStatus) => {
     setSelectedCat(catStatus);
     setEditForm({
       name: catStatus.cat.name || '',
       statusCat: catStatus.statusCat || '',
-      comment: catStatus.comment || ''
+      comment: catStatus.cat.comment || '', // Utiliser le commentaire du chat au lieu du commentaire du statut
+      breed: getEnumValue(catStatus.cat.breed) || '',
+      color: getEnumValue(catStatus.cat.color) || '',
+      dateOfBirth: catStatus.cat.dateOfBirth || '',
+      gender: catStatus.cat.gender || '',
+      chipNumber: catStatus.cat.chipNumber || '',
+      furType: catStatus.cat.furType || '',
+      eyeColor: getEnumValue(catStatus.cat.eyeColor) || ''
     });
     setShowModal(true);
+    
+    // Afficher les valeurs dans la console pour débogage
+    console.log('Cat data:', catStatus.cat);
+    console.log('Eye color:', catStatus.cat.eyeColor);
+    console.log('Normalized eye color:', getEnumValue(catStatus.cat.eyeColor));
+    console.log('Comment from cat:', catStatus.cat.comment);
+  };
+
+  const handleViewDetails = (catStatus) => {
+    setSelectedCat(catStatus);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false);
   };
 
   const handleSubmit = (e) => {
@@ -140,6 +184,12 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   const handleCloseMatches = () => {
     setShowMatches(false);
+  };
+
+  const refreshCats = () => {
+    // Cette fonction sera appelée après une liaison réussie
+    // Le composant parent (ProfilePage) s'occupera de rafraîchir la liste des chats
+    window.location.reload(); // Simple refresh pour l'instant
   };
 
   if (reportedCats.length === 0) {
@@ -227,6 +277,29 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         <FaTimes />
                       </Button>
                     </div>
+                    
+                    {/* Bouton pour lier un chat perdu à un chat trouvé */}
+                    {catStatus.statusCat === 'LOST' && (
+                      <div className="mt-2">
+                        <CatLinkRequestButton 
+                          lostCatStatusId={catStatus.catStatusId} 
+                          onSuccess={refreshCats}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Afficher l'ID unique pour les chats trouvés */}
+                    {catStatus.statusCat === 'FOUND' && (
+                      <div className="mt-2 text-center">
+                        <Badge bg="info" className="px-3 py-2">
+                          ID: #{catStatus.catStatusId}
+                        </Badge>
+                        <div className="small text-muted mt-1">
+                          Communiquez cet ID au propriétaire
+                        </div>
+                      </div>
+                    )}
+                    
                     {catStatus.statusCat === 'LOST' && (
                       <Button
                         variant="outline-info"
@@ -265,44 +338,187 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         })}
       </Row>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Modifier les informations du chat</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Nom du chat</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={editForm.name}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                name="statusCat"
-                value={editForm.statusCat}
-                onChange={handleChange}
-              >
-                <option value="">Sélectionner un statut</option>
-                <option value="LOST">Perdu</option>
-                <option value="FOUND">Trouvé</option>
-                <option value="OWN">Propriétaire</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Commentaire</Form.Label>
-              <Form.Control
-                as="textarea"
-                name="comment"
-                value={editForm.comment}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <div className="d-flex justify-content-end gap-2">
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Nom du chat</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Status</Form.Label>
+                  <Form.Select
+                    name="statusCat"
+                    value={editForm.statusCat}
+                    onChange={handleChange}
+                  >
+                    <option key="empty" value="">Sélectionner un statut</option>
+                    <option key="lost" value="LOST">Perdu</option>
+                    <option key="found" value="FOUND">Trouvé</option>
+                    <option key="own" value="OWN">Propriétaire</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Race</Form.Label>
+                  <Form.Select
+                    name="breed"
+                    value={editForm.breed}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner une race</option>
+                    <option value="SIAMESE">Siamois</option>
+                    <option value="PERSIAN">Persan</option>
+                    <option value="MAINE_COON">Maine Coon</option>
+                    <option value="BRITISH_SHORTHAIR">British Shorthair</option>
+                    <option value="RAGDOLL">Ragdoll</option>
+                    <option value="BENGAL">Bengal</option>
+                    <option value="SPHYNX">Sphynx</option>
+                    <option value="RUSSIAN_BLUE">Bleu Russe</option>
+                    <option value="ABYSSINIAN">Abyssin</option>
+                    <option value="SCOTTISH_FOLD">Scottish Fold</option>
+                    <option value="BIRMAN">Birman</option>
+                    <option value="AMERICAN_SHORTHAIR">Américain à poil court</option>
+                    <option value="NORWEGIAN_FOREST_CAT">Chat des forêts norvégiennes</option>
+                    <option value="EXOTIC_SHORTHAIR">Exotic Shorthair</option>
+                    <option value="EUROPEAN_SHORTHAIR">Européen à poil court</option>
+                    <option value="OTHER">Autre</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Couleur</Form.Label>
+                  <Form.Select
+                    name="color"
+                    value={editForm.color}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner une couleur</option>
+                    <option value="NOIR">Noir</option>
+                    <option value="BLANC">Blanc</option>
+                    <option value="GRIS">Gris</option>
+                    <option value="ROUX">Roux</option>
+                    <option value="MIXTE">Mixte</option>
+                    <option value="AUTRE">Autre</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Date de naissance</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="dateOfBirth"
+                    value={editForm.dateOfBirth}
+                    onChange={handleChange}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Genre</Form.Label>
+                  <Form.Select
+                    name="gender"
+                    value={editForm.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner un genre</option>
+                    <option value="Mâle">Mâle</option>
+                    <option value="Femelle">Femelle</option>
+                    <option value="Inconnu">Inconnu</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Numéro de puce</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="chipNumber"
+                    value={editForm.chipNumber}
+                    onChange={handleChange}
+                    placeholder="Optionnel"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Type de pelage</Form.Label>
+                  <Form.Select
+                    name="furType"
+                    value={editForm.furType}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner un type de pelage</option>
+                    <option value="Courte">Courte</option>
+                    <option value="Moyenne">Moyenne</option>
+                    <option value="Longue">Longue</option>
+                    <option value="Sans poils">Sans poils</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Couleur des yeux</Form.Label>
+                  <Form.Select
+                    name="eyeColor"
+                    value={editForm.eyeColor}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sélectionner une couleur d'yeux</option>
+                    <option value="BLEU">Bleu</option>
+                    <option value="MARRON">Marron</option>
+                    <option value="VERT">Vert</option>
+                    <option value="GRIS">Gris</option>
+                    <option value="NOISETTE">Noisette</option>
+                    <option value="JAUNE">Jaune</option>
+                    <option value="ORANGE">Orange</option>
+                    <option value="AUTRE">Autre</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Commentaire</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    name="comment"
+                    value={editForm.comment}
+                    onChange={handleChange}
+                    style={{ height: '100px' }}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <div className="d-flex justify-content-end gap-2 mt-3">
               <Button variant="secondary" onClick={() => setShowModal(false)}>
                 Annuler
               </Button>
@@ -314,13 +530,19 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         </Modal.Body>
       </Modal>
 
+      <CatDetails 
+        selectedCatStatus={selectedCat}
+        show={showDetailsModal}
+        handleClose={handleCloseDetails}
+      />
+
       <MatchingResults
         matches={matches}
         show={showMatches}
         handleClose={handleCloseMatches}
         onViewDetails={(catStatus) => {
           handleCloseMatches();
-          handleEdit(catStatus);
+          handleViewDetails(catStatus);
         }}
       />
     </>

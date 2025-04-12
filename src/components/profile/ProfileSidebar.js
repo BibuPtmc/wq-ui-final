@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Nav, Button } from 'react-bootstrap';
-import { FaUser, FaPaw, FaLock, FaHistory, FaTrash } from 'react-icons/fa';
+import { Card, ListGroup, Button } from 'react-bootstrap';
+import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';
 
 const ProfileSidebar = ({
   connectedUser,
@@ -39,59 +39,62 @@ const ProfileSidebar = ({
         </Card.Title>
         <Card.Text className="text-muted mb-4">Particulier</Card.Text>
         
-        <Nav variant="pills" className="flex-column mb-4">
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "profile"}
-              onClick={() => setActiveTab("profile")}
-              className="text-start mb-2"
-            >
-              <FaUser className="me-2" />
-              Profil
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "security"}
-              onClick={() => setActiveTab("security")}
-              className="text-start mb-2"
-            >
-              <FaLock className="me-2" />
-              Sécurité
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "orders"}
-              onClick={() => setActiveTab("orders")}
-              className="text-start mb-2"
-            >
-              <FaHistory className="me-2" />
-              Historique des commandes
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "reported"}
-              onClick={() => setActiveTab("reported")}
-              className="text-start mb-2"
-            >
-              <FaPaw className="me-2" />
-              Chats Signalés
-              {/* voir pourquoi chats signalés ce trouve la et pas dans reportedCats */}
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "ownedCats"}
-              onClick={() => setActiveTab("ownedCats")}
-              className="text-start"
-            >
-              <FaPaw className="me-2" />
-              Mes chats
-            </Nav.Link>
-          </Nav.Item>
-        </Nav>
+        <ListGroup variant="flush">
+          <ListGroup.Item 
+            action 
+            active={activeTab === "profile"}
+            onClick={() => setActiveTab("profile")}
+            className="d-flex align-items-center"
+          >
+            <FaUser className="me-3" />
+            <span>Profil</span>
+          </ListGroup.Item>
+          <ListGroup.Item 
+            action 
+            active={activeTab === "security"}
+            onClick={() => setActiveTab("security")}
+            className="d-flex align-items-center"
+          >
+            <FaLock className="me-3" />
+            <span>Sécurité</span>
+          </ListGroup.Item>
+          <ListGroup.Item 
+            action 
+            active={activeTab === "orders"}
+            onClick={() => setActiveTab("orders")}
+            className="d-flex align-items-center"
+          >
+            <FaHistory className="me-3" />
+            <span>Historique des commandes</span>
+          </ListGroup.Item>
+          <ListGroup.Item 
+            action 
+            active={activeTab === "reported"}
+            onClick={() => setActiveTab("reported")}
+            className="d-flex align-items-center"
+          >
+            <FaPaw className="me-3" />
+            <span>Chats Signalés</span>
+          </ListGroup.Item>
+          <ListGroup.Item 
+            action 
+            active={activeTab === "ownedCats"}
+            onClick={() => setActiveTab("ownedCats")}
+            className="d-flex align-items-center"
+          >
+            <FaPaw className="me-3" />
+            <span>Mes chats</span>
+          </ListGroup.Item>
+          <ListGroup.Item 
+            action 
+            active={activeTab === "pendingLinks"}
+            onClick={() => setActiveTab("pendingLinks")}
+            className="d-flex align-items-center"
+          >
+            <FaLink className="me-3" />
+            <span>Demandes de liaison</span>
+          </ListGroup.Item>
+        </ListGroup>
 
         <Button
           variant="outline-danger"
@@ -113,7 +116,6 @@ const ProfileSidebar = ({
             e.target.style.color = '#dc3545';
           }}
         >
-          <FaTrash className="me-2" />
           Supprimer mon compte
         </Button>
       </Card.Body>
