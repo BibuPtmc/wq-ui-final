@@ -107,7 +107,7 @@ function RegisterCat() {
           updateLocationFromCoordinates(position.longitude, position.latitude);
         })
         .catch(error => {
-          console.log("Utilisation de la position par défaut:", error.message);
+          // Log supprimé pour améliorer les performances
         });
     }
   }, [isLoggedIn, getCurrentPosition, updateLocationFromCoordinates]);
@@ -297,7 +297,7 @@ function RegisterCat() {
     };
     try {
       const response = await post("/cat/register", catStatus);
-      console.log(response);
+      // Log supprimé pour améliorer les performances
       setShowSuccessMessage(true);
       // Faire défiler la page vers le haut pour voir le message de succès
       window.scrollTo({ top: 0, behavior: 'smooth' });

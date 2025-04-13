@@ -33,7 +33,7 @@ export const CatsProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'adresse de l'utilisateur:", error);
+      // Log réduit pour améliorer les performances
     }
   }, [axios]);
 
@@ -66,7 +66,7 @@ export const CatsProvider = ({ children }) => {
       setLoading(false);
       initialFetchDone.current = true;
     } catch (error) {
-      console.error("Error fetching cats:", error);
+      // Log réduit pour améliorer les performances
       setLoading(false);
     }
   }, [axios, loading, isLoggedIn, fetchUserAddress]);
@@ -95,7 +95,7 @@ export const CatsProvider = ({ children }) => {
       setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
       return true;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error);
+      // Log réduit pour améliorer les performances
       return false;
     }
   };
@@ -385,7 +385,7 @@ export const CatsProvider = ({ children }) => {
       setTimeout(() => setSuccessMessage(''), 3000);
       return true;
     } catch (error) {
-      console.error("Erreur lors de la déclaration du chat comme perdu:", error);
+      // Log réduit pour améliorer les performances
       return false;
     }
   };
@@ -398,7 +398,7 @@ export const CatsProvider = ({ children }) => {
       const response = await axios.get(`/cat/potentialFoundCats/${catId}`, { headers });
       return response;
     } catch (error) {
-      console.error("Erreur lors de la recherche des correspondances:", error);
+      // Log réduit pour améliorer les performances
       return [];
     }
   };
@@ -411,7 +411,7 @@ export const CatsProvider = ({ children }) => {
       const response = await axios.get(`/cat/potentialLostCats/${catId}`, { headers });
       return response;
     } catch (error) {
-      console.error("Erreur lors de la recherche des chats trouvés correspondants:", error);
+      // Log réduit pour améliorer les performances
       return [];
     }
   };

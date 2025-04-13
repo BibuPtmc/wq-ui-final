@@ -42,7 +42,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Options et fonctions de formatage importées depuis les utilitaires centralisés
 
   const handleEdit = (catStatus) => {
-    console.log("Édition du chat (données complètes):", JSON.stringify(catStatus, null, 2));
+    // Log supprimé pour améliorer les performances
     setSelectedCat(catStatus);
     
     // Formatage de la date pour l'input date
@@ -64,7 +64,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       comment: catStatus.cat.comment || ''
     };
     
-    console.log("Données du formulaire:", newFormData);
+    // Log supprimé pour améliorer les performances
     setEditForm(newFormData);
     
     setShowModal(true);
@@ -73,7 +73,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Effet pour surveiller les changements de selectedCat et mettre à jour le formulaire
   useEffect(() => {
     if (selectedCat && selectedCat.cat) {
-      console.log("selectedCat a changé (données complètes):", JSON.stringify(selectedCat, null, 2));
+      // Log supprimé pour améliorer les performances
       
       // Formatage de la date pour l'input date
       let formattedDate = '';
@@ -94,7 +94,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         comment: selectedCat.cat.comment || ''
       };
       
-      console.log("Mise à jour du formulaire:", newFormData);
+      // Log supprimé pour améliorer les performances
       setEditForm(newFormData);
     }
   }, [selectedCat]);
@@ -134,14 +134,14 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Soumission du formulaire:", editForm);
+    // Log supprimé pour améliorer les performances
     onEditCat(selectedCat.cat.catId, editForm);
     setShowModal(false);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Changement de champ ${name}:`, value);
+    // Log supprimé pour améliorer les performances
     setEditForm(prev => ({
       ...prev,
       [name]: value
@@ -304,7 +304,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       <Modal 
         show={showModal} 
         onHide={() => setShowModal(false)}
-        onShow={() => console.log("Modal affiché, valeurs du formulaire:", editForm)}
+        onShow={() => {}}
       >
         <Modal.Header closeButton>
           <Modal.Title>Modifier les informations du chat</Modal.Title>

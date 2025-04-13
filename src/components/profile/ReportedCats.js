@@ -138,10 +138,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     setShowModal(true);
     
     // Afficher les valeurs dans la console pour débogage
-    console.log('Cat data:', catStatus.cat);
-    console.log('Eye color:', catStatus.cat.eyeColor);
-    console.log('Normalized eye color:', getEnumValue(catStatus.cat.eyeColor));
-    console.log('Comment from cat:', catStatus.cat.comment);
+    // Logs supprimés pour améliorer les performances
   };
 
   const handleViewDetails = (catStatus) => {
