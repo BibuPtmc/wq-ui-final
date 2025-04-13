@@ -17,7 +17,7 @@ export const CartProvider = ({ children }) => {
   // Vérifier si la clé est disponible
   useEffect(() => {
     if (!stripePublicKey) {
-      console.error('REACT_APP_STRIPE_PUBLIC_KEY n\'est pas définie dans le fichier .env');
+      // Log réduit pour améliorer les performances
     }
   }, [stripePublicKey]);
 
@@ -34,7 +34,7 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     if (!product.id) {
-      console.error("Le produit n'a pas d'ID valide", product);
+      // Log réduit pour améliorer les performances
       return;
     }
   

@@ -13,7 +13,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import GpsCollars from './pages/shop/GpsCollars';
 import PaymentSuccess from './pages/PaymentSuccess';
-import { CartProvider } from './components/ecommerce/CartContext';
+import { CartProvider } from './contexts/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import { useAuth } from "./hooks/authProvider";

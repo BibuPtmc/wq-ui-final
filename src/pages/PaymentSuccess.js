@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useCart } from '../components/ecommerce/CartContext';
+import { useCart } from '../contexts/CartContext';
 import { Container, Alert, Button } from 'react-bootstrap';
 import Confetti from 'react-confetti';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import '../../styles/global.css';
-import { useCart } from '../../components/ecommerce/CartContext';
+import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../hooks/authProvider';
 import { Link } from 'react-router-dom';
 import axios from 'axios';

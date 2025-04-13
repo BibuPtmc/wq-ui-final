@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, ListGroup, Form, Badge } from 'react-bootstrap';
-import { useCart } from './CartContext';
+import { useCart } from '../../contexts/CartContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAxios } from '../../hooks/useAxios';
 import { useAuth } from '../../hooks/authProvider';

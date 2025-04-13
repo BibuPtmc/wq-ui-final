@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Navbar, Container, Button, Badge } from 'react-bootstrap';
 import { BsCart3 } from 'react-icons/bs';
-import { useCart } from './CartContext';
+import { useCart } from '../../contexts/CartContext';
 import Cart from './Cart';
 
 const EcommerceNavbar = () => {
