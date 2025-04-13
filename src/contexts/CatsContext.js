@@ -152,7 +152,8 @@ export const CatsProvider = ({ children }) => {
       const catStatus = {
         catStatusId: catStatusId,
         cat: catDTO,
-        comment: updatedData.comment || currentCat.comment,
+        // Ne modifier le commentaire que si explicitement fourni dans updatedData
+        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment,
         statusCat: newStatus,
         reportDate: formattedDate,
         location: location
@@ -170,7 +171,8 @@ export const CatsProvider = ({ children }) => {
         const updatedOwnedCat = {
           catStatusId: response.catStatusId || catStatusId,
           statusCat: "OWN",
-          comment: updatedData.comment || currentCat.comment,
+          // Ne modifier le commentaire que si explicitement fourni dans updatedData
+          comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment,
           reportDate: formattedDate,
           location: location,
           cat: catDTO
@@ -184,7 +186,8 @@ export const CatsProvider = ({ children }) => {
             ? {
                 ...cat,
                 statusCat: newStatus,
-                comment: updatedData.comment || cat.comment,
+                // Ne modifier le commentaire que si explicitement fourni dans updatedData
+                comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.comment,
                 reportDate: formattedDate,
                 location: location,
                 cat: {
@@ -247,7 +250,8 @@ export const CatsProvider = ({ children }) => {
       const catStatus = {
         catStatusId: currentCatStatus.catStatusId,
         cat: catDTO,
-        comment: updatedData.comment || currentCatStatus.comment,
+        // Ne modifier le commentaire que si explicitement fourni dans updatedData
+        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCatStatus.comment,
         statusCat: "OWN", // Statut possédé
         reportDate: formattedDate,
         location: {
@@ -267,7 +271,8 @@ export const CatsProvider = ({ children }) => {
         cat.cat.catId === catId 
           ? {
               ...cat,
-              comment: updatedData.comment || cat.comment,
+              // Ne modifier le commentaire que si explicitement fourni dans updatedData
+              comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.comment,
               reportDate: formattedDate,
               cat: {
                 ...cat.cat,

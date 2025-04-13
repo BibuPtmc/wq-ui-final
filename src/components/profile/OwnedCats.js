@@ -91,7 +91,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         dateOfBirth: formattedDate,
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
-        comment: selectedCat.comment || ''
+        comment: selectedCat.cat.comment || ''
       };
       
       console.log("Mise à jour du formulaire:", newFormData);
@@ -112,7 +112,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         dateOfBirth: selectedCat.cat.dateOfBirth ? selectedCat.cat.dateOfBirth.substring(0, 10) : '',
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || '',
-        comment: selectedCat.comment || ''
+        comment: selectedCat.cat.comment || ''
       });
 
       // Pour le modal de signalement de perte
