@@ -1,36 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import '../../styles/global.css';
 import { useCartContext } from '../../contexts/CartContext';
+import { useProductContext } from '../../contexts/ProductContext';
 import { useAuth } from '../../hooks/authProvider';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-//import { useAxios } from "../../hooks/useAxios";
 
 
 const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub24gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
 
 function GpsCollars() {
-  const [products, setProducts] = useState([]);
   const { addToCart } = useCartContext();
-  const [loading, setLoading] = useState(true);
+  const { products, loading, error } = useProductContext();
   const { isLoggedIn } = useAuth();
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get('http://localhost:8080/ecommerce/products');
-        setProducts(response.data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
 
   const handleAddToCart = (product) => {
     if (!isLoggedIn) {
@@ -43,6 +26,17 @@ function GpsCollars() {
     return (
       <Container className="py-5 text-center">
         <h2>Chargement des produits...</h2>
+      </Container>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Container className="py-5 text-center">
+        <Alert variant="danger">
+          <Alert.Heading>Erreur</Alert.Heading>
+          <p>{error}</p>
+        </Alert>
       </Container>
     );
   }

@@ -3,6 +3,7 @@ import { AxiosProvider } from './AxiosContext';
 import { AuthProvider } from '../hooks/authProvider';
 import { CatsProvider } from './CatsContext';
 import { CatSearchProvider } from './CatSearchContext';
+import { ProductProvider } from './ProductContext';
 
 // Composant qui combine tous les providers de l'application
 export const AppProviders = ({ children }) => {
@@ -11,7 +12,9 @@ export const AppProviders = ({ children }) => {
       <AuthProvider>
         <CatsProvider>
           <CatSearchProvider>
-            {children}
+            <ProductProvider>
+              {children}
+            </ProductProvider>
           </CatSearchProvider>
         </CatsProvider>
       </AuthProvider>
