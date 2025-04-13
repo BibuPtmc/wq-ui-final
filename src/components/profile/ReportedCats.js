@@ -8,15 +8,12 @@ import { CatLinkRequestButton } from '../cats/CatLinkRequest';
 import CatDetails from './CatDetails';
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
-import { useAxiosContext } from "../../contexts/AxiosContext"; // Conservé pour de futures fonctionnalités nécessitant des appels API directs
 import { getStatusLabel } from "../../utils/enumOptions";
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge, findPotentialFoundCats, findPotentialLostCats } = useCatSearch();
-  const { axios } = useAxiosContext(); // Conservé pour de futures fonctionnalités nécessitant des appels API directs
-  // Actuellement, ce composant reçoit les fonctions de manipulation des chats via les props
-  
+
   const [showModal, setShowModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);

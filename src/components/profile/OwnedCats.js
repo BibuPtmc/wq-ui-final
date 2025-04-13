@@ -6,15 +6,12 @@ import MapLocation from '../map/MapLocation';
 import useGeolocation from "../../hooks/useGeolocation";
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
-import { useAxiosContext } from "../../contexts/AxiosContext"; // Conservé pour de futures fonctionnalités nécessitant des appels API directs
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
-  const { axios } = useAxiosContext(); // Conservé pour de futures fonctionnalités nécessitant des appels API directs
-  // Actuellement, ce composant reçoit les fonctions de manipulation des chats via les props
-  
+
   const [showModal, setShowModal] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);

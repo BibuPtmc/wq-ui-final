@@ -41,7 +41,7 @@ function LostCats() {
   // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorOptions = [
     { value: "", label: "Toutes les couleurs" },
-    ...Object.entries(require("../../utils/enumOptions").colorOptions).map(([value]) => ({ 
+    ...require("../../utils/enumOptions").colorOptions.map(value => ({ 
       value, 
       label: formatValue(value) 
     }))
@@ -49,7 +49,7 @@ function LostCats() {
 
   const eyeColorOptions = [
     { value: "", label: "Toutes les couleurs d'yeux" },
-    ...Object.entries(require("../../utils/enumOptions").eyeColorOptions).map(([value]) => ({ 
+    ...require("../../utils/enumOptions").eyeColorOptions.map(value => ({ 
       value, 
       label: formatValue(value) 
     }))
