@@ -1,18 +1,10 @@
 import React from 'react';
 import { Modal, Row, Col, Badge, Card, Button } from 'react-bootstrap';
 import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMarkerAlt, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { formatEnumValue } from "../../utils/enumUtils";
 
 function CatDetails({ selectedCatStatus, handleClose, show }) {
-  // Fonction pour formater les valeurs avec underscore en format plus lisible
-  const formatValue = (value) => {
-    if (!value) return "";
-    
-    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
-    return value
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
+  // Utilisation de la fonction formatEnumValue centralisée
 
   if (!selectedCatStatus || !selectedCatStatus.cat) {
     return null;
@@ -133,9 +125,9 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 bg={cat.gender === "Mâle" ? "primary" : "danger"}
                 className="me-2"
               >
-                {formatValue(cat.gender)}
+                {formatEnumValue(cat.gender)}
               </Badge>
-              <small>Race: {formatValue(cat.breed) || "Inconnue"}</small>
+              <small>Race: {formatEnumValue(cat.breed) || "Inconnue"}</small>
             </div>
           </div>
         </div>
@@ -167,7 +159,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Couleur</div>
                           <div className="fw-semibold">
-                            {formatValue(cat.color) || "Inconnue"}
+                            {formatEnumValue(cat.color) || "Inconnue"}
                           </div>
                         </div>
                       </div>
@@ -178,7 +170,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Couleur des yeux</div>
                           <div className="fw-semibold">
-                            {formatValue(cat.eyeColor) || "Inconnue"}
+                            {formatEnumValue(cat.eyeColor) || "Inconnue"}
                           </div>
                         </div>
                       </div>
@@ -189,7 +181,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Pelage</div>
                           <div className="fw-semibold">
-                            {formatValue(cat.furType) || "Inconnu"}
+                            {formatEnumValue(cat.furType) || "Inconnu"}
                           </div>
                         </div>
                       </div>

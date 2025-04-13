@@ -5,6 +5,8 @@ import { FaPaw, FaTrash, FaEdit, FaSearch } from 'react-icons/fa';
 import MapLocation from '../map/MapLocation';
 import useGeolocation from "../../hooks/useGeolocation";
 import { reverseGeocode } from "../../utils/geocodingService";
+import { formatEnumValue } from "../../utils/enumUtils";
+import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   const [showModal, setShowModal] = useState(false);
@@ -34,34 +36,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   });
 
   // Options pour les sélecteurs basées sur RegisterCat.js
-  const breedOptions = [
-    'SIAMESE', 'PERSIAN', 'MAINE_COON', 'BENGAL', 'RAGDOLL', 
-    'SPHYNX', 'BRITISH_SHORTHAIR', 'ABYSSINIAN', 'BIRMAN', 
-    'SCOTTISH_FOLD', 'RUSSIAN_BLUE', 'UNKNOWN'
-  ];
-  
-  const colorOptions = [
-    'NOIR', 'BLANC', 'GRIS', 'ROUX', 'MIXTE', 'AUTRE'
-  ];
-  
-  const eyeColorOptions = [
-    'BLEU', 'VERT', 'JAUNE', 'MARRON', 'NOISETTE', 'GRIS', 'AUTRE'
-  ];
-  
-  const genderOptions = ['Mâle', 'Femelle', 'Inconnu'];
-
-  const furTypeOptions = ['COURTE', 'MOYENNE', 'LONGUE', 'SANS_POILS'];
-
-  // Fonction pour formater les valeurs avec underscore en format plus lisible
-  const formatValue = (value) => {
-    if (!value) return "";
-    
-    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
-    return value
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
+  // Options et fonctions de formatage importées depuis les utilitaires centralisés
 
   const handleEdit = (catStatus) => {
     console.log("Édition du chat (données complètes):", JSON.stringify(catStatus, null, 2));
@@ -265,7 +240,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {formatValue(cat.breed) || "Inconnue"}
+                      Race: {formatEnumValue(cat.breed) || "Inconnue"}
                     </Card.Text>
                     <div className="d-flex gap-2 mt-2">
                       <Button
@@ -346,7 +321,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner une race</option>
                     {breedOptions.map(option => (
                       <option key={option} value={option}>
-                        {formatValue(option)}
+                        {formatEnumValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -383,7 +358,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner une couleur</option>
                     {colorOptions.map(option => (
                       <option key={option} value={option}>
-                        {option === 'AUTRE' ? 'Autre' : formatValue(option)}
+                        {option === 'AUTRE' ? 'Autre' : formatEnumValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -400,7 +375,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner une couleur</option>
                     {eyeColorOptions.map(option => (
                       <option key={option} value={option}>
-                        {option === 'AUTRE' ? 'Autre' : formatValue(option)}
+                        {option === 'AUTRE' ? 'Autre' : formatEnumValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -420,7 +395,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner un type</option>
                     {furTypeOptions.map(option => (
                       <option key={option} value={option}>
-                        {formatValue(option)}
+                        {formatEnumValue(option)}
                       </option>
                     ))}
                   </Form.Select>
