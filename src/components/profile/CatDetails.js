@@ -1,10 +1,11 @@
 import React from 'react';
 import { Modal, Row, Col, Badge, Card, Button } from 'react-bootstrap';
 import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMarkerAlt, FaEnvelope, FaPhone } from 'react-icons/fa';
-import { formatEnumValue } from "../../utils/enumUtils";
+import { useCatSearch } from '../../contexts/CatSearchContext';
 
 function CatDetails({ selectedCatStatus, handleClose, show }) {
-  // Utilisation de la fonction formatEnumValue centralisée
+  // Utiliser les fonctions du contexte
+  const { formatValue, calculateAge } = useCatSearch();
 
   if (!selectedCatStatus || !selectedCatStatus.cat) {
     return null;
@@ -23,44 +24,14 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
         email: selectedCatStatus.user.email || "contact@example.com"
       };
     }
-    
-    // Pour les chats perdus, l'info utilisateur est dans cat.user (le propriétaire)
-    if (isLostCat) {
-      // Essayer d'abord cat.user
-      if (cat.user) {
-        return {
-          phone: cat.user.phone || "+32 484 934 747",
-          email: cat.user.email || "contact@example.com"
-        };
-      }
-      
-      // Essayer ensuite selectedCatStatus.user
-      if (selectedCatStatus.user) {
-        return {
-          phone: selectedCatStatus.user.phone || "+32 484 934 747",
-          email: selectedCatStatus.user.email || "contact@example.com"
-        };
-      }
-      
-      // Essayer selectedCatStatus.owner
-      if (selectedCatStatus.owner) {
-        return {
-          phone: selectedCatStatus.owner.phone || "+32 484 934 747",
-          email: selectedCatStatus.owner.email || "contact@example.com"
-        };
-      }
-      
-      // Essayer directement dans selectedCatStatus
-      if (selectedCatStatus.phone || selectedCatStatus.email) {
-        return {
-          phone: selectedCatStatus.phone || "+32 484 934 747",
-          email: selectedCatStatus.email || "contact@example.com"
-        };
-      }
+    // Pour les chats perdus, l'info utilisateur est dans selectedCatStatus.user
+    if (isLostCat && selectedCatStatus.user) {
+      return {
+        phone: selectedCatStatus.user.phone || "+32 484 934 747",
+        email: selectedCatStatus.user.email || "contact@example.com"
+      };
     }
-    
-    // Valeurs par défaut si aucune info n'est trouvée
-    console.log("Aucune information de contact trouvée, utilisation des valeurs par défaut");
+    // Valeurs par défaut
     return {
       phone: "+32 484 934 747",
       email: "contact@example.com"
@@ -82,6 +53,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
     window.location.href = `mailto:${contactInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
+  
   // Fonction pour formater la date
   const formatDate = (dateString) => {
     if (!dateString) return "Inconnue";
@@ -103,7 +75,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
       <Modal.Body className="p-0">
         <div className="position-relative">
           <img
-            src={`data:${cat.type};base64,${cat.imageCatData}`}
+            src={`data:${cat.type || 'image/jpeg'};base64,${cat.imageCatData}`}
             alt={cat.name}
             className="w-100"
             style={{ height: "300px", objectFit: "cover" }}
@@ -125,9 +97,9 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 bg={cat.gender === "Mâle" ? "primary" : "danger"}
                 className="me-2"
               >
-                {formatEnumValue(cat.gender)}
+                {formatValue(cat.gender)}
               </Badge>
-              <small>Race: {formatEnumValue(cat.breed) || "Inconnue"}</small>
+              <small>Race: {formatValue(cat.breed) || "Inconnue"}</small>
             </div>
           </div>
         </div>
@@ -149,6 +121,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                           <div className="text-muted small">Date de naissance</div>
                           <div className="fw-semibold">
                             {formatDate(cat.dateOfBirth)}
+                            {cat.dateOfBirth && ` (${calculateAge(cat.dateOfBirth)})`}
                           </div>
                         </div>
                       </div>
@@ -159,7 +132,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Couleur</div>
                           <div className="fw-semibold">
-                            {formatEnumValue(cat.color) || "Inconnue"}
+                            {formatValue(cat.color) || "Inconnue"}
                           </div>
                         </div>
                       </div>
@@ -170,7 +143,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Couleur des yeux</div>
                           <div className="fw-semibold">
-                            {formatEnumValue(cat.eyeColor) || "Inconnue"}
+                            {formatValue(cat.eyeColor) || "Inconnue"}
                           </div>
                         </div>
                       </div>
@@ -181,7 +154,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Pelage</div>
                           <div className="fw-semibold">
-                            {formatEnumValue(cat.furType) || "Inconnu"}
+                            {formatValue(cat.furType) || "Inconnu"}
                           </div>
                         </div>
                       </div>
