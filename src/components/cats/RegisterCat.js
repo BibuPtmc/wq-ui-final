@@ -37,7 +37,7 @@ function RegisterCat() {
     photo: "",
     gender: "Femelle", // Genre par défaut
     chipNumber: "123456789", // Numéro de puce par défaut
-    furType: "Courte", // Type de fourrure par défaut
+    furType: "COURTE", // Type de fourrure par défaut
     eyeColor: "BLEU", // Couleur des yeux par défaut
     comment: "Chat très amical et joueur.", // Commentaire par défaut
     statusCat: "LOST", // Statut par défaut
@@ -508,10 +508,10 @@ function RegisterCat() {
                           onChange={handleChange}
                         >
                           <option value="">-- Sélectionnez le type de fourrure --</option>
-                          <option value="Courte">Courte</option>
-                          <option value="Moyenne">Moyenne</option>
-                          <option value="Longue">Longue</option>
-                          <option value="Sans poils">Sans poils</option>
+                          <option value="COURTE">Courte</option>
+                          <option value="MOYENNE">Moyenne</option>
+                          <option value="LONGUE">Longue</option>
+                          <option value="SANS_POILS">Sans poils</option>
                         </Form.Select>
                       </Form.Group>
 

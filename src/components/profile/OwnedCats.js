@@ -50,9 +50,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   
   const genderOptions = ['Mâle', 'Femelle', 'Inconnu'];
 
-  const furTypeOptions = [
-    'Courte', 'Moyenne', 'Longue', 'Sans poils'
-  ];
+  const furTypeOptions = ['COURTE', 'MOYENNE', 'LONGUE', 'SANS_POILS'];
 
   // Fonction pour formater les valeurs avec underscore en format plus lisible
   const formatValue = (value) => {
@@ -84,7 +82,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       gender: catStatus.cat.gender || 'Inconnu',
       dateOfBirth: formattedDate,
       chipNumber: catStatus.cat.chipNumber || '',
-      furType: catStatus.cat.furType || 'Courte',
+      furType: catStatus.cat.furType || 'COURTE',
       comment: catStatus.cat.comment || ''
     };
     
@@ -422,7 +420,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner un type</option>
                     {furTypeOptions.map(option => (
                       <option key={option} value={option}>
-                        {option}
+                        {formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>

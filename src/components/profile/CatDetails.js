@@ -189,7 +189,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <div>
                           <div className="text-muted small">Pelage</div>
                           <div className="fw-semibold">
-                            {cat.furType || "Inconnu"}
+                            {formatValue(cat.furType) || "Inconnu"}
                           </div>
                         </div>
                       </div>
