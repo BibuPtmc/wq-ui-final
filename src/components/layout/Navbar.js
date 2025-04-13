@@ -6,14 +6,12 @@ import { useAuth } from "../../hooks/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import Cart from '../ecommerce/Cart';
-import { useCart } from '../../contexts/CartContext';
 
 const NavBar = () => {
   const { isLoggedIn, userData, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const { clearCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {

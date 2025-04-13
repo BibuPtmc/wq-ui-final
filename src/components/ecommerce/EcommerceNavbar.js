@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { Navbar, Container, Button, Badge } from 'react-bootstrap';
 import { BsCart3 } from 'react-icons/bs';
-import { useCart } from '../../contexts/CartContext';
+import { useCartContext } from '../../contexts/CartContext';
 import Cart from './Cart';
 
 const EcommerceNavbar = () => {
   const [showCart, setShowCart] = useState(false);
-  const { cartItems } = useCart();
+  const { cartItems } = useCartContext();
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 

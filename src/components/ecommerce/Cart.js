@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, ListGroup, Form, Badge } from 'react-bootstrap';
-import { useCart } from '../../contexts/CartContext';
+import { useCartContext } from '../../contexts/CartContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAxios } from '../../hooks/useAxios';
 import { useAuth } from '../../hooks/authProvider';
@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
-  const { cartItems, removeFromCart, updateQuantity, getTotal, clearCart, stripePublicKey } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getTotal, clearCart, stripePublicKey } = useCartContext();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

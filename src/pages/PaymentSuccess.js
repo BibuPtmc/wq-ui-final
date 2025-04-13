@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
+import { useCartContext } from '../contexts/CartContext';
 import { Container, Alert, Button } from 'react-bootstrap';
 import Confetti from 'react-confetti';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { clearCart } = useCart();
+  const { clearCart } = useCartContext();
   const [hasCleared, setHasCleared] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,

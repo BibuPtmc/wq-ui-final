@@ -2,13 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
-export const useCart = () => {
+export const useCartContext = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error('useCartContext must be used within a CartProvider');
   }
   return context;
 };
+
+// Garder useCart pour la rétrocompatibilité
+export const useCart = useCartContext;
 
 export const CartProvider = ({ children }) => {
   // Utiliser la clé publique depuis les variables d'environnement

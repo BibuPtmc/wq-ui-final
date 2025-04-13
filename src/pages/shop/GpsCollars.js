@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import '../../styles/global.css';
-import { useCart } from '../../contexts/CartContext';
+import { useCartContext } from '../../contexts/CartContext';
 import { useAuth } from '../../hooks/authProvider';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -13,7 +13,7 @@ const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaH
 
 function GpsCollars() {
   const [products, setProducts] = useState([]);
-  const { addToCart } = useCart();
+  const { addToCart } = useCartContext();
   const [loading, setLoading] = useState(true);
   const { isLoggedIn } = useAuth();
 
