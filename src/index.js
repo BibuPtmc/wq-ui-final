@@ -16,7 +16,8 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import { CartProvider } from './components/ecommerce/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
-import { AuthProvider, useAuth } from "./hooks/authProvider";
+import { useAuth } from "./hooks/authProvider";
+import { AppProviders } from "./contexts/AppProviders";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -34,7 +35,7 @@ const ProtectedRoute = ({ children }) => {
 
 const App = () => {
   return (
-    <AuthProvider>
+    <AppProviders>
       <CartProvider>
         <Router>
           <div
@@ -77,7 +78,7 @@ const App = () => {
           </div>
         </Router>
       </CartProvider>
-    </AuthProvider>
+    </AppProviders>
   );
 };
 

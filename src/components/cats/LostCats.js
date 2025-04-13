@@ -1,390 +1,147 @@
 import React, { useEffect, useState } from "react";
-import { useAxios } from "../../hooks/useAxios";
 import { Card, Button, Container, Row, Col, Spinner, Badge, Form, InputGroup } from "react-bootstrap";
 import { motion } from "framer-motion";
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaTimes, FaCalendar } from "react-icons/fa";
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
+import { BiCalendar } from "react-icons/bi";
 import "../../styles/global.css";
 import CatDetails from "../profile/CatDetails";
-import { useCats } from "../../hooks/useCats";
 import MatchingResults from "./MatchingResults";
 import Select from "react-select";
 import catBreeds from "../../CatBreeds";
-import { CatLinkRequestButton } from "./CatLinkRequest";
-import { formatEnumValue } from "../../utils/enumUtils";
-import { colorOptions as baseColorOptions, eyeColorOptions as baseEyeColorOptions } from "../../utils/enumOptions";
+// Importation du nouveau contexte au lieu des hooks individuels
+import { useCatSearch } from "../../contexts/CatSearchContext";
 
 function LostCats() {
-  const [lostCats, setLostCats] = useState([]);
-  const [filteredCats, setFilteredCats] = useState([]);
-  const axios = useAxios();
-  const { findPotentialFoundCats } = useCats();
-  const [loading, setLoading] = useState(true);
+  // Utilisation du contexte CatSearch au lieu de la logique dupliquée
+  const {
+    filteredLostCats,
+    loadingLost,
+    filters,
+    matchCounts,
+    loadingMatches,
+    fetchLostCats,
+    handleFilterChange,
+    resetFilters,
+    useCurrentLocation,
+    clearCurrentLocation,
+    applyFiltersToLostCats,
+    fetchLostMatchCounts,
+    calculateAge,
+    formatValue,
+    findPotentialFoundCats
+  } = useCatSearch();
+
+  // États locaux qui restent dans le composant
   const [show, setShow] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
-  const [matchCounts, setMatchCounts] = useState({});
-  const [loadingMatches, setLoadingMatches] = useState({});
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
-  // const { } = useGeolocation();
-
-  // Utilisation de la fonction formatEnumValue centralisée
-
-  // Fonction pour calculer l'âge à partir de la date de naissance
-  const calculateAge = (dateOfBirth) => {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    // Si le mois de naissance n'est pas encore arrivé cette année ou 
-    // si c'est le même mois mais que le jour n'est pas encore arrivé
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    // Format de l'âge
-    if (age < 1) {
-      // Calculer l'âge en mois
-      const ageInMonths = today.getMonth() - birthDate.getMonth() + 
-        (today.getFullYear() - birthDate.getFullYear()) * 12;
-      return `${ageInMonths} mois`;
-    } else {
-      return `${age} an${age > 1 ? 's' : ''}`;
-    }
-  };
-
-  // Filtres
-  const [filters, setFilters] = useState({
-    breed: "",
-    color: "",
-    eyeColor: "",
-    postalCode: "",
-    location: {
-      latitude: "",
-      longitude: "",
-      radius: 10, // Rayon par défaut en km
-      address: "" // Pour stocker l'adresse complète
-    }
-  });
 
   // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorOptions = [
     { value: "", label: "Toutes les couleurs" },
-    ...baseColorOptions.map(color => ({ value: color, label: formatEnumValue(color) }))
+    ...Object.entries(require("../../utils/enumOptions").colorOptions).map(([value]) => ({ 
+      value, 
+      label: formatValue(value) 
+    }))
   ];
 
   const eyeColorOptions = [
     { value: "", label: "Toutes les couleurs d'yeux" },
-    ...baseEyeColorOptions.map(color => ({ value: color, label: formatEnumValue(color) }))
+    ...Object.entries(require("../../utils/enumOptions").eyeColorOptions).map(([value]) => ({ 
+      value, 
+      label: formatValue(value) 
+    }))
   ];
 
   const breedOptions = [
     { value: "", label: "Toutes les races" },
-    ...catBreeds.map(breed => ({ value: breed.value, label: formatEnumValue(breed.value) }))
+    ...catBreeds.map(breed => ({ 
+      value: breed.value, 
+      label: formatValue(breed.value) 
+    }))
   ];
 
   const handleClose = () => setShow(false);
+  
   const handleShow = (catStatus) => {
     setSelectedCatStatus(catStatus);
     setShow(true);
   };
 
   const handleShowMatches = async (cat) => {
-    const matchResults = await findPotentialFoundCats(cat.catId);
-    setMatches(matchResults);
-    setShowMatches(true);
+    try {
+      // Utiliser la fonction déjà extraite du contexte
+      const matchResults = await findPotentialFoundCats(cat.catId);
+      setMatches(matchResults);
+      setShowMatches(true);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des correspondances:", error);
+      setMatches([]);
+      setShowMatches(true);
+    }
   };
 
   const handleCloseMatches = () => {
     setShowMatches(false);
   };
 
+  // Chargement initial des données
   useEffect(() => {
-    const fetchLostCats = async () => {
-      try {
-        const response = await axios.get("cat/findLostCat");
-        setLoading(false);
-        setLostCats(response);
-        setFilteredCats(response);
-      } catch (error) {
-        console.error("Error fetching lost cats:", error);
-        setLoading(false);
-      }
-    };
-    if (loading) {
-      fetchLostCats();
-    }
-  }, [axios, loading]);
+    fetchLostCats();
+  }, [fetchLostCats]);
 
+  // Appliquer les filtres lorsqu'ils changent
   useEffect(() => {
-    const fetchMatchCounts = async () => {
-      // Skip if no cats or if we're already loading matches
-      if (lostCats.length === 0 || Object.values(loadingMatches).some(isLoading => isLoading)) {
-        return;
-      }
+    applyFiltersToLostCats();
+  }, [filters, applyFiltersToLostCats]);
 
-      // Check if we already have match counts for all cats
-      const allCatsHaveMatchCounts = lostCats.every(
-        catStatus => typeof matchCounts[catStatus.cat.catId] !== 'undefined'
-      );
+  // Récupérer le nombre de correspondances pour chaque chat une seule fois après le chargement initial
+  useEffect(() => {
+    if (filteredLostCats.length > 0 && !loadingLost) {
+      // Utiliser setTimeout pour éviter les appels simultanés
+      const timer = setTimeout(() => {
+        fetchLostMatchCounts();
+      }, 500);
       
-      // Skip if we already have all match counts
-      if (allCatsHaveMatchCounts) {
-        return;
-      }
-      
-      // Only fetch for cats that don't have match counts yet
-      const catsToFetch = lostCats.filter(
-        catStatus => typeof matchCounts[catStatus.cat.catId] === 'undefined'
-      );
-      
-      if (catsToFetch.length === 0) {
-        return;
-      }
-      
-      const counts = { ...matchCounts };
-      const loading = { ...loadingMatches };
-      
-      // Set loading state for cats we're about to fetch
-      catsToFetch.forEach(catStatus => {
-        loading[catStatus.cat.catId] = true;
-      });
-      setLoadingMatches(loading);
-      
-      // Fetch match counts sequentially to avoid too many simultaneous requests
-      for (const catStatus of catsToFetch) {
-        const catId = catStatus.cat.catId;
-        try {
-          const matchResults = await findPotentialFoundCats(catId);
-          counts[catId] = matchResults.length;
-          loading[catId] = false;
-          
-          // Update state after each fetch to show progress
-          setMatchCounts({ ...counts });
-          setLoadingMatches({ ...loading });
-        } catch (error) {
-          console.error(`Error fetching matches for cat ${catId}:`, error);
-          counts[catId] = 0;
-          loading[catId] = false;
-        }
-      }
-    };
-    
-    fetchMatchCounts();
-  }, [lostCats, matchCounts, loadingMatches, findPotentialFoundCats]); // eslint-disable-line react-hooks/exhaustive-deps
-  // We're intentionally not re-running this effect when findPotentialFoundCats changes
-  // to prevent an infinite loop of API calls
-
-  // Fonction pour calculer la distance entre deux points géographiques en km (formule de Haversine)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Rayon de la Terre en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c; // Distance en km
-    return distance;
-  };
-
-  // Fonction pour obtenir l'adresse à partir des coordonnées
-  const getAddressFromCoordinates = async (latitude, longitude) => {
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
-      const data = await response.json();
-      
-      if (data && data.display_name) {
-        setFilters(prev => ({
-          ...prev,
-          location: {
-            ...prev.location,
-            address: data.display_name
-          }
-        }));
-      }
-    } catch (error) {
-      console.error("Erreur lors de la récupération de l'adresse:", error);
+      return () => clearTimeout(timer);
     }
-  };
-
-  // Fonction pour utiliser la position actuelle
-  const useCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          
-          setFilters({
-            ...filters,
-            postalCode: "",
-            location: {
-              ...filters.location,
-              latitude: latitude,
-              longitude: longitude,
-              address: "Récupération de l'adresse..." // Message temporaire pendant le chargement
-            }
-          });
-          
-          // Récupérer l'adresse complète
-          getAddressFromCoordinates(latitude, longitude);
-        },
-        (error) => {
-          console.error("Erreur de géolocalisation:", error);
-          alert("Impossible d'obtenir votre position actuelle. Veuillez vérifier vos paramètres de localisation.");
-        }
-      );
-    } else {
-      alert("La géolocalisation n'est pas prise en charge par votre navigateur.");
-    }
-  };
-
-  // Fonction pour gérer les changements de filtres
-  const handleFilterChange = (field, value) => {
-    if (field === 'postalCode' && value) {
-      // Si l'utilisateur entre un code postal, réinitialiser les coordonnées de localisation
-      setFilters({
-        ...filters,
-        postalCode: value,
-        location: {
-          ...filters.location,
-          latitude: "",
-          longitude: "",
-          address: ""
-        }
-      });
-    } else if (field.startsWith('location.')) {
-      const locationField = field.split('.')[1];
-      setFilters({
-        ...filters,
-        location: {
-          ...filters.location,
-          [locationField]: value
-        }
-      });
-    } else {
-      setFilters({
-        ...filters,
-        [field]: value
-      });
-    }
-  };
-
-  // Appliquer les filtres
-  const applyFilters = () => {
-    let result = [...lostCats];
-    
-    // Filtre par race
-    if (filters.breed) {
-      result = result.filter(catStatus => catStatus.cat.breed === filters.breed);
-    }
-    
-    // Filtre par couleur
-    if (filters.color) {
-      result = result.filter(catStatus => catStatus.cat.color === filters.color);
-    }
-    
-    // Filtre par couleur des yeux
-    if (filters.eyeColor) {
-      result = result.filter(catStatus => catStatus.cat.eyeColor === filters.eyeColor);
-    }
-    
-    // Filtre par code postal
-    if (filters.postalCode) {
-      result = result.filter(catStatus => {
-        // Vérifier si la localisation existe
-        if (!catStatus.location) return false;
-        
-        // Vérifier si le code postal correspond (recherche partielle)
-        return catStatus.location.postalCode && 
-          catStatus.location.postalCode.includes(filters.postalCode);
-      });
-    }
-    
-    // Filtre par localisation et rayon
-    if (filters.location.latitude && filters.location.longitude && filters.location.radius) {
-      result = result.filter(catStatus => {
-        if (!catStatus.location || !catStatus.location.latitude || !catStatus.location.longitude) {
-          return false;
-        }
-        
-        const distance = calculateDistance(
-          parseFloat(filters.location.latitude),
-          parseFloat(filters.location.longitude),
-          parseFloat(catStatus.location.latitude),
-          parseFloat(catStatus.location.longitude)
-        );
-        
-        return distance <= filters.location.radius;
-      });
-    }
-    
-    setFilteredCats(result);
-  };
-
-  // Réinitialiser les filtres
-  const resetFilters = () => {
-    setFilters({
-      breed: "",
-      color: "",
-      eyeColor: "",
-      postalCode: "",
-      location: {
-        latitude: "",
-        longitude: "",
-        radius: 10,
-        address: ""
-      }
-    });
-    setFilteredCats(lostCats);
-  };
-
-  if (loading) {
-    return (
-      <Container className="loading-container">
-        <Spinner animation="border" role="status" variant="primary">
-          <span className="visually-hidden">Chargement...</span>
-        </Spinner>
-      </Container>
-    );
-  }
+  }, [loadingLost, filteredLostCats.length, fetchLostMatchCounts]);
 
   return (
-    <Container className="main-container">
-      <h1 className="text-center mb-4">Chats Perdus</h1>
+    <Container className="py-4">
+      <h1 className="text-center mb-4">Chats perdus</h1>
       
-      {/* Section de filtres */}
-      <Card className="mb-4 shadow-sm">
-        <Card.Header className="bg-light d-flex justify-content-between align-items-center">
-          <div>
-            <FaFilter className="me-2" />
-            <span>Filtres</span>
-          </div>
-          <Button 
-            variant="link" 
-            className="p-0 text-dark" 
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            {showFilters ? "Masquer" : "Afficher"}
-          </Button>
-        </Card.Header>
-        
-        {showFilters && (
+      {/* Bouton pour afficher/masquer les filtres */}
+      <div className="d-flex justify-content-end mb-3">
+        <Button
+          variant={showFilters ? "secondary" : "outline-secondary"}
+          onClick={() => setShowFilters(!showFilters)}
+          className="d-flex align-items-center"
+        >
+          <FaFilter className="me-2" />
+          {showFilters ? "Masquer les filtres" : "Filtrer les résultats"}
+        </Button>
+      </div>
+      
+      {/* Filtres */}
+      {showFilters && (
+        <Card className="mb-4 shadow-sm">
           <Card.Body>
+            <h5 className="mb-3">Filtres</h5>
             <Row>
+              {/* Filtres par caractéristiques */}
               <Col md={4} className="mb-3">
                 <Form.Group>
                   <Form.Label>Race</Form.Label>
                   <Select
-                    value={breedOptions.find(option => option.value === filters.breed)}
-                    onChange={(option) => handleFilterChange('breed', option ? option.value : "")}
                     options={breedOptions}
-                    isClearable
-                    placeholder="Sélectionner une race"
+                    value={breedOptions.find(option => option.value === filters.breed) || breedOptions[0]}
+                    onChange={(selectedOption) => handleFilterChange('breed', selectedOption.value)}
+                    isSearchable
+                    placeholder="Toutes les races"
+                    className="mb-3"
                   />
                 </Form.Group>
               </Col>
@@ -393,11 +150,12 @@ function LostCats() {
                 <Form.Group>
                   <Form.Label>Couleur</Form.Label>
                   <Select
-                    value={colorOptions.find(option => option.value === filters.color)}
-                    onChange={(option) => handleFilterChange('color', option ? option.value : "")}
                     options={colorOptions}
-                    isClearable
-                    placeholder="Sélectionner une couleur"
+                    value={colorOptions.find(option => option.value === filters.color) || colorOptions[0]}
+                    onChange={(selectedOption) => handleFilterChange('color', selectedOption.value)}
+                    isSearchable
+                    placeholder="Toutes les couleurs"
+                    className="mb-3"
                   />
                 </Form.Group>
               </Col>
@@ -406,103 +164,121 @@ function LostCats() {
                 <Form.Group>
                   <Form.Label>Couleur des yeux</Form.Label>
                   <Select
-                    value={eyeColorOptions.find(option => option.value === filters.eyeColor)}
-                    onChange={(option) => handleFilterChange('eyeColor', option ? option.value : "")}
                     options={eyeColorOptions}
-                    isClearable
-                    placeholder="Sélectionner une couleur d'yeux"
+                    value={eyeColorOptions.find(option => option.value === filters.eyeColor) || eyeColorOptions[0]}
+                    onChange={(selectedOption) => handleFilterChange('eyeColor', selectedOption.value)}
+                    isSearchable
+                    placeholder="Toutes les couleurs d'yeux"
+                    className="mb-3"
                   />
                 </Form.Group>
               </Col>
             </Row>
             
-            <Row className="mt-4">
-              <h6 className="mb-3">Localisation</h6>
+            <Row>
+              {/* Filtres par localisation */}
               <Col md={6} className="mb-3">
-                <Form.Control
-                  type="text"
-                  placeholder="Code postal"
-                  value={filters.postalCode}
-                  onChange={(e) => handleFilterChange('postalCode', e.target.value)}
-                  disabled={filters.location.latitude && filters.location.longitude}
-                />
+                <Form.Group>
+                  <Form.Label>Code postal</Form.Label>
+                  <InputGroup>
+                    <Form.Control
+                      type="text"
+                      placeholder="Entrez un code postal"
+                      value={filters.postalCode}
+                      onChange={(e) => handleFilterChange('postalCode', e.target.value)}
+                      disabled={filters.location.latitude && filters.location.longitude}
+                    />
+                    {filters.postalCode && (
+                      <Button 
+                        variant="outline-secondary" 
+                        onClick={() => handleFilterChange('postalCode', '')}
+                      >
+                        <FaTimes />
+                      </Button>
+                    )}
+                  </InputGroup>
+                </Form.Group>
               </Col>
               
               <Col md={6} className="mb-3">
-                <InputGroup>
-                  <Form.Control
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={filters.location.radius}
-                    onChange={(e) => handleFilterChange('location.radius', parseInt(e.target.value) || 10)}
-                  />
-                  <InputGroup.Text>km</InputGroup.Text>
-                </InputGroup>
-              </Col>
-              
-              <Col md={12} className="mb-3">
-                <div className="d-flex">
-                  <Button 
-                    variant="outline-secondary" 
-                    size="sm" 
-                    onClick={useCurrentLocation}
-                    className="me-2 flex-grow-1"
-                    disabled={filters.postalCode !== ""}
-                  >
-                    <FaMapMarkerAlt className="me-1" />
-                    Utiliser ma position actuelle
-                  </Button>
-                  
-                  {(filters.location.latitude && filters.location.longitude) && (
-                    <Button 
-                      variant="outline-danger" 
-                      size="sm" 
-                      onClick={() => setFilters({
-                        ...filters,
-                        location: {
-                          ...filters.location,
-                          latitude: "",
-                          longitude: "",
-                          address: ""
-                        }
-                      })}
+                <Form.Group>
+                  <Form.Label>Position actuelle</Form.Label>
+                  <div className="d-flex">
+                    <Button
+                      variant={filters.location.latitude ? "success" : "outline-primary"}
+                      onClick={useCurrentLocation}
+                      disabled={filters.postalCode !== ""}
+                      className="flex-grow-1 me-2"
                     >
-                      <FaTimes />
+                      <FaMapMarkerAlt className="me-2" />
+                      {filters.location.latitude 
+                        ? "Position utilisée" 
+                        : "Utiliser ma position"}
                     </Button>
+                    
+                    {filters.location.latitude && (
+                      <Button 
+                        variant="outline-danger"
+                        onClick={clearCurrentLocation}
+                      >
+                        <FaTimes />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {filters.location.address && (
+                    <small className="text-muted d-block mt-1">
+                      {filters.location.address}, {filters.location.postalCode} {filters.location.city}
+                    </small>
                   )}
-                </div>
-                
-                {filters.location.latitude && filters.location.longitude && (
-                  <small className="text-muted d-block mt-2 text-center">
-                    {filters.location.address || `Position: ${filters.location.latitude.toFixed(6)}, ${filters.location.longitude.toFixed(6)}`}
-                  </small>
-                )}
+                </Form.Group>
               </Col>
             </Row>
             
+            {/* Rayon de recherche (uniquement si la position est utilisée) */}
+            {(filters.location.latitude || filters.postalCode) && (
+              <Row>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label>
+                      Rayon de recherche: {filters.location.radius} km
+                    </Form.Label>
+                    <Form.Range
+                      min={1}
+                      max={100}
+                      value={filters.location.radius}
+                      onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            )}
+            
             <div className="d-flex justify-content-end mt-3">
-              <Button variant="outline-secondary" className="me-2" onClick={resetFilters}>
+              <Button variant="outline-secondary" onClick={resetFilters} className="me-2">
                 Réinitialiser
-              </Button>
-              <Button variant="primary" onClick={applyFilters}>
-                <FaSearch className="me-2" />
-                Appliquer les filtres
               </Button>
             </div>
           </Card.Body>
-        )}
-      </Card>
+        </Card>
+      )}
       
-      {filteredCats.length > 0 ? (
+      {/* Liste des chats perdus */}
+      {loadingLost ? (
+        <div className="text-center py-5">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Chargement...</span>
+          </Spinner>
+          <p className="mt-3">Chargement des chats perdus...</p>
+        </div>
+      ) : filteredLostCats.length > 0 ? (
         <>
-          <div className="text-center mb-4">
-            <Badge bg="info" className="px-3 py-2">
-              {filteredCats.length} chats perdus
-            </Badge>
-          </div>
+          <p className="mb-4">
+            {filteredLostCats.length} chat{filteredLostCats.length > 1 ? 's' : ''} perdu{filteredLostCats.length > 1 ? 's' : ''}
+          </p>
+          
           <Row xs={1} md={2} lg={3} className="g-4">
-            {filteredCats.map((catStatus) => {
+            {filteredLostCats.map((catStatus) => {
               const cat = catStatus.cat;
               return (
                 <Col key={cat.catId}>
@@ -511,66 +287,34 @@ function LostCats() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Card className="cat-card shadow-sm h-100">
-                      <div className="position-relative">
+                    <Card className="h-100 shadow-sm">
+                      <div style={{ height: '200px', overflow: 'hidden' }}>
                         <Card.Img
                           variant="top"
-                          src={`data:${cat.type};base64,${cat.imageCatData}`}
+                          src={`data:${cat.type || 'image/jpeg'};base64,${cat.imageCatData}`}
                           alt={cat.name}
+                          style={{ objectFit: 'cover', height: '100%', width: '100%' }}
                           onError={(e) => {
                             e.target.src = "/images/noImageCat.png";
-                            e.target.onerror = null;
-                          }}
-                          style={{ 
-                            height: "220px", 
-                            width: "100%",
-                            objectFit: "cover",
-                            backgroundColor: "#f8f9fa"
+                            e.target.onerror = null; // Empêche les erreurs en boucle
                           }}
                         />
-                        <div 
-                          className="position-absolute top-0 end-0 m-2"
-                        >
-                          <Badge
-                            bg={cat.gender === "MALE" ? "primary" : "danger"}
-                            className="px-2 py-1"
-                            style={{ fontSize: '0.8rem' }}
-                          >
-                            {formatEnumValue(cat.gender)}
-                          </Badge>
-                        </div>
-                        <div 
-                          className="position-absolute bottom-0 start-0 w-100 p-2"
-                          style={{ 
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
-                            borderBottomLeftRadius: 'calc(0.375rem - 1px)',
-                            borderBottomRightRadius: 'calc(0.375rem - 1px)'
-                          }}
-                        >
-                          <h5 className="card-title text-white mb-0">{cat.name || "Chat sans nom"}</h5>
-                          <p className="card-text text-white-50 small mb-0">
-                            {formatEnumValue(cat.breed) || "Race inconnue"}
-                          </p>
-                        </div>
                       </div>
                       <Card.Body className="d-flex flex-column">
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <Card.Title>{cat.name}</Card.Title>
+                          <Badge bg="danger">{formatValue(cat.gender)}</Badge>
+                        </div>
+                        
                         <div className="mb-3">
-                          <div className="d-flex align-items-center mb-2">
-                            <div 
-                              className="rounded-circle me-2" 
-                              style={{ 
-                                width: '12px', 
-                                height: '12px', 
-                                backgroundColor: cat.color ? cat.color.toLowerCase() : '#ccc',
-                                border: '1px solid rgba(0,0,0,0.2)'
-                              }}
-                            ></div>
-                            <small className="text-muted">
-                              Couleur: {formatEnumValue(cat.color) || "Inconnue"}
-                            </small>
+                          <div className="d-flex flex-wrap gap-1 mb-2">
+                            <Badge bg="light" text="dark">{formatValue(cat.breed)}</Badge>
+                            <Badge bg="light" text="dark">{formatValue(cat.color)}</Badge>
+                            <Badge bg="light" text="dark">Yeux {formatValue(cat.eyeColor)}</Badge>
                           </div>
-                          <div className="d-flex align-items-center mb-2">
-                            <FaCalendar className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></FaCalendar>
+                          
+                          <div className="d-flex align-items-center mb-1">
+                            <BiCalendar className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></BiCalendar>
                             <small className="text-muted">
                               Âge: {cat.dateOfBirth ? calculateAge(cat.dateOfBirth) : "Inconnu"}
                             </small>
@@ -585,7 +329,7 @@ function LostCats() {
                         <div className="mt-auto">
                           <div className="d-grid gap-2">
                             <Button
-                              variant="outline-primary"
+                              variant="outline-success"
                               size="sm"
                               onClick={() => handleShow(catStatus)}
                               className="d-flex align-items-center justify-content-center"
@@ -630,26 +374,18 @@ function LostCats() {
           <p className="text-muted">
             Essayez de modifier vos filtres ou revenez plus tard.
           </p>
-          <Button variant="outline-primary" onClick={resetFilters}>
+          <Button variant="outline-success" onClick={resetFilters}>
             Réinitialiser les filtres
           </Button>
         </div>
       )}
-
-      {/* CatDetails Modal */}
+      
       <CatDetails 
         selectedCatStatus={selectedCatStatus} 
         handleClose={handleClose} 
         show={show}
       />
       
-      {/* Ajouter le bouton de liaison pour les chats perdus */}
-      {show && selectedCatStatus && (
-        <div className="mt-3">
-          <CatLinkRequestButton lostCatStatusId={selectedCatStatus.catStatusId} onSuccess={() => setShow(false)} />
-        </div>
-      )}
-
       <MatchingResults
         matches={matches}
         show={showMatches}

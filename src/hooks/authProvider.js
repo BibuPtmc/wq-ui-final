@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { useAxios } from "./useAxios";
+import { useAxiosContext } from "../contexts/AxiosContext";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const axios = useAxios();
+  const { get } = useAxiosContext();
   const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -52,8 +52,7 @@ export const AuthProvider = ({ children }) => {
 
     // Si nous n'avons pas pu récupérer les données du sessionStorage, essayons l'API
     try {
-      var headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get("users/me", { headers });
+      const response = await get("users/me");
       setIsLoggedIn(true);
       setUserDataWithStorage(response);
     } catch (error) {
@@ -70,7 +69,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       initialLoadDone.current = true;
     }
-  }, [axios, setUserDataWithStorage, userData]);
+  }, [get, setUserDataWithStorage, userData]);
 
   useEffect(() => {
     if (!initialLoadDone.current) {
