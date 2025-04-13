@@ -28,7 +28,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
       cat.catStatusId === currentCatStatus.catStatusId
     );
     
-    // Vérifier si le chat est dans ownedCats (si son statut a changé pour OWNED)
+    // Vérifier si le chat est dans ownedCats (si son statut a changé pour OWN)
     const updatedOwnedCat = ownedCats.find(cat => 
       cat.cat.catId === currentCatStatus.cat.catId
     );

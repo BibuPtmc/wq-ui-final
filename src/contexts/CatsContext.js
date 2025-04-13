@@ -248,7 +248,7 @@ export const CatsProvider = ({ children }) => {
         catStatusId: currentCatStatus.catStatusId,
         cat: catDTO,
         comment: updatedData.comment || currentCatStatus.comment,
-        statusCat: "OWNED", // Statut possédé
+        statusCat: "OWN", // Statut possédé
         reportDate: formattedDate,
         location: {
           latitude: userAddress?.latitude || currentCatStatus.location?.latitude,
