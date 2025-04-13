@@ -18,7 +18,7 @@ export const CatsProvider = ({ children }) => {
   // Use a ref to track if we've already run the initial fetch
   const initialFetchDone = useRef(false);
 
-  const fetchUserAddress = async () => {
+  const fetchUserAddress = useCallback(async () => {
     try {
       const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       const response = await axios.get("users/me", { headers });
@@ -35,7 +35,7 @@ export const CatsProvider = ({ children }) => {
     } catch (error) {
       console.error("Erreur lors de la récupération de l'adresse de l'utilisateur:", error);
     }
-  };
+  }, [axios]);
 
   const fetchCats = useCallback(async () => {
     try {
@@ -69,7 +69,7 @@ export const CatsProvider = ({ children }) => {
       console.error("Error fetching cats:", error);
       setLoading(false);
     }
-  }, [axios, loading, isLoggedIn]);
+  }, [axios, loading, isLoggedIn, fetchUserAddress]);
 
   // Refetch cats when user logs in
   useEffect(() => {
