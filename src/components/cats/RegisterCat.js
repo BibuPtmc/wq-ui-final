@@ -1,7 +1,6 @@
 import React, { useState, useEffect,useCallback  } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert, Card, Row, Col } from "react-bootstrap";
-import { useAxios } from "../../hooks/useAxios";
 import Select from "react-select";
 import { motion } from "framer-motion";
 import { FaPaw, FaCamera, FaMapMarkerAlt  } from "react-icons/fa";
@@ -13,11 +12,16 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useGeolocation from "../../hooks/useGeolocation";
 import MapLocation from "../map/MapLocation";
 import { reverseGeocode } from "../../utils/geocodingService";
-import { formatEnumValue } from "../../utils/enumUtils";
 import { colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
+// Utiliser les contextes centralisés au lieu des imports directs
+import { useCatSearch } from "../../contexts/CatSearchContext";
+import { useAxiosContext } from "../../contexts/AxiosContext";
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function RegisterCat() {
+  // Utiliser les fonctions du contexte
+  const { formatValue } = useCatSearch();
+  const { post } = useAxiosContext();
   // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
   const now = new Date();
   const formattedDate = now.getFullYear() + '-' + 
@@ -68,8 +72,8 @@ function RegisterCat() {
 
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
-  const axios = useAxios();
-  const [showLoginAlert, setShowLoginAlert] = useState(!isLoggedIn);
+  // Nous gardons isLoggedIn pour les vérifications d'authentification
+  // mais nous pouvons supprimer showLoginAlert car il n'est pas utilisé
 
   // Utiliser le hook de géolocalisation
   const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
@@ -224,17 +228,6 @@ function RegisterCat() {
     setFormData(updatedFormData);
   };
   
-  const handleLocationChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      location: {
-        ...formData.location,
-        [name]: value
-      }
-    });
-  };
-
   const handleSelectChange = (selectedOption, action) => {
     setFormData({
       ...formData,
@@ -303,7 +296,7 @@ function RegisterCat() {
 
     };
     try {
-      const response = await axios.post("/cat/register", catStatus);
+      const response = await post("/cat/register", catStatus);
       console.log(response);
       setShowSuccessMessage(true);
       // Faire défiler la page vers le haut pour voir le message de succès
@@ -499,7 +492,7 @@ function RegisterCat() {
                           <option value="">-- Sélectionnez la couleur --</option>
                           {colorOptions.map(option => (
                             <option key={option} value={option}>
-                              {formatEnumValue(option)}
+                              {formatValue(option)}
                             </option>
                           ))}
                         </Form.Select>
@@ -515,7 +508,7 @@ function RegisterCat() {
                           <option value="">-- Sélectionnez le type de fourrure --</option>
                           {furTypeOptions.map(option => (
                             <option key={option} value={option}>
-                              {formatEnumValue(option)}
+                              {formatValue(option)}
                             </option>
                           ))}
                         </Form.Select>
@@ -532,7 +525,7 @@ function RegisterCat() {
                           <option value="">-- Sélectionnez la couleur des yeux --</option>
                           {eyeColorOptions.map(option => (
                             <option key={option} value={option}>
-                              {formatEnumValue(option)}
+                              {formatValue(option)}
                             </option>
                           ))}
                         </Form.Select>

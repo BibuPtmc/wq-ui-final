@@ -1,34 +1,69 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Row, Col, Badge, Card, Button } from 'react-bootstrap';
 import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMarkerAlt, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { useCatSearch } from '../../contexts/CatSearchContext';
+import { useCatsContext } from '../../contexts/CatsContext';
 
 function CatDetails({ selectedCatStatus, handleClose, show }) {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
+  const { userAddress, reportedCats, ownedCats } = useCatsContext();
+  
+  // État local pour stocker les données du chat sélectionné
+  const [currentCatStatus, setCurrentCatStatus] = useState(selectedCatStatus);
 
-  if (!selectedCatStatus || !selectedCatStatus.cat) {
+  // Mettre à jour l'état local lorsque selectedCatStatus change
+  useEffect(() => {
+    if (selectedCatStatus) {
+      setCurrentCatStatus(selectedCatStatus);
+    }
+  }, [selectedCatStatus]);
+
+  // Rafraîchir les données du chat lorsque reportedCats ou ownedCats changent
+  useEffect(() => {
+    if (!currentCatStatus) return;
+    
+    // Vérifier si le chat est dans reportedCats
+    const updatedReportedCat = reportedCats.find(cat => 
+      cat.catStatusId === currentCatStatus.catStatusId
+    );
+    
+    // Vérifier si le chat est dans ownedCats (si son statut a changé pour OWNED)
+    const updatedOwnedCat = ownedCats.find(cat => 
+      cat.cat.catId === currentCatStatus.cat.catId
+    );
+    
+    // Mettre à jour avec les données les plus récentes
+    if (updatedReportedCat) {
+      setCurrentCatStatus(updatedReportedCat);
+    } else if (updatedOwnedCat) {
+      setCurrentCatStatus(updatedOwnedCat);
+    }
+  }, [reportedCats, ownedCats, currentCatStatus]);
+
+  if (!currentCatStatus || !currentCatStatus.cat) {
     return null;
   }
 
-  const cat = selectedCatStatus.cat;
-  const isLostCat = selectedCatStatus.statusCat === 'LOST';
-  const isFoundCat = selectedCatStatus.statusCat === 'FOUND';
+  const cat = currentCatStatus.cat;
+  const isLostCat = currentCatStatus.statusCat === 'LOST';
+  const isFoundCat = currentCatStatus.statusCat === 'FOUND';
+  const isOwnedCat = currentCatStatus.statusCat === 'OWN';
   
   // Déterminer les informations de contact en fonction du type de chat
   const getUserContactInfo = () => {
-    // Pour les chats trouvés, l'info utilisateur est dans selectedCatStatus.user
-    if (isFoundCat && selectedCatStatus.user) {
+    // Pour les chats trouvés, l'info utilisateur est dans currentCatStatus.user
+    if (isFoundCat && currentCatStatus.user) {
       return {
-        phone: selectedCatStatus.user.phone || "+32 484 934 747",
-        email: selectedCatStatus.user.email || "contact@example.com"
+        phone: currentCatStatus.user.phone || "+32 484 934 747",
+        email: currentCatStatus.user.email || "contact@example.com"
       };
     }
-    // Pour les chats perdus, l'info utilisateur est dans selectedCatStatus.user
-    if (isLostCat && selectedCatStatus.user) {
+    // Pour les chats perdus, l'info utilisateur est dans currentCatStatus.user
+    if (isLostCat && currentCatStatus.user) {
       return {
-        phone: selectedCatStatus.user.phone || "+32 484 934 747",
-        email: selectedCatStatus.user.email || "contact@example.com"
+        phone: currentCatStatus.user.phone || "+32 484 934 747",
+        email: currentCatStatus.user.email || "contact@example.com"
       };
     }
     // Valeurs par défaut
@@ -179,25 +214,31 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                             {isFoundCat ? "Trouvé le" : "Perdu le"}
                           </div>
                           <div className="fw-semibold">
-                            {formatDate(selectedCatStatus.reportDate)}
+                            {formatDate(currentCatStatus.reportDate)}
                           </div>
                         </div>
                       </div>
                     </Col>
-                    {selectedCatStatus.location && (
-                      <Col xs={12}>
-                        <div className="d-flex align-items-center">
-                          <FaMapMarkerAlt className="me-2" style={{ color: '#8B4513' }} />
-                          <div>
-                            <div className="text-muted small">Localisation</div>
-                            <div className="fw-semibold">
-                              {selectedCatStatus.location.address || 
-                                `${selectedCatStatus.location.city || ''} ${selectedCatStatus.location.postalCode || ''}`}
-                            </div>
+                    <Col xs={12}>
+                      <div className="d-flex align-items-center">
+                        <FaMapMarkerAlt className="me-2" style={{ color: '#8B4513' }} />
+                        <div>
+                          <div className="text-muted small">Localisation</div>
+                          <div className="fw-semibold">
+                            {isOwnedCat && userAddress ? (
+                              // Si le chat est possédé, afficher l'adresse de l'utilisateur
+                              userAddress.address || `${userAddress.city || ''} ${userAddress.postalCode || ''}`
+                            ) : currentCatStatus.location ? (
+                              // Sinon, afficher l'adresse du chat
+                              currentCatStatus.location.address || 
+                              `${currentCatStatus.location.city || ''} ${currentCatStatus.location.postalCode || ''}`
+                            ) : (
+                              "Adresse non disponible"
+                            )}
                           </div>
                         </div>
-                      </Col>
-                    )}
+                      </div>
+                    </Col>
                   </Row>
                 </Card.Body>
               </Card>

@@ -4,11 +4,17 @@ import { motion } from 'framer-motion';
 import { FaPaw, FaTrash, FaEdit, FaSearch } from 'react-icons/fa';
 import MapLocation from '../map/MapLocation';
 import useGeolocation from "../../hooks/useGeolocation";
-import { reverseGeocode } from "../../utils/geocodingService";
-import { formatEnumValue } from "../../utils/enumUtils";
+// Utiliser les contextes centralisés
+import { useCatSearch } from "../../contexts/CatSearchContext";
+import { useAxiosContext } from "../../contexts/AxiosContext"; // Conservé pour de futures fonctionnalités nécessitant des appels API directs
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
+  // Utiliser les fonctions du contexte
+  const { formatValue, calculateAge } = useCatSearch();
+  const { axios } = useAxiosContext(); // Conservé pour de futures fonctionnalités nécessitant des appels API directs
+  // Actuellement, ce composant reçoit les fonctions de manipulation des chats via les props
+  
   const [showModal, setShowModal] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
@@ -148,6 +154,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Fonction pour mettre à jour la localisation à partir des coordonnées
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
     try {
+      // Importer la fonction directement ici pour éviter les problèmes de portée
+      const { reverseGeocode } = require("../../utils/geocodingService");
+      
+      // Utiliser la fonction importée
       const addressInfo = await reverseGeocode(longitude, latitude);
       
       setLostForm(prev => ({
@@ -155,9 +165,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         location: {
           latitude: latitude,
           longitude: longitude,
-          address: addressInfo.address || '',
-          city: addressInfo.city || '',
-          postalCode: addressInfo.postalCode || ''
+          address: addressInfo?.address || '',
+          city: addressInfo?.city || '',
+          postalCode: addressInfo?.postalCode || ''
         }
       }));
     } catch (error) {
@@ -240,7 +250,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {formatEnumValue(cat.breed) || "Inconnue"}
+                      Race: {formatValue(cat.breed) || "Inconnue"}
+                      {cat.dateOfBirth && (
+                        <span className="ms-2">
+                          Âge: {calculateAge(cat.dateOfBirth)}
+                        </span>
+                      )}
                     </Card.Text>
                     <div className="d-flex gap-2 mt-2">
                       <Button
@@ -321,7 +336,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner une race</option>
                     {breedOptions.map(option => (
                       <option key={option} value={option}>
-                        {formatEnumValue(option)}
+                        {formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -358,7 +373,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner une couleur</option>
                     {colorOptions.map(option => (
                       <option key={option} value={option}>
-                        {option === 'AUTRE' ? 'Autre' : formatEnumValue(option)}
+                        {option === 'AUTRE' ? 'Autre' : formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -375,7 +390,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner une couleur</option>
                     {eyeColorOptions.map(option => (
                       <option key={option} value={option}>
-                        {option === 'AUTRE' ? 'Autre' : formatEnumValue(option)}
+                        {option === 'AUTRE' ? 'Autre' : formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -395,7 +410,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <option value="">Sélectionner un type</option>
                     {furTypeOptions.map(option => (
                       <option key={option} value={option}>
-                        {formatEnumValue(option)}
+                        {formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>

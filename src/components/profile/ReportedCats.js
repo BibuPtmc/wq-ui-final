@@ -2,15 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import { FaTimes, FaPaw } from 'react-icons/fa';
-import { useCats } from '../../hooks/useCats';
+// Nous utilisons maintenant useCatSearch qui contient toutes les fonctions nécessaires
 import MatchingResults from '../cats/MatchingResults';
 import { CatLinkRequestButton } from '../cats/CatLinkRequest';
 import CatDetails from './CatDetails';
-import { formatEnumValue } from "../../utils/enumUtils";
+// Utiliser les contextes centralisés
+import { useCatSearch } from "../../contexts/CatSearchContext";
+import { useAxiosContext } from "../../contexts/AxiosContext"; // Conservé pour de futures fonctionnalités nécessitant des appels API directs
 import { getStatusLabel } from "../../utils/enumOptions";
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
-  const { findPotentialFoundCats, findPotentialLostCats } = useCats();
+  // Utiliser les fonctions du contexte
+  const { formatValue, calculateAge, findPotentialFoundCats, findPotentialLostCats } = useCatSearch();
+  const { axios } = useAxiosContext(); // Conservé pour de futures fonctionnalités nécessitant des appels API directs
+  // Actuellement, ce composant reçoit les fonctions de manipulation des chats via les props
+  
   const [showModal, setShowModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
@@ -236,11 +242,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         bg={cat.gender === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {formatEnumValue(cat.gender) || "Genre inconnu"}
+                        {formatValue(cat.gender) || "Genre inconnu"}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {formatEnumValue(cat.breed) || "Inconnue"}
+                      Race: {formatValue(cat.breed) || "Inconnue"}
+                      {cat.dateOfBirth && (
+                        <span className="ms-2">
+                          Âge: {calculateAge(cat.dateOfBirth)}
+                        </span>
+                      )}
                     </Card.Text>
                     <Card.Text className="text-muted small">
                       Status: {getStatusLabel(catStatus.statusCat) || "Non spécifié"}
@@ -273,7 +284,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     
                     {/* Bouton pour lier un chat perdu à un chat trouvé */}
                     {catStatus.statusCat === 'LOST' && (
-                      <div className="mt-2">
+                      <div className="mt-2" key={`link-request-${catStatus.catStatusId}`}>
                         <CatLinkRequestButton 
                           lostCatStatusId={catStatus.catStatusId} 
                           onSuccess={refreshCats}
@@ -283,7 +294,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     
                     {/* Afficher l'ID unique pour les chats trouvés */}
                     {catStatus.statusCat === 'FOUND' && (
-                      <div className="mt-2 text-center">
+                      <div className="mt-2 text-center" key={`found-id-${catStatus.catStatusId}`}>
                         <Badge bg="info" className="px-3 py-2">
                           ID: #{catStatus.catStatusId}
                         </Badge>
@@ -295,6 +306,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     
                     {catStatus.statusCat === 'LOST' && (
                       <Button
+                        key={`lost-match-button-${catStatus.catStatusId}`}
                         variant="outline-info"
                         size="sm"
                         className="w-100 mt-2"
@@ -310,6 +322,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     )}
                     {catStatus.statusCat === 'FOUND' && (
                       <Button
+                        key={`found-match-button-${catStatus.catStatusId}`}
                         variant="outline-info"
                         size="sm"
                         className="w-100 mt-2"

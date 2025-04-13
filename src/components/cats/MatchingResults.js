@@ -3,8 +3,11 @@ import { Modal, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { FaPaw, FaPercentage } from 'react-icons/fa';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import { useCatSearch } from '../../contexts/CatSearchContext';
+
 
 function MatchingResults({ matches, show, handleClose, onViewDetails }) {
+  const { formatValue } = useCatSearch();
   return (
     <Modal show={show} onHide={handleClose} size="lg" centered>
       <Modal.Header closeButton style={{ 
@@ -25,15 +28,15 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
               return (
                 <Col key={match.matchedCat.catStatusId}>
                   <Card className="h-100 shadow-sm">
-                    <Card.Img
-                      variant="top"
-                      src={`data:${cat.type};base64,${cat.imageCatData}`}
-                      alt={cat.name}
-                      style={{ height: '200px', objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.src = "/images/noImageCat.png";
-                        e.target.onerror = null;
-                      }}
+                  <Card.Img
+                    variant="top"
+                    src={`data:${cat.type || 'image/jpeg'};base64,${cat.imageCatData}`}
+                    alt={cat.name}
+                    style={{ height: '200px', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.src = "/images/noImageCat.png";
+                      e.target.onerror = null; // Empêche les erreurs en boucle
+                    }}
                     />
                     <Card.Body>
                       <div className="d-flex justify-content-between align-items-start mb-2">
@@ -123,7 +126,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                       </Row>
 
                       <Card.Text className="text-muted small mb-2">
-                        Race: {cat.breed || "Inconnue"}
+                        Race: {formatValue(cat.breed) || "Inconnue"}
                       </Card.Text>
                       <Card.Text className="text-muted small mb-2">
                         Trouvé le: {new Date(match.matchedCat.reportDate).toLocaleDateString()}

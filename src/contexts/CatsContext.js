@@ -128,7 +128,7 @@ export const CatsProvider = ({ children }) => {
 
       // Vérifier si nous changeons le statut du chat (par exemple, de trouvé à possédé)
       const newStatus = updatedData.statusCat || currentCat.statusCat;
-      const isChangingToOwned = newStatus === "OWNED" && currentCat.statusCat !== "OWNED";
+      const isChangingToOwned = newStatus === "OWN" && currentCat.statusCat !== "OWN";
 
       // Si nous changeons le statut à "possédé", utiliser l'adresse de l'utilisateur
       let location;
@@ -169,7 +169,7 @@ export const CatsProvider = ({ children }) => {
         // Ajouter à la liste des chats possédés
         const updatedOwnedCat = {
           catStatusId: response.catStatusId || catStatusId,
-          statusCat: "OWNED",
+          statusCat: "OWN",
           comment: updatedData.comment || currentCat.comment,
           reportDate: formattedDate,
           location: location,

@@ -1,14 +1,19 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import MapLocation from './MapLocation';
-import api from '../../hooks/api';
 import { Card, Spinner, Alert, Badge, Button } from 'react-bootstrap';
 import { FaCat, FaMapMarkerAlt } from 'react-icons/fa';
 import '../../styles/mapbox-popup.css'; 
 import useGeolocation from '../../hooks/useGeolocation';
-import { reverseGeocode } from '../../utils/geocodingService';
-import { formatEnumValue } from '../../utils/enumUtils';
+// Nous n'importons plus reverseGeocode ici, mais directement dans la fonction
+// Utiliser les contextes centralisés
+import { useCatSearch } from "../../contexts/CatSearchContext";
+import { useAxiosContext } from "../../contexts/AxiosContext";
 
 const LostCatsMap = ({ noLostCatsMessage }) => {
+  // Utiliser les fonctions du contexte
+  const { formatValue, calculateAge } = useCatSearch();
+  const { get } = useAxiosContext();
+  
   const [lostCats, setLostCats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,21 +29,14 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
   // Utiliser le hook de géolocalisation
   const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
 
-  // Fonction pour calculer l'âge à partir de la date de naissance
-  const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return '';
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
+  // Nous utilisons maintenant la fonction calculateAge du contexte CatSearchContext
 
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
     try {
+      // Importer la fonction directement ici pour éviter les problèmes de portée
+      const { reverseGeocode } = require("../../utils/geocodingService");
+      
+      // Utiliser la fonction importée
       const addressInfo = await reverseGeocode(longitude, latitude);
   
       setSelectedLocation({
@@ -77,8 +75,9 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
   useEffect(() => {
     const fetchLostCats = async () => {
       try {
-        const response = await api.get('/cat/findLostCat');
-        setLostCats(response.data);
+        // Utiliser la méthode get du contexte AxiosContext
+        const response = await get('/cat/findLostCat');
+        setLostCats(response);
         setLoading(false);
       } catch (err) {
         console.error('Erreur lors du chargement des chats perdus:', err);
@@ -88,9 +87,9 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
     };
 
     fetchLostCats();
-  }, []);
+  }, [get]);
 
-  // Utilisation de la fonction formatEnumValue centralisée
+  // Utilisation de la fonction formatValue du contexte pour le formatage des valeurs d'énumération
 
   // Création des marqueurs avec les photos des chats
   const markers = lostCats.map(catStatus => {
@@ -107,6 +106,8 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
           year: 'numeric'
         })
       : 'Date inconnue';
+      
+    // Utiliser la fonction calculateAge du contexte pour afficher l'âge du chat
     
     // Utiliser l'image du chat depuis les données
     const catImage = catStatus.cat.imageCatData 
@@ -123,10 +124,10 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
           <h5 class="cat-popup-title">${catStatus.cat.name || 'Chat sans nom'}</h5>
           <p class="cat-popup-date">Signalé perdu le: ${reportDate}</p>
           
-          <p class="cat-popup-info"><strong>Race:</strong> ${formatEnumValue(catStatus.cat.breed) || 'Non spécifiée'}</p>
-          <p class="cat-popup-info"><strong>Genre:</strong> ${formatEnumValue(catStatus.cat.gender) || 'Non spécifié'}</p>
-          <p class="cat-popup-info"><strong>Couleur:</strong> ${formatEnumValue(catStatus.cat.color) || 'Non spécifiée'}</p>
-          <p class="cat-popup-info"><strong>Couleur des yeux:</strong> ${formatEnumValue(catStatus.cat.eyeColor) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Race:</strong> ${formatValue(catStatus.cat.breed) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Genre:</strong> ${formatValue(catStatus.cat.gender) || 'Non spécifié'}</p>
+          <p class="cat-popup-info"><strong>Couleur:</strong> ${formatValue(catStatus.cat.color) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Couleur des yeux:</strong> ${formatValue(catStatus.cat.eyeColor) || 'Non spécifiée'}</p>
           ${catStatus.cat.dateOfBirth ? `<p class="cat-popup-info"><strong>Âge:</strong> ${calculateAge(catStatus.cat.dateOfBirth)} ans</p>` : ''}
           
           <a href="/lostCats" class="cat-popup-btn">Voir plus</a>
