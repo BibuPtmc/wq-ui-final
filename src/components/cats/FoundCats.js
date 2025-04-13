@@ -11,6 +11,8 @@ import MatchingResults from "./MatchingResults";
 import Select from "react-select";
 import catBreeds from "../../CatBreeds";
 import { CatFoundIdDisplay } from "./CatLinkRequest";
+import { formatEnumValue } from "../../utils/enumUtils";
+import { colorOptions as baseColorOptions, eyeColorOptions as baseEyeColorOptions } from "../../utils/enumOptions";
 
 function FoundCats() {
   const [foundCats, setFoundCats] = useState([]);
@@ -26,16 +28,7 @@ function FoundCats() {
   const [matches, setMatches] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fonction pour formater les valeurs avec underscore en format plus lisible
-  const formatValue = (value) => {
-    if (!value) return "";
-    
-    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
-    return value
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
+  // Utilisation de la fonction formatEnumValue centralisée
 
   // Fonction pour calculer l'âge à partir de la date de naissance
   const calculateAge = (dateOfBirth) => {
@@ -76,31 +69,20 @@ function FoundCats() {
     }
   });
 
-  // Options pour les filtres
+  // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorOptions = [
     { value: "", label: "Toutes les couleurs" },
-    { value: "NOIR", label: formatValue("NOIR") },
-    { value: "BLANC", label: formatValue("BLANC") },
-    { value: "GRIS", label: formatValue("GRIS") },
-    { value: "ROUX", label: formatValue("ROUX") },
-    { value: "MIXTE", label: formatValue("MIXTE") },
-    { value: "AUTRE", label: formatValue("AUTRE") }
+    ...baseColorOptions.map(color => ({ value: color, label: formatEnumValue(color) }))
   ];
 
   const eyeColorOptions = [
     { value: "", label: "Toutes les couleurs d'yeux" },
-    { value: "BLEU", label: formatValue("BLEU") },
-    { value: "VERT", label: formatValue("VERT") },
-    { value: "JAUNE", label: formatValue("JAUNE") },
-    { value: "MARRON", label: formatValue("MARRON") },
-    { value: "GRIS", label: formatValue("GRIS") },
-    { value: "NOISETTE", label: formatValue("NOISETTE") },
-    { value: "AUTRE", label: formatValue("AUTRE") }
+    ...baseEyeColorOptions.map(color => ({ value: color, label: formatEnumValue(color) }))
   ];
 
   const breedOptions = [
     { value: "", label: "Toutes les races" },
-    ...catBreeds.map(breed => ({ value: breed.value, label: formatValue(breed.value) }))
+    ...catBreeds.map(breed => ({ value: breed.value, label: formatEnumValue(breed.value) }))
   ];
 
   const handleClose = () => setShow(false);
@@ -554,7 +536,7 @@ function FoundCats() {
                             className="px-2 py-1"
                             style={{ fontSize: '0.8rem' }}
                           >
-                            {formatValue(cat.gender)}
+                            {formatEnumValue(cat.gender)}
                           </Badge>
                         </div>
                         <div 
@@ -567,7 +549,7 @@ function FoundCats() {
                         >
                           <h5 className="card-title text-white mb-0">{cat.name || "Chat sans nom"}</h5>
                           <p className="card-text text-white-50 small mb-0">
-                            {formatValue(cat.breed) || "Race inconnue"}
+                            {formatEnumValue(cat.breed) || "Race inconnue"}
                           </p>
                         </div>
                       </div>
@@ -584,7 +566,7 @@ function FoundCats() {
                               }}
                             ></div>
                             <small className="text-muted">
-                              Couleur: {formatValue(cat.color) || "Inconnue"}
+                              Couleur: {formatEnumValue(cat.color) || "Inconnue"}
                             </small>
                           </div>
                           <div className="d-flex align-items-center mb-2">

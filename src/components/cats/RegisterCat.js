@@ -13,6 +13,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useGeolocation from "../../hooks/useGeolocation";
 import MapLocation from "../map/MapLocation";
 import { reverseGeocode } from "../../utils/geocodingService";
+import { formatEnumValue } from "../../utils/enumUtils";
+import { colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function RegisterCat() {
@@ -37,7 +39,7 @@ function RegisterCat() {
     photo: "",
     gender: "Femelle", // Genre par défaut
     chipNumber: "123456789", // Numéro de puce par défaut
-    furType: "Courte", // Type de fourrure par défaut
+    furType: "COURTE", // Type de fourrure par défaut
     eyeColor: "BLEU", // Couleur des yeux par défaut
     comment: "Chat très amical et joueur.", // Commentaire par défaut
     statusCat: "LOST", // Statut par défaut
@@ -375,9 +377,11 @@ function RegisterCat() {
                           required
                         >
                           <option value="">-- Sélectionnez le statut --</option>
-                          <option value="OWN">Propriétaire</option>
-                          <option value="FOUND">Trouvé</option>
-                          <option value="LOST">Perdu</option>
+                          {statusCatOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
                         </Form.Select>
                       </Form.Group>
 
@@ -415,9 +419,11 @@ function RegisterCat() {
                           required
                         >
                           <option value="">-- Sélectionnez le genre --</option>
-                          <option value="Mâle">Mâle</option>
-                          <option value="Femelle">Femelle</option>
-                          <option value="Inconnu">Inconnu</option>
+                          {genderOptions.map(option => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
                         </Form.Select>
                       </Form.Group>
                     </Card.Body>
@@ -491,12 +497,11 @@ function RegisterCat() {
                           required
                         >
                           <option value="">-- Sélectionnez la couleur --</option>
-                          <option value="NOIR">Noir</option>
-                          <option value="BLANC">Blanc</option>
-                          <option value="GRIS">Gris</option>
-                          <option value="ROUX">Roux</option>
-                          <option value="MIXTE">Mixte</option>
-                          <option value="AUTRE">Autre</option>
+                          {colorOptions.map(option => (
+                            <option key={option} value={option}>
+                              {formatEnumValue(option)}
+                            </option>
+                          ))}
                         </Form.Select>
                       </Form.Group>
 
@@ -508,10 +513,11 @@ function RegisterCat() {
                           onChange={handleChange}
                         >
                           <option value="">-- Sélectionnez le type de fourrure --</option>
-                          <option value="Courte">Courte</option>
-                          <option value="Moyenne">Moyenne</option>
-                          <option value="Longue">Longue</option>
-                          <option value="Sans poils">Sans poils</option>
+                          {furTypeOptions.map(option => (
+                            <option key={option} value={option}>
+                              {formatEnumValue(option)}
+                            </option>
+                          ))}
                         </Form.Select>
                       </Form.Group>
 
@@ -524,13 +530,11 @@ function RegisterCat() {
                           required
                         >
                           <option value="">-- Sélectionnez la couleur des yeux --</option>
-                          <option value="BLEU">Bleu</option>
-                          <option value="VERT">Vert</option>
-                          <option value="JAUNE">Jaune</option>
-                          <option value="MARRON">Marron</option>
-                          <option value="NOISETTE">Noisette</option>
-                          <option value="GRIS">Gris</option>
-                          <option value="AUTRE">Autre</option>
+                          {eyeColorOptions.map(option => (
+                            <option key={option} value={option}>
+                              {formatEnumValue(option)}
+                            </option>
+                          ))}
                         </Form.Select>
                       </Form.Group>
 

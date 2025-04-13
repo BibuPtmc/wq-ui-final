@@ -1,27 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAxios } from './useAxios';
-
-// Fonction utilitaire pour formater la date au format attendu par le backend Java
-const formatDateForJava = (dateString) => {
-  if (!dateString || typeof dateString !== 'string') return null;
-  
-  try {
-    // Créer un objet Date à partir de la chaîne
-    const date = new Date(dateString);
-    
-    // Formater la date exactement comme dans RegisterCat: "YYYY-MM-DD HH:MM:SS.SSS"
-    return date.getFullYear() + '-' + 
-           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-           String(date.getDate()).padStart(2, '0') + ' ' + 
-           String(date.getHours()).padStart(2, '0') + ':' + 
-           String(date.getMinutes()).padStart(2, '0') + ':' + 
-           String(date.getSeconds()).padStart(2, '0') + '.' +
-           String(date.getMilliseconds()).padStart(3, '0');
-  } catch (error) {
-    console.error("Erreur lors du formatage de la date:", error);
-    return null;
-  }
-};
+import { formatDateForJava, convertToEnum } from '../utils/enumUtils';
 
 export const useCats = () => {
   const axios = useAxios();
@@ -124,13 +103,7 @@ export const useCats = () => {
         throw new Error("Chat non trouvé");
       }
 
-      // Convertir les valeurs des énumérations en majuscules pour correspondre au format attendu par le backend
-      const convertToEnum = (value, defaultValue) => {
-        if (!value) return defaultValue;
-        // Convertir la valeur en format d'énumération (majuscules, sans accents, espaces remplacés par des underscores)
-        return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-          .toUpperCase().replace(/\s+/g, "_");
-      };
+      // Utilisation de la fonction convertToEnum centralisée
 
       const catDTO = {
         catId: currentCat.cat.catId,
@@ -261,16 +234,18 @@ export const useCats = () => {
       if (!currentCatStatus) {
         throw new Error("Chat non trouvé");
       }
+      
+      // Utilisation de la fonction convertToEnum centralisée
 
       const currentCat = currentCatStatus.cat;
 
       const catDTO = {
         catId: catId,
         name: updatedData.name || currentCat.name,
-        color: updatedData.color || currentCat.color,
-        eyeColor: updatedData.eyeColor || currentCat.eyeColor,
-        breed: updatedData.breed || currentCat.breed,
-        furType: updatedData.furType || currentCat.furType,
+        color: convertToEnum(updatedData.color || currentCat.color, ""),
+        eyeColor: convertToEnum(updatedData.eyeColor || currentCat.eyeColor, ""),
+        breed: convertToEnum(updatedData.breed || currentCat.breed, ""),
+        furType: convertToEnum(updatedData.furType || currentCat.furType, ""),
         gender: updatedData.gender || currentCat.gender,
         chipNumber: updatedData.chipNumber || currentCat.chipNumber,
         type: currentCat.type,
@@ -361,6 +336,8 @@ export const useCats = () => {
       if (!currentCatStatus) {
         throw new Error("Chat non trouvé");
       }
+      
+      // Utilisation de la fonction convertToEnum centralisée
 
       // Formater la date actuelle pour Java LocalDateTime
       const now = new Date();
@@ -380,15 +357,15 @@ export const useCats = () => {
         cat: {
           catId: catId,
           name: currentCatStatus.cat.name,
-          breed: currentCatStatus.cat.breed,
-          color: currentCatStatus.cat.color,
+          breed: convertToEnum(currentCatStatus.cat.breed, ""),
+          color: convertToEnum(currentCatStatus.cat.color, ""),
           dateOfBirth: currentCatStatus.cat.dateOfBirth,
           imageCatData: currentCatStatus.cat.imageCatData,
           type: currentCatStatus.cat.type,
           gender: currentCatStatus.cat.gender,
           chipNumber: currentCatStatus.cat.chipNumber,
-          furType: currentCatStatus.cat.furType,
-          eyeColor: currentCatStatus.cat.eyeColor
+          furType: convertToEnum(currentCatStatus.cat.furType, ""),
+          eyeColor: convertToEnum(currentCatStatus.cat.eyeColor, "")
         },
         comment: lostData.comment || "Chat perdu",
         statusCat: "LOST", // Statut perdu

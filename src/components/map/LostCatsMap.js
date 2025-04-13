@@ -6,6 +6,7 @@ import { FaCat, FaMapMarkerAlt } from 'react-icons/fa';
 import '../../styles/mapbox-popup.css'; 
 import useGeolocation from '../../hooks/useGeolocation';
 import { reverseGeocode } from '../../utils/geocodingService';
+import { formatEnumValue } from '../../utils/enumUtils';
 
 const LostCatsMap = ({ noLostCatsMessage }) => {
   const [lostCats, setLostCats] = useState([]);
@@ -89,14 +90,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
     fetchLostCats();
   }, []);
 
-  // Fonction pour formater les valeurs avec underscores
-  const formatValue = (value) => {
-    if (!value || typeof value !== 'string') return '';
-    return value
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
+  // Utilisation de la fonction formatEnumValue centralisée
 
   // Création des marqueurs avec les photos des chats
   const markers = lostCats.map(catStatus => {
@@ -129,10 +123,10 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
           <h5 class="cat-popup-title">${catStatus.cat.name || 'Chat sans nom'}</h5>
           <p class="cat-popup-date">Signalé perdu le: ${reportDate}</p>
           
-          <p class="cat-popup-info"><strong>Race:</strong> ${formatValue(catStatus.cat.breed) || 'Non spécifiée'}</p>
-          <p class="cat-popup-info"><strong>Genre:</strong> ${formatValue(catStatus.cat.gender) || 'Non spécifié'}</p>
-          <p class="cat-popup-info"><strong>Couleur:</strong> ${formatValue(catStatus.cat.color) || 'Non spécifiée'}</p>
-          <p class="cat-popup-info"><strong>Couleur des yeux:</strong> ${formatValue(catStatus.cat.eyeColor) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Race:</strong> ${formatEnumValue(catStatus.cat.breed) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Genre:</strong> ${formatEnumValue(catStatus.cat.gender) || 'Non spécifié'}</p>
+          <p class="cat-popup-info"><strong>Couleur:</strong> ${formatEnumValue(catStatus.cat.color) || 'Non spécifiée'}</p>
+          <p class="cat-popup-info"><strong>Couleur des yeux:</strong> ${formatEnumValue(catStatus.cat.eyeColor) || 'Non spécifiée'}</p>
           ${catStatus.cat.dateOfBirth ? `<p class="cat-popup-info"><strong>Âge:</strong> ${calculateAge(catStatus.cat.dateOfBirth)} ans</p>` : ''}
           
           <a href="/lostCats" class="cat-popup-btn">Voir plus</a>

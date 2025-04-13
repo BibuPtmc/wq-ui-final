@@ -6,6 +6,8 @@ import { useCats } from '../../hooks/useCats';
 import MatchingResults from '../cats/MatchingResults';
 import { CatLinkRequestButton } from '../cats/CatLinkRequest';
 import CatDetails from './CatDetails';
+import { formatEnumValue } from "../../utils/enumUtils";
+import { getStatusLabel } from "../../utils/enumOptions";
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { findPotentialFoundCats, findPotentialLostCats } = useCats();
@@ -29,16 +31,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     eyeColor: ''
   });
 
-  // Fonction pour formater les valeurs avec underscore en format plus lisible
-  const formatValue = (value) => {
-    if (!value) return "";
-    
-    // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
-    return value
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
+  // Utilisation de la fonction formatEnumValue centralisée
 
   useEffect(() => {
     const fetchMatchCounts = async () => {
@@ -136,7 +129,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       dateOfBirth: catStatus.cat.dateOfBirth || '',
       gender: catStatus.cat.gender || '',
       chipNumber: catStatus.cat.chipNumber || '',
-      furType: catStatus.cat.furType || '',
+      furType: getEnumValue(catStatus.cat.furType) || '',
       eyeColor: getEnumValue(catStatus.cat.eyeColor) || ''
     });
     setShowModal(true);
@@ -243,14 +236,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         bg={cat.gender === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {formatValue(cat.gender) || "Genre inconnu"}
+                        {formatEnumValue(cat.gender) || "Genre inconnu"}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {formatValue(cat.breed) || "Inconnue"}
+                      Race: {formatEnumValue(cat.breed) || "Inconnue"}
                     </Card.Text>
                     <Card.Text className="text-muted small">
-                      Status: {formatValue(catStatus.statusCat) || "Non spécifié"}
+                      Status: {getStatusLabel(catStatus.statusCat) || "Non spécifié"}
                     </Card.Text>
                     <Card.Text className="text-muted small">
                       Signalé le: {new Date(catStatus.reportDate).toLocaleDateString()}
@@ -474,10 +467,10 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     onChange={handleChange}
                   >
                     <option value="">Sélectionner un type de pelage</option>
-                    <option value="Courte">Courte</option>
-                    <option value="Moyenne">Moyenne</option>
-                    <option value="Longue">Longue</option>
-                    <option value="Sans poils">Sans poils</option>
+                    <option value="COURTE">Courte</option>
+                    <option value="MOYENNE">Moyenne</option>
+                    <option value="LONGUE">Longue</option>
+                    <option value="SANS_POILS">Sans poils</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
