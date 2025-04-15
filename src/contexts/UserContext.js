@@ -187,21 +187,43 @@ export const UserProvider = ({ children }) => {
   const deleteAccount = useCallback(async () => {
     if (!isLoggedIn) return false;
     
+    const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+    
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      await axios.delete("users/delete", { headers });
+      // Tenter de supprimer le compte
+      await axios.delete(`users/delete?id=${userData.id}`, { headers });
       
-      // Déconnexion après suppression
+      // Si la suppression réussit, déconnecter l'utilisateur
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("userData");
       
       return true;
     } catch (error) {
-      // Log réduit pour améliorer les performances
-      setUpdateError("Erreur lors de la suppression du compte");
+      // Gérer les différents types d'erreurs
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 500) {
+          console.error("Erreur serveur lors de la suppression du compte:", error);
+          // Le backend devrait maintenant gérer correctement les demandes de liaison
+          // mais nous gardons ce message au cas où d'autres contraintes d'intégrité seraient découvertes
+          setUpdateError(
+            "Impossible de supprimer votre compte car vous avez des données associées actives. " +
+            "Veuillez d'abord supprimer tous vos chats et annuler toutes les demandes de liaison avant de supprimer votre compte."
+          );
+        } else if (status === 404) {
+          setUpdateError("Compte utilisateur non trouvé.");
+        } else {
+          // Utiliser le message d'erreur du backend s'il est disponible
+          setUpdateError(data || "Erreur lors de la suppression du compte. Veuillez réessayer plus tard.");
+        }
+      } else {
+        console.error("Erreur lors de la suppression du compte:", error);
+        setUpdateError("Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer.");
+      }
       return false;
     }
-  }, [axios, isLoggedIn]);
+  }, [axios, isLoggedIn, userData]);
 
   // Fonction pour récupérer l'historique des commandes
   const fetchOrders = useCallback(async (forceRefresh = false) => {
