@@ -39,8 +39,11 @@ export const CatsProvider = ({ children }) => {
 
   const fetchCats = useCallback(async () => {
     try {
-      // Skip if we've already fetched or user is not logged in
-      if ((initialFetchDone.current && !loading) || !isLoggedIn) return;
+      // Vérifier si l'utilisateur est connecté
+      if (!isLoggedIn) return;
+      
+      // Indiquer que le chargement est en cours
+      setLoading(true);
       
       const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       
@@ -69,7 +72,7 @@ export const CatsProvider = ({ children }) => {
       // Log réduit pour améliorer les performances
       setLoading(false);
     }
-  }, [axios, loading, isLoggedIn, fetchUserAddress]);
+  }, [axios, isLoggedIn, fetchUserAddress]);
 
   // Refetch cats when user logs in
   useEffect(() => {
@@ -124,6 +127,7 @@ export const CatsProvider = ({ children }) => {
         gender: updatedData.gender || currentCat.cat.gender,
         chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
         furType: convertToEnum(updatedData.furType, currentCat.cat.furType),
+        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.cat.comment
       };
 
       // Vérifier si nous changeons le statut du chat (par exemple, de trouvé à possédé)
@@ -151,17 +155,20 @@ export const CatsProvider = ({ children }) => {
       // Créer l'objet catStatus pour la mise à jour
       const catStatus = {
         catStatusId: catStatusId,
-        cat: catDTO,
-        // Ne modifier le commentaire que si explicitement fourni dans updatedData
-        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment,
         statusCat: newStatus,
         reportDate: formattedDate,
-        location: location
+        location: location,
+        cat: {
+          catId: currentCat.cat.catId
+        }
       };
 
-      // Mettre à jour le statut du chat
-      const response = await axios.put(`/cat-status/update`, catStatus, { headers });
+      // Mettre à jour les informations du chat
+      await axios.put(`/cat/update`, catDTO, { headers });
       
+      // Mettre à jour le statut du chat
+      const response = await axios.put(`/cat/updateStatus`, catStatus, { headers });
+
       // Mettre à jour l'état local
       if (isChangingToOwned) {
         // Supprimer de la liste des chats signalés
@@ -171,8 +178,7 @@ export const CatsProvider = ({ children }) => {
         const updatedOwnedCat = {
           catStatusId: response.catStatusId || catStatusId,
           statusCat: "OWN",
-          // Ne modifier le commentaire que si explicitement fourni dans updatedData
-          comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment,
+
           reportDate: formattedDate,
           location: location,
           cat: catDTO
@@ -186,22 +192,10 @@ export const CatsProvider = ({ children }) => {
             ? {
                 ...cat,
                 statusCat: newStatus,
-                // Ne modifier le commentaire que si explicitement fourni dans updatedData
-                comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.comment,
+
                 reportDate: formattedDate,
                 location: location,
-                cat: {
-                  ...cat.cat,
-                  name: updatedData.name,
-                  color: convertToEnum(updatedData.color, cat.cat.color),
-                  eyeColor: convertToEnum(updatedData.eyeColor, cat.cat.eyeColor),
-                  breed: convertToEnum(updatedData.breed, cat.cat.breed),
-                  dateOfBirth: updatedData.dateOfBirth || cat.cat.dateOfBirth,
-                  imageCatData: updatedData.imageCatData || cat.cat.imageCatData,
-                  gender: updatedData.gender || cat.cat.gender,
-                  chipNumber: updatedData.chipNumber || cat.cat.chipNumber,
-                  furType: convertToEnum(updatedData.furType, cat.cat.furType),
-                }
+                cat: catDTO
               }
             : cat
         ));
@@ -240,18 +234,16 @@ export const CatsProvider = ({ children }) => {
         gender: updatedData.gender || currentCatStatus.cat.gender,
         chipNumber: updatedData.chipNumber || currentCatStatus.cat.chipNumber,
         furType: convertToEnum(updatedData.furType, currentCatStatus.cat.furType),
+        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCatStatus.cat.comment
       };
 
       // Formater la date actuelle pour Java LocalDateTime
       const now = new Date();
       const formattedDate = formatDateForJava(now.toISOString());
 
-      // Créer l'objet catStatus pour la mise à jour
+      // Créer l'objet pour la mise à jour du statut
       const catStatus = {
         catStatusId: currentCatStatus.catStatusId,
-        cat: catDTO,
-        // Ne modifier le commentaire que si explicitement fourni dans updatedData
-        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCatStatus.comment,
         statusCat: "OWN", // Statut possédé
         reportDate: formattedDate,
         location: {
@@ -260,19 +252,24 @@ export const CatsProvider = ({ children }) => {
           address: userAddress?.address || currentCatStatus.location?.address,
           city: userAddress?.city || currentCatStatus.location?.city,
           postalCode: userAddress?.postalCode || currentCatStatus.location?.postalCode
+        },
+        cat: {
+          catId: catId
         }
       };
 
+      // Mettre à jour les informations du chat
+      await axios.put(`/cat/update`, catDTO, { headers });
+      
       // Mettre à jour le statut du chat
-      await axios.put(`/cat-status/update`, catStatus, { headers });
+      await axios.put(`/cat/updateStatus`, catStatus, { headers });
       
       // Mettre à jour l'état local
       setOwnedCats(prevCats => prevCats.map(cat => 
         cat.cat.catId === catId 
           ? {
               ...cat,
-              // Ne modifier le commentaire que si explicitement fourni dans updatedData
-              comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.comment,
+
               reportDate: formattedDate,
               cat: {
                 ...cat.cat,
@@ -285,6 +282,7 @@ export const CatsProvider = ({ children }) => {
                 gender: updatedData.gender || cat.cat.gender,
                 chipNumber: updatedData.chipNumber || cat.cat.chipNumber,
                 furType: convertToEnum(updatedData.furType, cat.cat.furType),
+              comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.cat.comment,
               }
             }
           : cat

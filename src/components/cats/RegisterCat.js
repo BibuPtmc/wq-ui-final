@@ -16,12 +16,14 @@ import { colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCat
 // Utiliser les contextes centralisés au lieu des imports directs
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useAxiosContext } from "../../contexts/AxiosContext";
+import { useCatsContext } from "../../contexts/CatsContext";
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function RegisterCat() {
   // Utiliser les fonctions du contexte
   const { formatValue } = useCatSearch();
   const { post } = useAxiosContext();
+  const { fetchCats } = useCatsContext();
   // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
   const now = new Date();
   const formattedDate = now.getFullYear() + '-' + 
@@ -67,7 +69,6 @@ function RegisterCat() {
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [preview, setPreview] = useState(null);
-  const [mapError, setMapError] = useState(null);
 
 
   const navigate = useNavigate();
@@ -95,9 +96,8 @@ function RegisterCat() {
       }));
     } catch (error) {
       console.error("Erreur lors de la récupération de l'adresse:", error);
-      setMapError("Erreur lors de la récupération de l'adresse");
     }
-  }, [setFormData, setMapError]);
+  }, [setFormData]);
 
   // Initialisation avec la position actuelle
   useEffect(() => {
@@ -296,11 +296,14 @@ function RegisterCat() {
 
     };
     try {
-      const response = await post("/cat/register", catStatus);
+      await post("/cat/register", catStatus);
       // Log supprimé pour améliorer les performances
       setShowSuccessMessage(true);
       // Faire défiler la page vers le haut pour voir le message de succès
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Rafraîchir les données des chats dans le contexte
+      await fetchCats();
       setFormData({
         ...formData,
         name: "",

@@ -1,0 +1,296 @@
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useAxios } from '../hooks/useAxios';
+import { useAuth } from '../hooks/authProvider';
+import { reverseGeocode } from '../utils/geocodingService';
+
+// Création du contexte
+const UserContext = createContext();
+
+export const UserProvider = ({ children }) => {
+  const axios = useAxios();
+  const { isLoggedIn, userData, setUserData } = useAuth();
+  
+  // États pour le profil utilisateur
+  const [profileData, setProfileData] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    latitude: null,
+    longitude: null,
+    gender: "",
+    birthDay: "",
+    phone: "",
+  });
+  
+  // États pour la gestion des mots de passe
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    matchingPassword: ""
+  });
+  
+  // États pour les commandes
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+  
+  // États pour les retours d'opérations
+  const [loading, setLoading] = useState(true);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [updateError, setUpdateError] = useState("");
+  
+  // Fonction pour récupérer les données du profil utilisateur
+  const fetchProfileData = useCallback(async () => {
+    if (!isLoggedIn || !sessionStorage.getItem("token")) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+      const response = await axios.get("users/me", { headers });
+      
+      setProfileData({
+        firstName: response.firstName || "",
+        lastName: response.lastName || "",
+        address: response.address?.address || "",
+        city: response.address?.city || "",
+        postalCode: response.address?.postalCode || "",
+        latitude: response.address?.latitude || null,
+        longitude: response.address?.longitude || null,
+        gender: response.gender || "",
+        birthDay: response.birthDay || "",
+        phone: response.phone || "",
+      });
+      
+      // Mettre à jour les données utilisateur dans AuthContext si nécessaire
+      if (setUserData) {
+        setUserData(response);
+      }
+    } catch (error) {
+      // Log réduit pour améliorer les performances
+      setUpdateError("Erreur lors du chargement des données utilisateur");
+    } finally {
+      setLoading(false);
+    }
+  }, [axios, isLoggedIn, setUserData]);
+
+  // Charger les données du profil au montage du composant
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchProfileData();
+    }
+  }, [isLoggedIn, fetchProfileData]);
+
+  // Fonction pour mettre à jour le profil utilisateur
+  const updateProfile = useCallback(async (profileFormData) => {
+    if (!isLoggedIn) return false;
+    
+    try {
+      setUpdateError("");
+      setUpdateSuccess(false);
+      
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+      
+      // Préparer les données pour l'API
+      const updatedUserData = {
+        firstName: profileFormData.firstName,
+        lastName: profileFormData.lastName,
+        gender: profileFormData.gender,
+        birthDay: profileFormData.birthDay,
+        phone: profileFormData.phone,
+        address: profileFormData.address,
+        city: profileFormData.city,
+        postalCode: profileFormData.postalCode,
+        latitude: profileFormData.latitude,
+        longitude: profileFormData.longitude
+      };
+      
+      await axios.put("users/update", updatedUserData, { headers });
+      
+      // Mettre à jour l'état local
+      setProfileData(profileFormData);
+      
+      // Mettre à jour les données utilisateur dans AuthContext
+      if (setUserData) {
+        setUserData({
+          ...userData,
+          ...updatedUserData
+        });
+      }
+      
+      setUpdateSuccess(true);
+      
+      // Réinitialiser le message de succès après 3 secondes
+      setTimeout(() => {
+        setUpdateSuccess(false);
+      }, 3000);
+      
+      return true;
+    } catch (error) {
+      // Log réduit pour améliorer les performances
+      setUpdateError("Erreur lors de la mise à jour du profil. Veuillez réessayer.");
+      return false;
+    }
+  }, [axios, isLoggedIn, userData, setUserData]);
+
+  // Fonction pour mettre à jour le mot de passe
+  const updatePassword = useCallback(async (passwordFormData) => {
+    if (!isLoggedIn) return false;
+    
+    try {
+      setUpdateError("");
+      setUpdateSuccess(false);
+      
+      // Vérifier que les deux mots de passe correspondent
+      if (passwordFormData.newPassword !== passwordFormData.matchingPassword) {
+        setUpdateError("Les mots de passe ne correspondent pas");
+        return false;
+      }
+      
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+      
+      // Préparer les données pour l'API
+      const passwordData = {
+        currentPassword: passwordFormData.currentPassword,
+        newPassword: passwordFormData.newPassword
+      };
+      
+      await axios.put("users/updatePassword", passwordData, { headers });
+      
+      // Réinitialiser le formulaire
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        matchingPassword: ""
+      });
+      
+      setUpdateSuccess(true);
+      
+      // Réinitialiser le message de succès après 3 secondes
+      setTimeout(() => {
+        setUpdateSuccess(false);
+      }, 3000);
+      
+      return true;
+    } catch (error) {
+      // Log réduit pour améliorer les performances
+      setUpdateError("Erreur lors de la mise à jour du mot de passe. Veuillez vérifier votre mot de passe actuel.");
+      return false;
+    }
+  }, [axios, isLoggedIn]);
+
+  // Fonction pour supprimer le compte
+  const deleteAccount = useCallback(async () => {
+    if (!isLoggedIn) return false;
+    
+    try {
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+      await axios.delete("users/delete", { headers });
+      
+      // Déconnexion après suppression
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("userData");
+      
+      return true;
+    } catch (error) {
+      // Log réduit pour améliorer les performances
+      setUpdateError("Erreur lors de la suppression du compte");
+      return false;
+    }
+  }, [axios, isLoggedIn]);
+
+  // Fonction pour récupérer l'historique des commandes
+  const fetchOrders = useCallback(async (forceRefresh = false) => {
+    if (!isLoggedIn) return;
+    
+    // Ne charger les commandes que si elles n'ont pas déjà été chargées ou si forceRefresh est true
+    if (ordersLoaded && !forceRefresh) return;
+    
+    try {
+      setOrdersLoading(true);
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+      const response = await axios.get('/ecommerce/orders', { headers });
+      
+      setOrders(response || []);
+      setOrdersLoaded(true);
+    } catch (error) {
+      // Log réduit pour améliorer les performances
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [axios, isLoggedIn, ordersLoaded]);
+
+  // Fonction pour mettre à jour la localisation à partir des coordonnées
+  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
+    try {
+      const addressInfo = await reverseGeocode(longitude, latitude);
+      
+      setProfileData(prev => ({
+        ...prev,
+        longitude,
+        latitude,
+        address: addressInfo?.address || prev.address,
+        city: addressInfo?.city || prev.city,
+        postalCode: addressInfo?.postalCode || prev.postalCode
+      }));
+      
+      return true;
+    } catch (error) {
+      // Log réduit pour améliorer les performances
+      return false;
+    }
+  }, []);
+
+  // Fonction pour mettre à jour l'adresse
+  const updateAddressData = useCallback((addressData) => {
+    setProfileData(prev => ({
+      ...prev,
+      address: addressData.address || prev.address,
+      city: addressData.city || prev.city,
+      postalCode: addressData.postalCode || prev.postalCode,
+      latitude: addressData.latitude || prev.latitude,
+      longitude: addressData.longitude || prev.longitude
+    }));
+  }, []);
+
+  // Valeur du contexte
+  const value = {
+    profileData,
+    setProfileData,
+    passwordForm,
+    setPasswordForm,
+    orders,
+    ordersLoading,
+    loading,
+    updateSuccess,
+    updateError,
+    fetchProfileData,
+    updateProfile,
+    updatePassword,
+    deleteAccount,
+    fetchOrders,
+    updateLocationFromCoordinates,
+    updateAddressData,
+    setUpdateError,
+    setUpdateSuccess
+  };
+
+  return (
+    <UserContext.Provider value={value}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+// Hook personnalisé pour utiliser le contexte
+export const useUserContext = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUserContext must be used within a UserProvider');
+  }
+  return context;
+};

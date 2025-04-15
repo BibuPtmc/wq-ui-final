@@ -6,11 +6,13 @@ import MapLocation from '../map/MapLocation';
 import useGeolocation from "../../hooks/useGeolocation";
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
+import { useCatsContext } from "../../contexts/CatsContext";
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
+  const { fetchCats } = useCatsContext();
 
   const [showModal, setShowModal] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
@@ -132,11 +134,14 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     }
   }, [selectedCat, showLostModal]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Log supprimé pour améliorer les performances
-    onEditCat(selectedCat.cat.catId, editForm);
+    const success = await onEditCat(selectedCat.cat.catId, editForm);
     setShowModal(false);
+    if (success) {
+      // Rafraîchir les données après l'édition
+      await fetchCats();
+    }
   };
 
   const handleChange = (e) => {

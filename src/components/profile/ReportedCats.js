@@ -8,11 +8,13 @@ import { CatLinkRequestButton } from '../cats/CatLinkRequest';
 import CatDetails from './CatDetails';
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
+import { useCatsContext } from "../../contexts/CatsContext";
 import { getStatusLabel } from "../../utils/enumOptions";
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge, findPotentialFoundCats, findPotentialLostCats } = useCatSearch();
+  const { fetchCats } = useCatsContext();
 
   const [showModal, setShowModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -103,9 +105,13 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   // We're intentionally not re-running this effect when findPotential*Cats functions change
   // to prevent an infinite loop of API calls
 
-  const handleDelete = (catStatusId) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce chat signalé ?")) {
-      onDelete(catStatusId);
+  const handleDelete = async (catStatusId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce chat ?')) {
+      const success = await onDelete(catStatusId);
+      if (success) {
+        // Rafraîchir les données après la suppression
+        await fetchCats();
+      }
     }
   };
 
@@ -150,10 +156,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     setShowDetailsModal(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onEdit(selectedCat.catStatusId, editForm);
+    const success = await onEdit(selectedCat.catStatusId, editForm);
     setShowModal(false);
+    if (success) {
+      // Rafraîchir les données après l'édition
+      await refreshCats();
+    }
   };
 
   const handleChange = (e) => {
@@ -179,10 +189,9 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     setShowMatches(false);
   };
 
-  const refreshCats = () => {
-    // Cette fonction sera appelée après une liaison réussie
-    // Le composant parent (ProfilePage) s'occupera de rafraîchir la liste des chats
-    window.location.reload(); // Simple refresh pour l'instant
+  const refreshCats = async () => {
+    // Utiliser fetchCats du contexte pour rafraîchir les données sans recharger la page
+    await fetchCats();
   };
 
   if (reportedCats.length === 0) {

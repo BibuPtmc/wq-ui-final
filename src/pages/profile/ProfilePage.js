@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
-import { useAxios } from "../../hooks/useAxios";
 import { useAuth } from "../../hooks/authProvider";
-import { useCats } from '../../hooks/useCats';
+import { useUserContext } from "../../contexts/UserContext";
+import { useCatsContext } from '../../contexts/CatsContext';
 import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';
 import ReportedCats from '../../components/profile/ReportedCats';
 import OwnedCats from '../../components/profile/OwnedCats';
@@ -14,8 +14,7 @@ import ProfileSidebar from '../../components/profile/ProfileSidebar';
 import PendingLinkRequests from '../../components/profile/PendingLinkRequests';
 
 const ProfilePage = () => {
-  const axios = useAxios();
-  const { loading: authLoading, setIsLoggedIn, fetchUserData } = useAuth();
+  const { loading: authLoading, userData: connectedUser } = useAuth();
   const { 
     reportedCats, 
     ownedCats, 
@@ -25,223 +24,64 @@ const ProfilePage = () => {
     handleEditOwnedCat,
     handleDeleteOwnedCat,
     handleReportCatAsLost,
-    successMessage
-  } = useCats();
+    successMessage,
+    fetchCats
+  } = useCatsContext();
   
-  const [connectedUser, setConnectedUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [updateSuccess, setUpdateSuccess] = useState(false);
-  const [updateError, setUpdateError] = useState("");
+  // Utiliser le UserContext pour la gestion du profil
+  const {
+    profileData,
+    setProfileData,
+    passwordForm,
+    setPasswordForm,
+    orders,
+    ordersLoading,
+    loading,
+    updateSuccess,
+    updateError,
+    updateProfile,
+    updatePassword,
+    deleteAccount,
+    fetchOrders
+  } = useUserContext();
+  
   const [activeTab, setActiveTab] = useState("profile");
-  const [orders, setOrders] = useState([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
   const [showCatDetails, setShowCatDetails] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
 
-  // State pour le formulaire de mise à jour
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    address: "",
-    city: "",
-    postalCode: "",
-    latitude: null,
-    longitude: null,
-    gender: "",
-    birthDay: "",
-    phone: "",
-  });
-
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    matchingPassword: ""
-  });
-
-  // État pour suivre si les commandes ont déjà été chargées
-  const [ordersLoaded, setOrdersLoaded] = useState(false);
-
+  // Rafraîchir les données des chats lorsque le composant est monté
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!sessionStorage.getItem("token")) {
-        setLoading(false);
-        return;
-      }
+    // Rafraîchir les données des chats au chargement de la page
+    fetchCats();
+  }, [fetchCats]);
 
-      try {
-        const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-        const response = await axios.get("users/me", { headers });
-        setConnectedUser(response);
-        setFormData({
-          firstName: response.firstName || "",
-          lastName: response.lastName || "",
-          address: response.address?.address || "",
-          city: response.address?.city || "",
-          postalCode: response.address?.postalCode || "",
-          latitude: response.address?.latitude || null,
-          longitude: response.address?.longitude || null,
-          gender: response.gender || "",
-          birthDay: response.birthDay || "",
-          phone: response.phone || "",
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setUpdateError("Erreur lors du chargement des données utilisateur");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (loading) {
-      fetchUserData();
-    }
-  }, [axios, loading]);
-
-  // Fonction pour récupérer les commandes
-  const fetchOrders = useCallback(async () => {
-    // Ne charger les commandes que si l'onglet est actif et qu'elles n'ont pas déjà été chargées
-    if (activeTab === 'orders' && !ordersLoaded) {
-      setOrdersLoading(true);
-      try {
-        const response = await axios.get('/ecommerce/orders');
-        setOrders(response);
-        // Marquer les commandes comme chargées
-        setOrdersLoaded(true);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        // Marquer comme chargé même en cas d'erreur pour éviter les boucles
-        setOrdersLoaded(true);
-      } finally {
-        setOrdersLoading(false);
-      }
-    }
-  }, [activeTab, axios, ordersLoaded]);
-
-  // Réinitialiser l'état lorsque l'onglet change
+  // Charger les données appropriées lorsque l'onglet change
   useEffect(() => {
-    if (activeTab !== 'orders') {
-      setOrdersLoaded(false);
+    if (activeTab === 'orders') {
+      fetchOrders();
+    } else if (activeTab === 'reported' || activeTab === 'ownedCats') {
+      // Rafraîchir les données des chats lorsque l'utilisateur accède aux onglets de chats
+      fetchCats();
     }
-  }, [activeTab]);
-
-  // Charger les commandes lorsque nécessaire
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  }, [activeTab, fetchOrders, fetchCats]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setUpdateSuccess(false);
-    setUpdateError("");
-    
-    // Vérification de la date de naissance
-    if (formData.birthDay) {
-      const selectedDate = new Date(formData.birthDay);
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
-      
-      if (selectedDate > currentDate) {
-        setUpdateError("La date de naissance ne peut pas être dans le futur");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-    }
-    
-    // Validation du numéro de téléphone si présent
-    if (formData.phone) {
-      const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
-      if (!phoneRegex.test(formData.phone)) {
-        setUpdateError("Le format du numéro de téléphone n'est pas valide");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-    }
-    
-    try {
-      const response = await axios.put("users/update", formData);
-      // Mettre à jour les données locales et globales
-      setConnectedUser(response);
-      await fetchUserData();
-      
-      setUpdateSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Faire disparaître le message après 5 secondes
-      setTimeout(() => {
-        setUpdateSuccess(false);
-        setUpdateError("");
-      }, 5000);
-
-    } catch (error) {
-      setUpdateSuccess(false);
-      setUpdateError(error.response?.data?.message || "Erreur lors de la mise à jour du profil");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    await updateProfile(profileData);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
-    setUpdateSuccess(false);
-    setUpdateError("");
-
-    if (passwordForm.newPassword !== passwordForm.matchingPassword) {
-      setUpdateError("Les nouveaux mots de passe ne correspondent pas");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    try {
-      const updatedData = {
-        ...formData,
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-        matchingPassword: passwordForm.newPassword,
-        password: passwordForm.newPassword
-      };
-
-      const response = await axios.put("users/update", updatedData);
-      
-      if (response.data) {
-        setConnectedUser(response.data);
-      }
-
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        matchingPassword: ""
-      });
-
-      setUpdateSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      setTimeout(() => {
-        setUpdateSuccess(false);
-        setUpdateError("");
-      }, 5000);
-
-    } catch (error) {
-      setUpdateSuccess(false);
-      if (error.response?.status === 401) {
-        setUpdateError("Le mot de passe actuel est incorrect");
-      } else if (error.response?.data?.message) {
-        setUpdateError(error.response.data.message);
-      } else {
-        setUpdateError("Une erreur est survenue lors de la mise à jour du mot de passe. Veuillez réessayer.");
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    await updatePassword(passwordForm);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteAccount = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
-      try {
-        await axios.delete(`users/delete?id=${connectedUser.userId}`);
-        alert("Votre compte a été supprimé avec succès.");
-        sessionStorage.removeItem("token");
-        setIsLoggedIn(false);
+      const success = await deleteAccount();
+      if (success) {
         window.location.href = "/login";
-      } catch (error) {
-        setUpdateError("Erreur lors de la suppression du compte: " + error.message);
       }
     }
   };
@@ -306,8 +146,8 @@ const ProfilePage = () => {
                           Informations personnelles
                         </Card.Title>
                         <PersonalInfo 
-                          formData={formData}
-                          setFormData={setFormData}
+                          formData={profileData}
+                          setFormData={setProfileData}
                           handleSubmit={handleUpdateProfile}
                           updateSuccess={updateSuccess}
                           updateError={updateError}

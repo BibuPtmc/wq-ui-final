@@ -245,14 +245,14 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
             </Col>
           </Row>
 
-          {selectedCatStatus.cat.comment && (
+          {currentCatStatus.cat.comment && (
             <Card className="shadow-sm mb-4">
               <Card.Body>
                 <h5 className="mb-3">
                   <FaComments className="me-2" style={{ color: '#8B4513' }} />
                   Description
                 </h5>
-                <p className="mb-0">{selectedCatStatus.cat.comment}</p>
+                <p className="mb-0">{currentCatStatus.cat.comment}</p>
               </Card.Body>
             </Card>
           )}
