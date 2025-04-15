@@ -269,9 +269,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     )}
                     <div className="d-flex gap-2 mt-2">
                       <Button
-                        variant="outline-primary"
+                        variant="outline-secondary"
                         size="sm"
                         className="flex-grow-1"
+                        onClick={() => handleViewDetails(catStatus)}
+                      >
+                        Voir détails
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
                         onClick={() => handleEdit(catStatus)}
                       >
                         Modifier
