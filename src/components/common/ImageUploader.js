@@ -20,7 +20,8 @@ const ImageUploader = ({
   maxSize = 5,
   allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   multiple = false,
-  maxImages = 5
+  maxImages = 5,
+  onUploadStatusChange = null // Callback pour informer le parent de l'état du chargement
 }) => {
   const { post } = useAxiosContext();
   // Initialiser previews comme un tableau, même si initialImage est une seule URL
@@ -99,6 +100,10 @@ const ImageUploader = ({
 
     // Upload vers Cloudinary via notre backend
     setIsUploading(true);
+    // Informer le composant parent que le chargement a commencé
+    if (onUploadStatusChange) {
+      onUploadStatusChange(true);
+    }
     setError(null);
     setUploadProgress(0);
     
@@ -131,6 +136,10 @@ const ImageUploader = ({
       setUploadedUrls(newUrls);
       onImageUploaded(multiple ? newUrls : newUrls[newUrls.length - 1]);
       setIsUploading(false);
+      // Informer le composant parent que le chargement est terminé (avec succès)
+      if (onUploadStatusChange) {
+        onUploadStatusChange(false);
+      }
     } catch (err) {
       console.error("Erreur d'upload:", err);
       // Afficher plus de détails sur l'erreur pour faciliter le débogage
@@ -151,6 +160,10 @@ const ImageUploader = ({
       
       setError(errorMsg);
       setIsUploading(false);
+      // Informer le composant parent que le chargement est terminé (avec erreur)
+      if (onUploadStatusChange) {
+        onUploadStatusChange(false);
+      }
     }
   };
 

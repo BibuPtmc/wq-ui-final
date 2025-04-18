@@ -116,7 +116,8 @@ export const useCats = () => {
         chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
         dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
         comment: updatedData.comment, // Stocker le commentaire dans le chat
-        imageCatData: currentCat.cat.imageCatData
+        imageUrl: currentCat.cat.imageUrl,
+        imageUrls: currentCat.cat.imageUrls
       };
 
       await axios.put(`/cat/update`, catDTO, { headers });
@@ -161,7 +162,8 @@ export const useCats = () => {
 
           dateOfBirth: currentCat.cat.dateOfBirth,
           comment: updatedData.comment, // Mettre à jour le commentaire du chat
-          imageCatData: currentCat.cat.imageCatData
+          imageUrl: currentCat.cat.imageUrl,
+          imageUrls: currentCat.cat.imageUrls
         };
         
         // D'abord mettre à jour le chat pour s'assurer que le commentaire est enregistré
@@ -250,7 +252,8 @@ export const useCats = () => {
 
         dateOfBirth: updatedData.dateOfBirth || currentCat.dateOfBirth,
         comment: updatedData.comment || currentCat.comment, // Ajouter le commentaire
-        imageCatData: currentCat.imageCatData
+        imageUrl: currentCat.imageUrl,
+        imageUrls: currentCat.imageUrls
       };
 
       await axios.put(`/cat/update`, catDTO, { headers });
@@ -359,7 +362,8 @@ export const useCats = () => {
           breed: convertToEnum(currentCatStatus.cat.breed, ""),
           color: convertToEnum(currentCatStatus.cat.color, ""),
           dateOfBirth: currentCatStatus.cat.dateOfBirth,
-          imageCatData: currentCatStatus.cat.imageCatData,
+          imageUrl: currentCatStatus.cat.imageUrl,
+          imageUrls: currentCatStatus.cat.imageUrls,
 
           gender: currentCatStatus.cat.gender,
           chipNumber: currentCatStatus.cat.chipNumber,

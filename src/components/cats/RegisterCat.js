@@ -71,6 +71,7 @@ function RegisterCat() {
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
@@ -582,7 +583,16 @@ function RegisterCat() {
                           onImageUploaded={handleImageUploaded} 
                           multiple={true} 
                           maxImages={5} 
+                          onUploadStatusChange={setIsUploading}
                         />
+                        {isUploading && (
+                          <div className="mt-2 text-info">
+                            <small>
+                              <i className="fas fa-spinner fa-spin me-1"></i>
+                              Images en cours de chargement... Veuillez patienter avant d'enregistrer.
+                            </small>
+                          </div>
+                        )}
                       </Form.Group>
 
                       <Form.Group>
@@ -641,8 +651,17 @@ function RegisterCat() {
                   size="lg"
                   className="px-5"
                   style={{ ...buttonStyles, minWidth: "200px" }}
+                  disabled={isUploading}
+                  title={isUploading ? "Veuillez attendre que les images soient chargées" : ""}
                 >
-                  Enregistrer le chat
+                  {isUploading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Chargement des images...
+                    </>
+                  ) : (
+                    "Enregistrer le chat"
+                  )}
                 </Button>
               </div>
             </Form>
