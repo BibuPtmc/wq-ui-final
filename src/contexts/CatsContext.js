@@ -123,7 +123,6 @@ export const CatsProvider = ({ children }) => {
         breed: convertToEnum(updatedData.breed, currentCat.cat.breed),
         dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
         imageCatData: updatedData.imageCatData || currentCat.cat.imageCatData,
-        type: currentCat.cat.type,
         gender: updatedData.gender || currentCat.cat.gender,
         chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
         furType: convertToEnum(updatedData.furType, currentCat.cat.furType),
