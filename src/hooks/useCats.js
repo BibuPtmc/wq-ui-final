@@ -114,7 +114,6 @@ export const useCats = () => {
         furType: updatedData.furType || currentCat.cat.furType,
         gender: updatedData.gender || currentCat.cat.gender,
         chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
-        type: currentCat.cat.type,
         dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
         comment: updatedData.comment, // Stocker le commentaire dans le chat
         imageCatData: currentCat.cat.imageCatData
@@ -159,7 +158,7 @@ export const useCats = () => {
           furType: currentCat.cat.furType,
           gender: currentCat.cat.gender,
           chipNumber: currentCat.cat.chipNumber,
-          type: currentCat.cat.type,
+
           dateOfBirth: currentCat.cat.dateOfBirth,
           comment: updatedData.comment, // Mettre à jour le commentaire du chat
           imageCatData: currentCat.cat.imageCatData
@@ -248,7 +247,7 @@ export const useCats = () => {
         furType: convertToEnum(updatedData.furType || currentCat.furType, ""),
         gender: updatedData.gender || currentCat.gender,
         chipNumber: updatedData.chipNumber || currentCat.chipNumber,
-        type: currentCat.type,
+
         dateOfBirth: updatedData.dateOfBirth || currentCat.dateOfBirth,
         comment: updatedData.comment || currentCat.comment, // Ajouter le commentaire
         imageCatData: currentCat.imageCatData
@@ -361,7 +360,7 @@ export const useCats = () => {
           color: convertToEnum(currentCatStatus.cat.color, ""),
           dateOfBirth: currentCatStatus.cat.dateOfBirth,
           imageCatData: currentCatStatus.cat.imageCatData,
-          type: currentCatStatus.cat.type,
+
           gender: currentCatStatus.cat.gender,
           chipNumber: currentCatStatus.cat.chipNumber,
           furType: convertToEnum(currentCatStatus.cat.furType, ""),
