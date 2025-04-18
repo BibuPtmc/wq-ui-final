@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Row, Col, Badge, Card, Button } from 'react-bootstrap';
-import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMarkerAlt, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { Modal, Row, Col, Badge, Card, Button, Carousel } from 'react-bootstrap';
+import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMarkerAlt, FaEnvelope, FaPhone, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useCatSearch } from '../../contexts/CatSearchContext';
 import { useCatsContext } from '../../contexts/CatsContext';
 
@@ -109,21 +109,70 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
       </Modal.Header>
       <Modal.Body className="p-0">
         <div className="position-relative">
-          <img
-            src={`data:${cat.type || 'image/jpeg'};base64,${cat.imageCatData}`}
-            alt={cat.name}
-            className="w-100"
-            style={{ height: "300px", objectFit: "cover" }}
-            onError={(e) => {
-              e.target.src = "/images/noImageCat.png";
-              e.target.onerror = null;
-            }}
-          />
+          {/* Utiliser un carrousel pour afficher plusieurs images */}
+          <Carousel 
+            interval={5000} 
+            indicators={true}
+            prevIcon={<FaChevronLeft className="text-white fs-4" />}
+            nextIcon={<FaChevronRight className="text-white fs-4" />}
+          >
+            {/* Afficher l'image principale si elle existe */}
+            {cat.imageUrl && (
+              <Carousel.Item>
+                <img
+                  src={cat.imageUrl}
+                  alt={cat.name || 'Chat'}
+                  className="w-100"
+                  style={{ height: "300px", objectFit: "cover" }}
+                  onError={(e) => {
+                    e.target.src = "/images/noImageCat.png";
+                    e.target.onerror = null;
+                  }}
+                />
+              </Carousel.Item>
+            )}
+            
+            {/* Afficher les images supplémentaires si elles existent */}
+            {cat.imageUrls && cat.imageUrls.length > 0 && cat.imageUrls.map((url, index) => {
+              // Ne pas répéter l'image principale si elle est déjà dans imageUrls
+              if (url === cat.imageUrl) return null;
+              
+              return (
+                <Carousel.Item key={index}>
+                  <img
+                    src={url}
+                    alt={`${cat.name || 'Chat'} #${index + 1}`}
+                    className="w-100"
+                    style={{ height: "300px", objectFit: "cover" }}
+                    onError={(e) => {
+                      e.target.src = "/images/noImageCat.png";
+                      e.target.onerror = null;
+                    }}
+                  />
+                </Carousel.Item>
+              );
+            })}
+            
+            {/* Afficher l'image par défaut si aucune image n'est disponible */}
+            {(!cat.imageUrl && (!cat.imageUrls || cat.imageUrls.length === 0)) && (
+              <Carousel.Item>
+                <img
+                  src="/images/noImageCat.png"
+                  alt="Aucune donnée"
+                  className="w-100"
+                  style={{ height: "300px", objectFit: "cover" }}
+                />
+              </Carousel.Item>
+            )}
+          </Carousel>
+          
+          {/* Overlay avec les informations du chat */}
           <div 
             className="position-absolute bottom-0 start-0 w-100 p-3"
             style={{ 
               background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-              color: 'white'
+              color: 'white',
+              zIndex: 10 // S'assurer que l'overlay est au-dessus du carrousel
             }}
           >
             <h3 className="mb-0">{cat.name || "Chat sans nom"}</h3>

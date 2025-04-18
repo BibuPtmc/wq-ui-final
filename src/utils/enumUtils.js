@@ -11,6 +11,22 @@
 export const formatEnumValue = (value) => {
   if (!value) return "";
   
+  // Vérifier si value est un objet (comme dans le cas d'un Select de react-select)
+  if (typeof value === 'object' && value !== null) {
+    // Si c'est un objet avec une propriété value, utiliser cette propriété
+    if (value.value) {
+      value = value.value;
+    } else {
+      // Si c'est un autre type d'objet, retourner une chaîne vide
+      return "";
+    }
+  }
+  
+  // Vérifier que value est bien une chaîne de caractères
+  if (typeof value !== 'string') {
+    return String(value); // Convertir en chaîne si ce n'est pas déjà le cas
+  }
+  
   // Remplacer les underscores par des espaces et mettre en forme (première lettre en majuscule, reste en minuscule)
   return value
     .split('_')

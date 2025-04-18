@@ -288,17 +288,38 @@ function LostCats() {
                     transition={{ duration: 0.3 }}
                   >
                     <Card className="h-100 shadow-sm">
-                      <div style={{ height: '200px', overflow: 'hidden' }}>
-                        <Card.Img
-                          variant="top"
-                          src={`data:${cat.type || 'image/jpeg'};base64,${cat.imageCatData}`}
-                          alt={cat.name}
-                          style={{ objectFit: 'cover', height: '100%', width: '100%' }}
-                          onError={(e) => {
-                            e.target.src = "/images/noImageCat.png";
-                            e.target.onerror = null; // Empêche les erreurs en boucle
-                          }}
-                        />
+                      <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
+                        {/* Utiliser imageUrl comme image principale */}
+                        {cat.imageUrl ? (
+                          <Card.Img
+                            variant="top"
+                            src={cat.imageUrl}
+                            alt={cat.name || 'Chat'}
+                            style={{ objectFit: 'cover', height: '100%', width: '100%' }}
+                            onError={(e) => {
+                              e.target.src = "/images/noImageCat.png";
+                              e.target.onerror = null; // Empêche les erreurs en boucle
+                            }}
+                          />
+                        ) : (
+                          <Card.Img
+                            variant="top"
+                            src="/images/noImageCat.png"
+                            alt="Aucune photo"
+                            style={{ objectFit: 'cover', height: '100%', width: '100%' }}
+                          />
+                        )}
+                        
+                        {/* Indicateur de photos multiples si le chat a plusieurs images */}
+                        {cat.imageUrls && cat.imageUrls.length > 1 && (
+                          <div 
+                            className="position-absolute top-0 end-0 m-2 bg-dark bg-opacity-75 text-white px-2 py-1 rounded-pill"
+                            style={{ fontSize: '0.8rem' }}
+                          >
+                            <i className="bi bi-images me-1"></i>
+                            {cat.imageUrls.length} photos
+                          </div>
+                        )}
                       </div>
                       <Card.Body className="d-flex flex-column">
                         <div className="d-flex justify-content-between align-items-start mb-2">

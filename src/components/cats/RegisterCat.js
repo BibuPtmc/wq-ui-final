@@ -1,9 +1,9 @@
-import React, { useState, useEffect,useCallback  } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert, Card, Row, Col } from "react-bootstrap";
 import Select from "react-select";
 import { motion } from "framer-motion";
-import { FaPaw, FaCamera, FaMapMarkerAlt  } from "react-icons/fa";
+import { FaPaw, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
 import catBreeds from "../../CatBreeds";
 import { useAuth } from "../../hooks/authProvider";
@@ -17,6 +17,8 @@ import { colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCat
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useAxiosContext } from "../../contexts/AxiosContext";
 import { useCatsContext } from "../../contexts/CatsContext";
+import ImageUploader from "../common/ImageUploader";
+
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function RegisterCat() {
@@ -24,6 +26,7 @@ function RegisterCat() {
   const { formatValue } = useCatSearch();
   const { post } = useAxiosContext();
   const { fetchCats } = useCatsContext();
+  
   // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
   const now = new Date();
   const formattedDate = now.getFullYear() + '-' + 
@@ -42,7 +45,8 @@ function RegisterCat() {
     breed: "SIAMESE", // Race par défaut
     color: "BLANC", // Couleur par défaut
     dateOfBirth: "", // Laisser vide
-    photo: "",
+    imageUrl: "", // URL principale de l'image Cloudinary
+    imageUrls: [], // Tableau pour stocker plusieurs URLs d'images
     gender: "Femelle", // Genre par défaut
     chipNumber: "123456789", // Numéro de puce par défaut
     furType: "COURTE", // Type de fourrure par défaut
@@ -57,7 +61,6 @@ function RegisterCat() {
       city: "",
       postalCode: ""
     }
-
   });
   
   // État pour gérer les erreurs de validation
@@ -68,8 +71,6 @@ function RegisterCat() {
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [preview, setPreview] = useState(null);
-
 
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
@@ -234,23 +235,23 @@ function RegisterCat() {
       [action.name]: selectedOption ? selectedOption.value : "",
     });
   };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Generate preview
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreview(reader.result);
-        // Get base64 string without the data:image/xxx;base64, prefix
-        const base64String = reader.result.split(',')[1];
-        setFormData({
-          ...formData,
-          type: file.type,
-          photo: base64String
-        });
-      };
-      reader.readAsDataURL(file);
+  
+  // Gérer l'upload d'image avec Cloudinary
+  const handleImageUploaded = (imageData) => {
+    // Si imageData est un tableau, c'est un upload multiple
+    if (Array.isArray(imageData)) {
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: imageData.length > 0 ? imageData[0] : "", // La première image comme principale
+        imageUrls: imageData // Toutes les images dans le tableau
+      }));
+    } else {
+      // Upload d'une seule image
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: imageData,
+        imageUrls: imageData ? [imageData] : []
+      }));
     }
   };
 
@@ -275,14 +276,15 @@ function RegisterCat() {
       city: formData.location.city,
       postalCode: formData.location.postalCode
     };
+    
     const catStatus = {
       cat: {
         name: formData.name,
         breed: formData.breed,
         color: formData.color,
         dateOfBirth: formData.dateOfBirth,
-        imageCatData: formData.photo,
-        type: formData.type,
+        imageUrl: formData.imageUrl,
+        imageUrls: formData.imageUrls, // Ajouter le tableau d'URLs d'images
         gender: formData.gender,
         chipNumber: formData.chipNumber,
         furType: formData.furType,
@@ -293,24 +295,48 @@ function RegisterCat() {
       statusCat: formData.statusCat,
       reportDate: formattedDate,
       location: localisation // Ajout de la localisation
-
     };
+    
     try {
-      await post("/cat/register", catStatus);
-      // Log supprimé pour améliorer les performances
+      // Créer un objet FormData pour envoyer les données au format multipart/form-data
+      const formData = new FormData();
+      
+      // Convertir l'objet catStatus en JSON et l'ajouter comme partie "catData"
+      formData.append('catData', new Blob([JSON.stringify(catStatus)], {
+        type: 'application/json'
+      }));
+      
+      // Ajouter les images si disponibles
+      // Note: Dans cette implémentation, nous n'envoyons pas les fichiers car ils ont déjà été uploadés
+      // individuellement par le composant ImageUploader. Le backend utilisera les URLs stockées dans catStatus.
+      
+      // Envoyer la requête avec le bon Content-Type
+      await post("/cat/register", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
       setShowSuccessMessage(true);
       // Faire défiler la page vers le haut pour voir le message de succès
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Rafraîchir les données des chats dans le contexte
-      await fetchCats();
+      try {
+        await fetchCats();
+      } catch (fetchError) {
+        console.warn("Erreur lors de la récupération des chats après enregistrement:", fetchError);
+        // Continuer même si la récupération des chats échoue
+      }
+      
+      // Réinitialiser le formulaire quoi qu'il arrive
       setFormData({
         ...formData,
         name: "",
         breed: "",
         color: "",
         dateOfBirth: "",
-        photo: "",
+        imageUrl: "", // Réinitialiser l'URL de l'image
         gender: "",
         chipNumber: "",
         furType: "",
@@ -326,8 +352,6 @@ function RegisterCat() {
           postalCode: ""
         }
       });
-
-      setPreview(null);
 
       setTimeout(() => {
         setShowSuccessMessage(false);
@@ -397,7 +421,7 @@ function RegisterCat() {
                         <Select
                           name="breed"
                           value={catBreeds.find((option) => option.value === formData.breed)}
-                          onChange={handleSelectChange}
+                          onChange={(selectedOption) => handleSelectChange(selectedOption, { name: 'breed' })}
                           options={catBreeds}
                           placeholder="Sélectionnez la race"
                           isClearable
@@ -553,41 +577,12 @@ function RegisterCat() {
                     </Card.Header>
                     <Card.Body>
                       <Form.Group className="mb-3">
-                        <Form.Label>Photo du chat</Form.Label>
-                        <div className="position-relative">
-                          {preview ? (
-                            <div className="mb-3">
-                              <img
-                                src={preview}
-                                alt="Aperçu"
-                                className="img-fluid rounded"
-                                style={{ maxHeight: "200px", objectFit: "cover" }}
-                              />
-                              <Button
-                                variant="outline-danger"
-                                size="sm"
-                                className="position-absolute top-0 end-0 m-2"
-                                onClick={() => {
-                                  setPreview(null);
-                                  setFormData({ ...formData, photo: "" });
-                                }}
-                              >
-                                ×
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="text-center p-4 bg-light rounded mb-3">
-                              <FaCamera size={24} className="mb-2" />
-                              <p className="mb-0">Cliquez pour ajouter une photo</p>
-                            </div>
-                          )}
-                          <Form.Control
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoChange}
-                            className={preview ? "d-none" : ""}
-                          />
-                        </div>
+                        <Form.Label>Photos du chat</Form.Label>
+                        <ImageUploader 
+                          onImageUploaded={handleImageUploaded} 
+                          multiple={true} 
+                          maxImages={5} 
+                        />
                       </Form.Group>
 
                       <Form.Group>
