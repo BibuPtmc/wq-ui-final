@@ -109,10 +109,10 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
       
     // Utiliser la fonction calculateAge du contexte pour afficher l'âge du chat
     
-    // Utiliser l'image du chat depuis les données
-    const catImage = catStatus.cat.imageCatData 
-      ? `data:${catStatus.cat.type};base64,${catStatus.cat.imageCatData}` 
-      : catStatus.cat.photoUrl || "/images/noImageCat.png";
+    // Utiliser l'image du chat depuis les données Cloudinary
+    const catImage = catStatus.cat.imageUrl || 
+      (catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0 ? catStatus.cat.imageUrls[0] : 
+      "/images/noImageCat.png");
 
     // Construction du HTML pour le popup sans inclure les styles inline
     return {

@@ -116,32 +116,52 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
             prevIcon={<FaChevronLeft className="text-white fs-4" />}
             nextIcon={<FaChevronRight className="text-white fs-4" />}
           >
-            {/* Afficher l'image principale si elle existe */}
-            {cat.imageUrl && (
-              <Carousel.Item>
-                <img
-                  src={cat.imageUrl}
-                  alt={cat.name || 'Chat'}
-                  className="w-100"
-                  style={{ height: "300px", objectFit: "cover" }}
-                  onError={(e) => {
-                    e.target.src = "/images/noImageCat.png";
-                    e.target.onerror = null;
-                  }}
-                />
-              </Carousel.Item>
-            )}
-            
-            {/* Afficher les images supplémentaires si elles existent */}
-            {cat.imageUrls && cat.imageUrls.length > 0 && cat.imageUrls.map((url, index) => {
-              // Ne pas répéter l'image principale si elle est déjà dans imageUrls
-              if (url === cat.imageUrl) return null;
+            {/* Logique d'affichage des images */}
+            {(() => {
+              // Collecter toutes les images valides
+              const validImages = [];
               
-              return (
+              // Ajouter l'image principale si elle existe
+              if (cat.imageUrl) {
+                validImages.push({
+                  url: cat.imageUrl,
+                  alt: cat.name || 'Chat'
+                });
+              }
+              
+              // Ajouter les images supplémentaires si elles existent
+              if (cat.imageUrls && cat.imageUrls.length > 0) {
+                cat.imageUrls.forEach((url, index) => {
+                  // Ne pas répéter l'image principale et vérifier que l'URL est valide
+                  if (url && url !== cat.imageUrl) {
+                    validImages.push({
+                      url: url,
+                      alt: `${cat.name || 'Chat'} #${index + 1}`
+                    });
+                  }
+                });
+              }
+              
+              // Si aucune image valide n'est trouvée, afficher l'image par défaut
+              if (validImages.length === 0) {
+                return (
+                  <Carousel.Item>
+                    <img
+                      src="/images/noImageCat.png"
+                      alt="Aucune donnée"
+                      className="w-100"
+                      style={{ height: "300px", objectFit: "cover" }}
+                    />
+                  </Carousel.Item>
+                );
+              }
+              
+              // Sinon, afficher toutes les images valides
+              return validImages.map((image, index) => (
                 <Carousel.Item key={index}>
                   <img
-                    src={url}
-                    alt={`${cat.name || 'Chat'} #${index + 1}`}
+                    src={image.url}
+                    alt={image.alt}
                     className="w-100"
                     style={{ height: "300px", objectFit: "cover" }}
                     onError={(e) => {
@@ -150,20 +170,8 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                     }}
                   />
                 </Carousel.Item>
-              );
-            })}
-            
-            {/* Afficher l'image par défaut si aucune image n'est disponible */}
-            {(!cat.imageUrl && (!cat.imageUrls || cat.imageUrls.length === 0)) && (
-              <Carousel.Item>
-                <img
-                  src="/images/noImageCat.png"
-                  alt="Aucune donnée"
-                  className="w-100"
-                  style={{ height: "300px", objectFit: "cover" }}
-                />
-              </Carousel.Item>
-            )}
+              ));
+            })()}
           </Carousel>
           
           {/* Overlay avec les informations du chat */}

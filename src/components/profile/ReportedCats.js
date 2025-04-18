@@ -227,9 +227,9 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                 <Card className="cat-card shadow-sm h-100">
                   <Card.Img
                     variant="top"
-                    src={cat.imageCatData ? 
-                      `data:${cat.type};base64,${cat.imageCatData}` : 
-                      cat.photoUrl || "/images/noImageCat.png"
+                    src={cat.imageUrl || 
+                      (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
+                      "/images/noImageCat.png")
                     }
                     alt={cat.name}
                     onError={(e) => {
