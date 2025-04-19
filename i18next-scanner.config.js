@@ -7,7 +7,7 @@ module.exports = {
     'src/hooks/**/*.{js,jsx,ts,tsx}',
     // Ajoute d'autres chemins si besoin
   ],
-  output: './public/locales/{{lng}}/{{ns}}.json',
+  output: undefined, // On va gérer chaque langue manuellement
   options: {
     // Ajoute 't' pour détecter les hooks useTranslation()
     func: {
@@ -36,8 +36,8 @@ module.exports = {
     defaultLng: 'fr',
     defaultNs: 'translation',
     resource: {
-      loadPath: './public/locales/{{lng}}/{{ns}}.json',
-      savePath: './public/locales/{{lng}}/{{ns}}.json',
+      loadPath: 'public/locales/{{lng}}/translation.json',
+      savePath: 'public/locales/{{lng}}/translation.json',
     },
     ns: ['translation'],
     defaultValue: '', // Laisse vide, mais privilégie les valeurs par défaut dans le code

@@ -10,6 +10,7 @@ import FoundCats from "./components/cats/FoundCats";
 import HomePage from "./pages/home/HomePage";
 import { ContactUs } from "./pages/contact/ContactPage";
 import LoginPage from "./pages/auth/LoginPage";
+import './i18n';
 import ProfilePage from "./pages/profile/ProfilePage";
 import GpsCollars from './pages/shop/GpsCollars';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -19,8 +20,7 @@ import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./styles/global.css";
 import { useAuth } from "./hooks/authProvider";
 import { AppProviders } from "./contexts/AppProviders";
-// Import i18n (doit être importé avant les composants qui utilisent les traductions)
-import i18n from './i18n';  // L'instance de i18next avec la configuration
+
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -82,7 +82,6 @@ const App = () => {
     </CartProvider>
   );
 };
-console.log("React démarre !");
 
 root.render(
   <AppProviders>

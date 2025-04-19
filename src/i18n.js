@@ -18,8 +18,7 @@ i18n
 
     detection: {
       order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'language',
-      caches: ['localStorage']
+      lookupLocalStorage: 'language'
     },
 
     backend: {
