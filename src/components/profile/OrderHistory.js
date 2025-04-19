@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 
 const getStatusBadgeVariant = (status) => {
   switch (status) {
@@ -18,24 +19,25 @@ const getStatusBadgeVariant = (status) => {
   }
 };
 
-const getStatusLabel = (status) => {
+const getStatusLabel = (status, t) => {
   switch (status) {
     case 'PENDING':
-      return 'En attente';
+      return t('orderHistory.status.pending', 'En attente');
     case 'PAID':
-      return 'Payée';
+      return t('orderHistory.status.paid', 'Payée');
     case 'SHIPPED':
-      return 'Expédiée';
+      return t('orderHistory.status.shipped', 'Expédiée');
     case 'DELIVERED':
-      return 'Livrée';
+      return t('orderHistory.status.delivered', 'Livrée');
     case 'CANCELLED':
-      return 'Annulée';
+      return t('orderHistory.status.cancelled', 'Annulée');
     default:
       return status;
   }
 };
 
 const OrderHistory = ({ orders, ordersLoading }) => {
+  const { t } = useTranslation();
   const [sortOrder, setSortOrder] = useState('desc');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -70,7 +72,7 @@ const OrderHistory = ({ orders, ordersLoading }) => {
   if (!orders || orders.length === 0) {
     return (
       <Alert variant="info">
-        Vous n'avez pas encore passé de commande.
+        {t('orderHistory.noOrders', "Vous n'avez pas encore passé de commande.")}
       </Alert>
     );
   }
@@ -82,29 +84,29 @@ const OrderHistory = ({ orders, ordersLoading }) => {
           <Row className="g-3">
             <Col xs={12} md={6}>
               <Form.Group>
-                <Form.Label>Trier par date</Form.Label>
+                <Form.Label>{t('orderHistory.sortByDate', 'Trier par date')}</Form.Label>
                 <Form.Select 
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
                 >
-                  <option value="desc">Plus récent d'abord</option>
-                  <option value="asc">Plus ancien d'abord</option>
+                  <option value="desc">{t('orderHistory.mostRecentFirst', "Plus récent d'abord")}</option>
+                  <option value="asc">{t('orderHistory.oldestFirst', "Plus ancien d'abord")}</option>
                 </Form.Select>
               </Form.Group>
             </Col>
             <Col xs={12} md={6}>
               <Form.Group>
-                <Form.Label>Filtrer par statut</Form.Label>
+                <Form.Label>{t('orderHistory.filterByStatus', 'Filtrer par statut')}</Form.Label>
                 <Form.Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="ALL">Tous les statuts</option>
-                  <option value="PENDING">En attente</option>
-                  <option value="PAID">Payée</option>
-                  <option value="SHIPPED">Expédiée</option>
-                  <option value="DELIVERED">Livrée</option>
-                  <option value="CANCELLED">Annulée</option>
+                  <option value="ALL">{t('orderHistory.allStatuses', 'Tous les statuts')}</option>
+                  <option value="PENDING">{t('orderHistory.status.pending', 'En attente')}</option>
+                  <option value="PAID">{t('orderHistory.status.paid', 'Payée')}</option>
+                  <option value="SHIPPED">{t('orderHistory.status.shipped', 'Expédiée')}</option>
+                  <option value="DELIVERED">{t('orderHistory.status.delivered', 'Livrée')}</option>
+                  <option value="CANCELLED">{t('orderHistory.status.cancelled', 'Annulée')}</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -114,13 +116,13 @@ const OrderHistory = ({ orders, ordersLoading }) => {
 
       {filteredOrders.length === 0 ? (
         <Alert variant="info">
-          Aucune commande ne correspond à vos critères de recherche.
+          {t('orderHistory.noMatchingOrders', 'Aucune commande ne correspond à vos critères de recherche.')}
         </Alert>
       ) : (
         filteredOrders.map((order) => (
           <Card key={order.id} className="mb-3">
             <Card.Header className="d-flex justify-content-between align-items-center">
-              <strong>Commande #{order.id}</strong>
+              <strong>{t('orderHistory.order', 'Commande')} #{order.id}</strong>
               <span>
                 {new Date(order.orderDate).toLocaleDateString('fr-BE', {
                   year: 'numeric',
@@ -144,7 +146,7 @@ const OrderHistory = ({ orders, ordersLoading }) => {
               <hr />
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <strong>Total:</strong>
+                  <strong>{t('orderHistory.total', 'Total:')}</strong>
                   <span className="ms-2">
                     {order.orderItems.reduce((total, item) => 
                       total + (item.product.price * item.quantity), 0).toFixed(2)
@@ -152,7 +154,7 @@ const OrderHistory = ({ orders, ordersLoading }) => {
                   </span>
                 </div>
                 <span className={`badge bg-${getStatusBadgeVariant(order.status)}`}>
-                  {getStatusLabel(order.status)}
+                  {getStatusLabel(order.status, t)}
                 </span>
               </div>
             </Card.Body>

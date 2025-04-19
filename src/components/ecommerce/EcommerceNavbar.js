@@ -5,8 +5,10 @@ import { Navbar, Container, Button, Badge } from 'react-bootstrap';
 import { BsCart3 } from 'react-icons/bs';
 import { useCartContext } from '../../contexts/CartContext';
 import Cart from './Cart';
+import { useTranslation } from 'react-i18next';
 
 const EcommerceNavbar = () => {
+  const { t } = useTranslation();
   const [showCart, setShowCart] = useState(false);
   const { cartItems } = useCartContext();
 
@@ -16,7 +18,7 @@ const EcommerceNavbar = () => {
     <>
       <Navbar bg="light" expand="lg" className="mb-3">
         <Container>
-          <Navbar.Brand>WhiskerQuest Shop</Navbar.Brand>
+          <Navbar.Brand>{t('ecommerceNavbar.shopTitle')}</Navbar.Brand>
           <Button
             variant="outline-primary"
             onClick={() => setShowCart(true)}

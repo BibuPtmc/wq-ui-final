@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import MapLocation from './MapLocation';
 import { Card, Spinner, Alert, Badge, Button } from 'react-bootstrap';
 import { FaCat, FaMapMarkerAlt } from 'react-icons/fa';
@@ -10,6 +11,7 @@ import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useAxiosContext } from "../../contexts/AxiosContext";
 
 const LostCatsMap = ({ noLostCatsMessage }) => {
+  const { t } = useTranslation();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { get } = useAxiosContext();
@@ -143,9 +145,9 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
       <Card className="shadow-sm">
         <Card.Body className="text-center py-5">
           <Spinner animation="border" role="status" variant="primary">
-            <span className="visually-hidden">Chargement...</span>
+            <span className="visually-hidden">{t('map.loadingLostCats', 'Chargement...')}</span>
           </Spinner>
-          <p className="mt-3">Chargement des chats perdus...</p>
+          <p className="mt-3">{t('map.loadingLostCats', 'Chargement des chats perdus...')}</p>
         </Card.Body>
       </Card>
     );
@@ -158,10 +160,10 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
           <Alert variant="success">
             <Alert.Heading className="d-flex align-items-center justify-content-center">
               <FaCat className="me-2" />
-              Bonne nouvelle !
+              {t('map.goodNews', 'Bonne nouvelle !')}
             </Alert.Heading>
             <p className="mb-0">
-              Aucun chat n'est perdu dans votre région pour le moment.
+              {t('map.noCatsLostNow', "Aucun chat n'est perdu dans votre région pour le moment.")}
             </p>
           </Alert>
         </Card.Body>
@@ -175,11 +177,11 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
         <Card.Body>
           <Card.Title>
             <FaCat className="me-2" />
-            Chats perdus dans votre région
+            {t('map.lostCatsTitle', 'Chats perdus dans votre région')}
           </Card.Title>
           {noLostCatsMessage || (
             <Alert variant="info">
-              Aucun chat perdu n'a été signalé dans votre région.
+              {t('map.noLostCatsRegion', "Aucun chat perdu n'a été signalé dans votre région.")}
             </Alert>
           )}
         </Card.Body>
@@ -192,7 +194,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
       <Card.Header style={{ backgroundColor: 'var(--primary-color)' }} className="text-white">
         <div className="d-flex align-items-center">
           <FaMapMarkerAlt className="me-2" />
-          <span>Carte des chats perdus</span>
+          <span>{t('map.lostCatsMap', 'Carte des chats perdus')}</span>
           <Badge bg="light" text="dark" pill className="ms-2">
             {lostCats.length}
           </Badge>
@@ -220,7 +222,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
             disabled={isLocating}
           >
             <FaMapMarkerAlt className="me-2" />
-            {isLocating ? 'Localisation en cours...' : 'Centrer sur ma position'}
+            {isLocating ? t('map.locating', 'Localisation en cours...') : t('map.centerOnMyPosition', 'Centrer sur ma position')}
           </Button>
         </div>
         <MapLocation
@@ -251,7 +253,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
         <Alert style={{ backgroundColor: 'var(--secondary-color)' }} variant="info" className="text-white mt-3">
           <div className="d-flex align-items-center">
             <FaCat className="me-2" />
-            <span>Cliquez sur les marqueurs pour voir les détails des chats perdus</span>
+            <span>{t('map.clickMarkerDetails', 'Cliquez sur les marqueurs pour voir les détails des chats perdus')}</span>
           </div>
         </Alert>
       </Card.Body>

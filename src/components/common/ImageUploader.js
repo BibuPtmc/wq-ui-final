@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import { Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { FaCamera, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import { useAxiosContext } from '../../contexts/AxiosContext';
+import { useTranslation } from 'react-i18next';
 
 /**
- * Composant pour télécharger des images vers Cloudinary via le backend
+ * Component for uploading images to Cloudinary via the backend
  * 
- * @param {function} onImageUploaded - Fonction appelée avec l'URL ou les URLs des images téléchargées
- * @param {string|array} initialImage - URL initiale de l'image ou tableau d'URLs (optionnel)
- * @param {number} maxSize - Taille maximale du fichier en Mo (par défaut 5Mo)
- * @param {array} allowedTypes - Types de fichiers autorisés (par défaut toutes les images)
- * @param {boolean} multiple - Permet la sélection multiple d'images (par défaut false)
- * @param {number} maxImages - Nombre maximum d'images pouvant être sélectionnées (par défaut 5)
- * @returns {JSX.Element} Composant ImageUploader
+ * @param {function} onImageUploaded - Function called with the URL or URLs of uploaded images
+ * @param {string|array} initialImage - Initial image URL or array of URLs (optional)
+ * @param {number} maxSize - Maximum file size in MB (default 5MB)
+ * @param {array} allowedTypes - Allowed file types (default all images)
+ * @param {boolean} multiple - Allow multiple image selection (default false)
+ * @param {number} maxImages - Maximum number of images that can be selected (default 5)
+ * @returns {JSX.Element} ImageUploader component
  */
 const ImageUploader = ({ 
   onImageUploaded, 
@@ -21,8 +22,9 @@ const ImageUploader = ({
   allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   multiple = false,
   maxImages = 5,
-  onUploadStatusChange = null // Callback pour informer le parent de l'état du chargement
+  onUploadStatusChange = null // Callback to inform parent about upload status
 }) => {
+  const { t } = useTranslation();
   const { post } = useAxiosContext();
   // Initialiser previews comme un tableau, même si initialImage est une seule URL
   const [previews, setPreviews] = useState(() => {
@@ -38,8 +40,8 @@ const ImageUploader = ({
   });
 
   /**
-   * Vérifie si le fichier est valide (type et taille)
-   * @param {File} file - Fichier à vérifier
+   * Checks if the file is valid (type and size)
+   * @param {File} file - File to check
    * @returns {Object} { isValid, errorMessage }
    */
   const validateFile = (file) => {
@@ -47,7 +49,9 @@ const ImageUploader = ({
     if (!allowedTypes.includes(file.type)) {
       return { 
         isValid: false, 
-        errorMessage: `Type de fichier non supporté. Formats acceptés: ${allowedTypes.map(type => type.split('/')[1]).join(', ')}`
+        errorMessage: t('upload.unsupportedFileType', 'Unsupported file type. Accepted formats: {{formats}}', {
+          formats: allowedTypes.map(type => type.split('/')[1]).join(', ')
+        })
       };
     }
     
@@ -56,7 +60,10 @@ const ImageUploader = ({
     if (fileSizeInMB > maxSize) {
       return { 
         isValid: false, 
-        errorMessage: `Fichier trop volumineux (${fileSizeInMB.toFixed(2)} Mo). Taille maximale: ${maxSize} Mo`
+        errorMessage: t('upload.fileTooLarge', 'File too large ({{size}} MB). Maximum size: {{maxSize}} MB', {
+          size: fileSizeInMB.toFixed(2),
+          maxSize: maxSize
+        })
       };
     }
     
@@ -64,16 +71,16 @@ const ImageUploader = ({
   };
 
   /**
-   * Gère le changement de fichier et l'upload vers Cloudinary
+   * Handles file change and upload to Cloudinary
    */
   const handleFileChange = async (e) => {
     // Gérer la sélection multiple ou unique de fichiers
     const selectedFiles = multiple ? Array.from(e.target.files) : [e.target.files[0]];
     if (!selectedFiles.length) return;
     
-    // Vérifier si le nombre maximum d'images est atteint
+    // Check if maximum number of images is reached
     if (multiple && (previews.length + selectedFiles.length) > maxImages) {
-      setError(`Vous ne pouvez pas télécharger plus de ${maxImages} images.`);
+      setError(t('upload.tooManyImages', 'You cannot upload more than {{maxImages}} images.', { maxImages }));
       return;
     }
     
@@ -141,17 +148,17 @@ const ImageUploader = ({
         onUploadStatusChange(false);
       }
     } catch (err) {
-      console.error("Erreur d'upload:", err);
-      // Afficher plus de détails sur l'erreur pour faciliter le débogage
-      console.log("Détails de l'erreur:", {
+      console.error("Upload error:", err);
+      // Display more details about the error for debugging
+      console.log("Error details:", {
         message: err.message,
         response: err.response,
         status: err.response?.status,
         data: err.response?.data
       });
       
-      // Message d'erreur plus précis
-      let errorMsg = 'Échec du téléchargement de l\'image. Veuillez réessayer.';
+      // More precise error message
+      let errorMsg = t('upload.uploadFailed', 'Image upload failed. Please try again.');
       if (err.response?.data) {
         errorMsg = typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data);
       } else if (err.message) {
@@ -168,8 +175,8 @@ const ImageUploader = ({
   };
 
   /**
-   * Gère la suppression d'une image
-   * @param {number} index - Index de l'image à supprimer
+   * Handles image deletion
+   * @param {number} index - Index of the image to delete
    */
   const handleRemoveImage = (index) => {
     // Créer des copies des tableaux pour ne pas modifier directement l'état
@@ -190,7 +197,7 @@ const ImageUploader = ({
   };
   
   /**
-   * Réinitialise l'erreur
+   * Resets the error
    */
   const handleDismissError = () => {
     setError(null);
@@ -206,7 +213,7 @@ const ImageUploader = ({
               <div key={index} className="position-relative" style={{ width: multiple ? '120px' : '100%' }}>
                 <img 
                   src={preview} 
-                  alt={`Aperçu ${index + 1}`} 
+                  alt={t('upload.preview', 'Preview {{number}}', { number: index + 1 })} 
                   className="img-fluid rounded" 
                   style={{ 
                     height: multiple ? "120px" : "200px", 
@@ -239,7 +246,7 @@ const ImageUploader = ({
           </div>
           {multiple && (
             <small className="text-muted d-block mt-2">
-              {previews.length} sur {maxImages} images
+              {t('upload.imageCount', '{{current}} of {{max}} images', { current: previews.length, max: maxImages })}
             </small>
           )}
         </div>
@@ -250,10 +257,10 @@ const ImageUploader = ({
           onClick={() => document.getElementById('file-upload').click()}
         >
           <FaCamera size={24} className="mb-2" />
-          <p className="mb-0">Cliquez pour {multiple ? 'ajouter des photos' : 'ajouter une photo'}</p>
+          <p className="mb-0">{t('upload.clickToAdd', 'Click to {{action}}', { action: multiple ? t('upload.addPhotos', 'add photos') : t('upload.addPhoto', 'add a photo') })}</p>
           <small className="text-muted d-block mt-2">
-            Formats acceptés: {allowedTypes.map(type => type.split('/')[1]).join(', ')}<br />
-            Taille max: {maxSize} Mo {multiple && `(${maxImages} images maximum)`}
+            {t('upload.acceptedFormats', 'Accepted formats: {{formats}}', { formats: allowedTypes.map(type => type.split('/')[1]).join(', ') })}<br />
+            {t('upload.maxSize', 'Max size: {{size}} MB', { size: maxSize })} {multiple && t('upload.maxImages', '({{max}} images maximum)', { max: maxImages })}
           </small>
         </div>
       )}
@@ -263,7 +270,7 @@ const ImageUploader = ({
         <div className="mt-2">
           <div className="d-flex align-items-center">
             <Spinner animation="border" size="sm" className="me-2" /> 
-            <span>Téléchargement en cours... {uploadProgress}%</span>
+            <span>{t('upload.uploading', 'Uploading... {{progress}}%', { progress: uploadProgress })}</span>
           </div>
           <div className="progress mt-1" style={{ height: '5px' }}>
             <div 

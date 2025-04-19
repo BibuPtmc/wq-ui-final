@@ -3,8 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCartContext } from '../contexts/CartContext';
 import { Container, Alert, Button } from 'react-bootstrap';
 import Confetti from 'react-confetti';
+import { useTranslation } from 'react-i18next';
 
 const PaymentSuccess = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { clearCart } = useCartContext();
@@ -46,14 +48,13 @@ const PaymentSuccess = () => {
       />
       <Container className="py-5">
         <Alert variant="success" className="text-center">
-          <Alert.Heading className="display-4">😻 Paiement réussi ! 😻</Alert.Heading>
+          <Alert.Heading className="display-4">{t('paymentSuccess.title')}</Alert.Heading>
           <p className="lead mb-4">
-            Merci pour votre commande. Votre paiement a été traité avec succès.
-            Vous recevrez bientôt un email de confirmation.
+            {t('paymentSuccess.thankYou')}
           </p>
           <hr />
           <p className="mb-4">
-            Votre commande est en cours de traitement et sera bientôt expédiée.
+            {t('paymentSuccess.processing')}
           </p>
           <Button 
             variant="primary" 
@@ -61,7 +62,7 @@ const PaymentSuccess = () => {
             onClick={() => navigate('/')}
             className="px-5"
           >
-            Retour à l'accueil
+            {t('paymentSuccess.backHome')}
           </Button>
         </Alert>
       </Container>

@@ -6,11 +6,13 @@ import { useCartContext } from '../../contexts/CartContext';
 import { useProductContext } from '../../contexts/ProductContext';
 import { useAuth } from '../../hooks/authProvider';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub24gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
 
 function GpsCollars() {
+  const { t } = useTranslation();
   const { addToCart } = useCartContext();
   const { products, loading, error } = useProductContext();
   const { isLoggedIn } = useAuth();
@@ -25,7 +27,7 @@ function GpsCollars() {
   if (loading) {
     return (
       <Container className="py-5 text-center">
-        <h2>Chargement des produits...</h2>
+        <h2>{t('gpsCollars.loading')}</h2>
       </Container>
     );
   }
@@ -34,7 +36,7 @@ function GpsCollars() {
     return (
       <Container className="py-5 text-center">
         <Alert variant="danger">
-          <Alert.Heading>Erreur</Alert.Heading>
+          <Alert.Heading>{t('gpsCollars.error')}</Alert.Heading>
           <p>{error}</p>
         </Alert>
       </Container>
@@ -49,19 +51,19 @@ function GpsCollars() {
         transition={{ duration: 0.5 }}
       >
         <div className="text-center mb-5">
-          <h1 className="display-4 mb-3">Colliers GPS pour Chats</h1>
+          <h1 className="display-4 mb-3">{t('gpsCollars.title')}</h1>
           <p className="lead text-muted">
-            Gardez un œil sur votre compagnon félin avec nos colliers GPS de haute qualité
+            {t('gpsCollars.subtitle')}
           </p>
         </div>
 
         {!isLoggedIn && (
           <Alert variant="info" className="mb-4">
-            <Alert.Heading>Connexion requise</Alert.Heading>
+            <Alert.Heading>{t('gpsCollars.loginRequired')}</Alert.Heading>
             <p>
-              Pour acheter nos colliers GPS, veuillez vous{' '}
-              <Link to="/login" className="alert-link">connecter</Link> ou{' '}
-              <Link to="/register" className="alert-link">créer un compte</Link>.
+              {t('gpsCollars.loginToBuy')}{' '}
+              <Link to="/login" className="alert-link">{t('gpsCollars.login')}</Link> {t('gpsCollars.or')}{' '}
+              <Link to="/register" className="alert-link">{t('gpsCollars.createAccount')}</Link>.
             </p>
           </Alert>
         )}
@@ -100,7 +102,7 @@ function GpsCollars() {
                             onClick={() => handleAddToCart(product)}
                             disabled={product.stockQuantity === 0}
                           >
-                            {product.stockQuantity > 0 ? 'Ajouter au panier' : 'Rupture de stock'}
+                            {product.stockQuantity > 0 ? t('gpsCollars.addToCart') : t('gpsCollars.outOfStock')}
                           </Button>
                         ) : (
                           <Button
@@ -109,13 +111,13 @@ function GpsCollars() {
                             as={Link}
                             to="/login"
                           >
-                            Se connecter pour acheter
+                            {t('gpsCollars.loginToBuyButton')}
                           </Button>
                         )}
                       </div>
                       {product.stockQuantity > 0 && (
                         <small className="text-muted mt-2 d-block">
-                          Stock disponible: {product.stockQuantity}
+                          {t('gpsCollars.stock')}: {product.stockQuantity}
                         </small>
                       )}
                     </div>
@@ -127,24 +129,24 @@ function GpsCollars() {
         </Row>
 
         <div className="text-center mt-5 py-4 bg-light rounded">
-          <h2 className="h4 mb-4">Pourquoi choisir nos colliers GPS ?</h2>
+          <h2 className="h4 mb-4">{t('gpsCollars.whyTitle')}</h2>
           <Row className="g-4">
             <Col md={4}>
               <div className="px-3">
-                <h3 className="h5 mb-3">Sécurité Maximale</h3>
-                <p className="text-muted">Localisez votre chat en temps réel et recevez des alertes instantanées</p>
+                <h3 className="h5 mb-3">{t('gpsCollars.why1Title')}</h3>
+                <p className="text-muted">{t('gpsCollars.why1Text')}</p>
               </div>
             </Col>
             <Col md={4}>
               <div className="px-3">
-                <h3 className="h5 mb-3">Confort Optimal</h3>
-                <p className="text-muted">Conçus spécialement pour les chats, légers et confortables</p>
+                <h3 className="h5 mb-3">{t('gpsCollars.why2Title')}</h3>
+                <p className="text-muted">{t('gpsCollars.why2Text')}</p>
               </div>
             </Col>
             <Col md={4}>
               <div className="px-3">
-                <h3 className="h5 mb-3">Application Simple</h3>
-                <p className="text-muted">Interface intuitive pour suivre facilement les déplacements</p>
+                <h3 className="h5 mb-3">{t('gpsCollars.why3Title')}</h3>
+                <p className="text-muted">{t('gpsCollars.why3Text')}</p>
               </div>
             </Col>
           </Row>

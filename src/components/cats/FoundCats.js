@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Container, Row, Col, Spinner, Badge, Form, InputGroup } from "react-bootstrap";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 import { FaSearch, FaFilter, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
 import { BiCalendar } from "react-icons/bi";
 import "../../styles/global.css";
@@ -13,6 +14,7 @@ import { CatFoundIdDisplay } from "./CatLinkRequest";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 
 function FoundCats() {
+  const { t } = useTranslation();
   // Utilisation du contexte CatSearch au lieu de la logique dupliquée
   const {
     filteredFoundCats,
@@ -41,7 +43,7 @@ function FoundCats() {
 
   // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorOptions = [
-    { value: "", label: "Toutes les couleurs" },
+    { value: "", label: t('foundCats.allColors', 'Toutes les couleurs') },
     ...require("../../utils/enumOptions").colorOptions.map(value => ({ 
       value, 
       label: formatValue(value) 
@@ -49,7 +51,7 @@ function FoundCats() {
   ];
 
   const eyeColorOptions = [
-    { value: "", label: "Toutes les couleurs d'yeux" },
+    { value: "", label: t('foundCats.allEyeColors', "Toutes les couleurs d'yeux") },
     ...require("../../utils/enumOptions").eyeColorOptions.map(value => ({ 
       value, 
       label: formatValue(value) 
@@ -57,7 +59,7 @@ function FoundCats() {
   ];
 
   const breedOptions = [
-    { value: "", label: "Toutes les races" },
+    { value: "", label: t('foundCats.allBreeds', "Toutes les races") },
     ...catBreeds.map(breed => ({ 
       value: breed.value, 
       label: formatValue(breed.value) 
@@ -112,7 +114,7 @@ function FoundCats() {
 
   return (
     <Container className="py-4">
-      <h1 className="text-center mb-4">Chats trouvés</h1>
+      <h1 className="text-center mb-4">{t('foundCats.title', 'Chats trouvés')}</h1>
       
       {/* Bouton pour afficher/masquer les filtres */}
       <div className="d-flex justify-content-end mb-3">
@@ -122,7 +124,7 @@ function FoundCats() {
           className="d-flex align-items-center"
         >
           <FaFilter className="me-2" />
-          {showFilters ? "Masquer les filtres" : "Filtrer les résultats"}
+          {showFilters ? t('foundCats.hideFilters', 'Masquer les filtres') : t('foundCats.showFilters', 'Filtrer les résultats')}
         </Button>
       </div>
       
@@ -338,13 +340,13 @@ function FoundCats() {
                           <div className="d-flex align-items-center mb-1">
                             <BiCalendar className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></BiCalendar>
                             <small className="text-muted">
-                              Âge: {cat.dateOfBirth ? calculateAge(cat.dateOfBirth) : "Inconnu"}
+                              {t('foundCats.age', 'Âge')}: {cat.dateOfBirth ? calculateAge(cat.dateOfBirth) : t('foundCats.unknown', 'Inconnu')}
                             </small>
                           </div>
                           <div className="d-flex align-items-center">
                             <FaMapMarkerAlt className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></FaMapMarkerAlt>
                             <small className="text-muted">
-                              Trouvé le: {new Date(catStatus.reportDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {t('foundCats.foundOn', 'Trouvé le')}: {new Date(catStatus.reportDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </small>
                           </div>
                         </div>
@@ -357,7 +359,7 @@ function FoundCats() {
                               className="d-flex align-items-center justify-content-center"
                             >
                               <i className="bi bi-info-circle me-1"></i>
-                              Plus d'informations
+                              {t('foundCats.moreInfo', "Plus d'informations")}
                             </Button>
                             <Button
                               variant="outline-info"
@@ -369,14 +371,18 @@ function FoundCats() {
                               {loadingMatches[cat.catId] ? (
                                 <>
                                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                  Recherche...
+                                  {t('foundCats.searching', 'Recherche...')}
                                 </>
                               ) : (
                                 <>
                                   <FaSearch className="me-1" />
                                   {matchCounts[cat.catId] ? 
-                                    `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
-                                    'Rechercher des correspondances'}
+                                    t('foundCats.matchCount', {
+                                      count: matchCounts[cat.catId],
+                                      defaultValue: '{{count}} correspondance',
+                                      plural: '{{count}} correspondances'
+                                    }) : 
+                                    t('foundCats.searchMatches', 'Rechercher des correspondances')}
                                 </>
                               )}
                             </Button>
@@ -392,12 +398,12 @@ function FoundCats() {
         </>
       ) : (
         <div className="text-center py-5">
-          <h3>Aucun chat trouvé ne correspond à vos critères</h3>
+          <h3>{t('foundCats.noResultsTitle', 'Aucun chat trouvé ne correspond à vos critères')}</h3>
           <p className="text-muted">
-            Essayez de modifier vos filtres ou revenez plus tard.
+            {t('foundCats.noResultsText', 'Essayez de modifier vos filtres ou revenez plus tard.')}
           </p>
           <Button variant="outline-success" onClick={resetFilters}>
-            Réinitialiser les filtres
+            {t('foundCats.resetFilters', 'Réinitialiser les filtres')}
           </Button>
         </div>
       )}

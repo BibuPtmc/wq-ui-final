@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Container, Row, Col, Spinner, Badge, Form, InputGroup } from "react-bootstrap";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 import { FaSearch, FaFilter, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
 import { BiCalendar } from "react-icons/bi";
 import "../../styles/global.css";
@@ -12,6 +13,7 @@ import catBreeds from "../../CatBreeds";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 
 function LostCats() {
+  const { t } = useTranslation();
   // Utilisation du contexte CatSearch au lieu de la logique dupliquée
   const {
     filteredLostCats,
@@ -40,7 +42,7 @@ function LostCats() {
 
   // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorOptions = [
-    { value: "", label: "Toutes les couleurs" },
+    { value: "", label: t('lostCats.allColors', 'Toutes les couleurs') },
     ...require("../../utils/enumOptions").colorOptions.map(value => ({ 
       value, 
       label: formatValue(value) 
@@ -48,7 +50,7 @@ function LostCats() {
   ];
 
   const eyeColorOptions = [
-    { value: "", label: "Toutes les couleurs d'yeux" },
+    { value: "", label: t('lostCats.allEyeColors', "Toutes les couleurs d'yeux") },
     ...require("../../utils/enumOptions").eyeColorOptions.map(value => ({ 
       value, 
       label: formatValue(value) 
@@ -56,7 +58,7 @@ function LostCats() {
   ];
 
   const breedOptions = [
-    { value: "", label: "Toutes les races" },
+    { value: "", label: t('lostCats.allBreeds', "Toutes les races") },
     ...catBreeds.map(breed => ({ 
       value: breed.value, 
       label: formatValue(breed.value) 
@@ -111,7 +113,7 @@ function LostCats() {
 
   return (
     <Container className="py-4">
-      <h1 className="text-center mb-4">Chats perdus</h1>
+      <h1 className="text-center mb-4">{t('lostCats.title', 'Chats perdus')}</h1>
       
       {/* Bouton pour afficher/masquer les filtres */}
       <div className="d-flex justify-content-end mb-3">
@@ -121,7 +123,7 @@ function LostCats() {
           className="d-flex align-items-center"
         >
           <FaFilter className="me-2" />
-          {showFilters ? "Masquer les filtres" : "Filtrer les résultats"}
+          {showFilters ? t('lostCats.hideFilters', 'Masquer les filtres') : t('lostCats.showFilters', 'Filtrer les résultats')}
         </Button>
       </div>
       
@@ -337,13 +339,13 @@ function LostCats() {
                           <div className="d-flex align-items-center mb-1">
                             <BiCalendar className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></BiCalendar>
                             <small className="text-muted">
-                              Âge: {cat.dateOfBirth ? calculateAge(cat.dateOfBirth) : "Inconnu"}
+                              {t('lostCats.age', 'Âge')}: {cat.dateOfBirth ? calculateAge(cat.dateOfBirth) : t('lostCats.unknown', 'Inconnu')}
                             </small>
                           </div>
                           <div className="d-flex align-items-center">
                             <FaMapMarkerAlt className="me-2 text-muted" style={{ fontSize: '0.8rem' }}></FaMapMarkerAlt>
                             <small className="text-muted">
-                              Perdu le: {new Date(catStatus.reportDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {t('lostCats.lostOn', 'Perdu le')}: {new Date(catStatus.reportDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </small>
                           </div>
                         </div>
@@ -356,7 +358,7 @@ function LostCats() {
                               className="d-flex align-items-center justify-content-center"
                             >
                               <i className="bi bi-info-circle me-1"></i>
-                              Plus d'informations
+                              {t('lostCats.moreInfo', "Plus d'informations")}
                             </Button>
                             <Button
                               variant="outline-info"
@@ -368,14 +370,18 @@ function LostCats() {
                               {loadingMatches[cat.catId] ? (
                                 <>
                                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                  Recherche...
+                                  {t('lostCats.searching', 'Recherche...')}
                                 </>
                               ) : (
                                 <>
                                   <FaSearch className="me-1" />
                                   {matchCounts[cat.catId] ? 
-                                    `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
-                                    'Rechercher des correspondances'}
+                                    t('lostCats.matchCount', {
+                                      count: matchCounts[cat.catId],
+                                      defaultValue: '{{count}} correspondance',
+                                      plural: '{{count}} correspondances'
+                                    }) : 
+                                    t('lostCats.searchMatches', 'Rechercher des correspondances')}
                                 </>
                               )}
                             </Button>
@@ -391,12 +397,12 @@ function LostCats() {
         </>
       ) : (
         <div className="text-center py-5">
-          <h3>Aucun chat perdu ne correspond à vos critères</h3>
+          <h3>{t('lostCats.noResultsTitle', 'Aucun chat perdu ne correspond à vos critères')}</h3>
           <p className="text-muted">
-            Essayez de modifier vos filtres ou revenez plus tard.
+            {t('lostCats.noResultsText', 'Essayez de modifier vos filtres ou revenez plus tard.')}
           </p>
           <Button variant="outline-success" onClick={resetFilters}>
-            Réinitialiser les filtres
+            {t('lostCats.resetFilters', 'Réinitialiser les filtres')}
           </Button>
         </div>
       )}

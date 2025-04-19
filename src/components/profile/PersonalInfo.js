@@ -3,6 +3,7 @@ import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { FaUser, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaPhone } from 'react-icons/fa';
 import MapLocation from '../map/MapLocation';
 import { reverseGeocode } from '../../utils/geocodingService';
+import { useTranslation } from 'react-i18next';
 
 const PersonalInfo = ({ 
   formData, 
@@ -11,6 +12,7 @@ const PersonalInfo = ({
   updateSuccess, 
   updateError 
 }) => {
+  const { t } = useTranslation();
   const [birthDayError, setBirthDayError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   
@@ -140,7 +142,7 @@ const PersonalInfo = ({
     <Form onSubmit={handleSubmit} className="mt-4">
       {updateSuccess && (
         <Alert variant="success" className="mb-3">
-          Vos informations ont été mises à jour avec succès !
+          {t('personalInfo.success', 'Vos informations ont été mises à jour avec succès !')}
         </Alert>
       )}
       {updateError && (
@@ -154,14 +156,14 @@ const PersonalInfo = ({
           <Form.Group className="mb-3">
             <Form.Label>
               <FaUser className="me-2" />
-              Prénom
+              {t('personalInfo.firstName', 'Prénom')}
             </Form.Label>
             <Form.Control
               type="text"
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              placeholder="Votre prénom"
+              placeholder={t('personalInfo.firstNamePlaceholder', 'Votre prénom')}
             />
           </Form.Group>
         </Col>
@@ -169,14 +171,14 @@ const PersonalInfo = ({
           <Form.Group className="mb-3">
             <Form.Label>
               <FaUser className="me-2" />
-              Nom
+              {t('personalInfo.lastName', 'Nom')}
             </Form.Label>
             <Form.Control
               type="text"
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              placeholder="Votre nom"
+              placeholder={t('personalInfo.lastNamePlaceholder', 'Votre nom')}
             />
           </Form.Group>
         </Col>
@@ -185,7 +187,7 @@ const PersonalInfo = ({
       <Form.Group className="mb-4">
         <Form.Label>
           <FaMapMarkerAlt className="me-2" />
-          Adresse
+          {t('personalInfo.address', 'Adresse')}
         </Form.Label>
         <MapLocation
           location={{
@@ -206,17 +208,17 @@ const PersonalInfo = ({
           <Form.Group className="mb-3">
             <Form.Label>
               <FaVenusMars className="me-2" />
-              Genre
+              {t('personalInfo.gender', 'Genre')}
             </Form.Label>
             <Form.Select
               name="gender"
               value={formData.gender}
               onChange={handleChange}
             >
-              <option value="">Sélectionnez votre genre</option>
-              <option value="Homme">Homme</option>
-              <option value="Femme">Femme</option>
-              <option value="Autre">Autre</option>
+              <option value="">{t('personalInfo.genderSelect', 'Sélectionnez votre genre')}</option>
+              <option value="Homme">{t('personalInfo.genderMale', 'Homme')}</option>
+              <option value="Femme">{t('personalInfo.genderFemale', 'Femme')}</option>
+              <option value="Autre">{t('personalInfo.genderOther', 'Autre')}</option>
             </Form.Select>
           </Form.Group>
         </Col>
@@ -224,7 +226,7 @@ const PersonalInfo = ({
           <Form.Group className="mb-3">
             <Form.Label>
               <FaBirthdayCake className="me-2" />
-              Date de naissance
+              {t('personalInfo.birthDay', 'Date de naissance')}
             </Form.Label>
             <Form.Control
               type="date"
@@ -245,14 +247,14 @@ const PersonalInfo = ({
           <Form.Group className="mb-3">
             <Form.Label>
               <FaPhone className="me-2" />
-              Téléphone
+              {t('personalInfo.phone', 'Téléphone')}
             </Form.Label>
             <Form.Control
               type="tel"
               name="phone"
               value={formData.phone || ""}
               onChange={handleChange}
-              placeholder="Ex: 0493 96 33 75"
+              placeholder={t('personalInfo.phonePlaceholder', 'Ex: 0493 96 33 75')}
               isInvalid={!!phoneError}
             />
             {phoneError && (
@@ -266,7 +268,7 @@ const PersonalInfo = ({
 
       <div className="d-grid gap-2">
         <Button variant="primary" type="submit" className="mt-3">
-          Mettre à jour mes informations
+          {t('personalInfo.updateButton', 'Mettre à jour mes informations')}
         </Button>
       </div>
     </Form>

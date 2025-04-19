@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Alert, Row, Col } from 'react-bootstrap';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import mapboxgl from 'mapbox-gl';
@@ -6,6 +7,7 @@ import AddressAutofill from './AddressAutofill';
 
 // Utiliser la variable d'environnement
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+
 
 const MapLocation = ({ 
   location, 
@@ -22,6 +24,7 @@ const MapLocation = ({
   disableMapClick = false,
   mapRef = null // Nouvelle prop pour exposer la référence à la carte
 }) => {
+  const { t } = useTranslation();
   const mapContainer = useRef(null);
   const map = useRef(null);
   const marker = useRef(null);
@@ -244,7 +247,7 @@ const MapLocation = ({
                 }
               }}
               onLocationSelect={handleLocationSelect}
-              placeholder="Rechercher une adresse..."
+              placeholder={t('map.searchPlaceholder', 'Rechercher une adresse...')}
             />
           </Col>
         </Row>
@@ -259,7 +262,7 @@ const MapLocation = ({
         {isLocating && (
           <div className="position-absolute top-50 start-50 translate-middle bg-white p-2 rounded shadow">
             <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Localisation en cours...
+            {t('map.locating', 'Localisation en cours...')}
           </div>
         )}
         {onRequestCurrentLocation && (
@@ -269,7 +272,7 @@ const MapLocation = ({
             className="position-absolute bottom-0 end-0 m-2"
             onClick={onRequestCurrentLocation}
           >
-            <FaMapMarkerAlt className="me-1" /> Ma position
+            <FaMapMarkerAlt className="me-1" /> {t('map.myPosition', 'Ma position')}
           </Button>
         )}
       </div>
@@ -282,7 +285,7 @@ const MapLocation = ({
       
       {showSearch && (
         <p className="text-muted mt-2">
-          <small>Recherchez une adresse ou cliquez sur la carte pour définir la localisation</small>
+          <small>{t('map.help', 'Recherchez une adresse ou cliquez sur la carte pour définir la localisation')}</small>
         </p>
       )}
     </div>

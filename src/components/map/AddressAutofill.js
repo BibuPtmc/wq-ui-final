@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Form, ListGroup } from 'react-bootstrap';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import mapboxgl from 'mapbox-gl';
@@ -11,8 +12,10 @@ const AddressAutofill = ({
   value, 
   onChange, 
   onLocationSelect,
-  placeholder = "Entrez une adresse"
+  placeholder
 }) => {
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder || t('map.addressPlaceholder', 'Entrez une adresse');
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -129,7 +132,7 @@ const AddressAutofill = ({
           type="text"
           value={value}
           onChange={handleInputChange}
-          placeholder={placeholder}
+          placeholder={effectivePlaceholder}
           onFocus={() => value && suggestions.length > 0 && setShowSuggestions(true)}
           autoComplete="off"
         />
@@ -162,7 +165,7 @@ const AddressAutofill = ({
       {isLoading && (
         <div className="position-absolute end-0 top-0 mt-2 me-2">
           <div className="spinner-border spinner-border-sm text-primary" role="status">
-            <span className="visually-hidden">Chargement...</span>
+            <span className="visually-hidden">{t('map.loading', 'Chargement...')}</span>
           </div>
         </div>
       )}

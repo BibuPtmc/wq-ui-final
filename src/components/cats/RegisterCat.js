@@ -18,6 +18,7 @@ import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useAxiosContext } from "../../contexts/AxiosContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
+import { useTranslation } from 'react-i18next';
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
@@ -26,6 +27,7 @@ function RegisterCat() {
   const { formatValue } = useCatSearch();
   const { post } = useAxiosContext();
   const { fetchCats } = useCatsContext();
+  const { t } = useTranslation();
   
   // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
   const now = new Date();
@@ -41,7 +43,7 @@ function RegisterCat() {
   const todayForInput = now.toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
-    name: "Mittens", // Nom par défaut
+    name: t('cat.defaultName', 'Mittens'), // Nom par défaut
     breed: "SIAMESE", // Race par défaut
     color: "BLANC", // Couleur par défaut
     dateOfBirth: "", // Laisser vide
@@ -51,7 +53,7 @@ function RegisterCat() {
     chipNumber: "123456789", // Numéro de puce par défaut
     furType: "COURTE", // Type de fourrure par défaut
     eyeColor: "BLEU", // Couleur des yeux par défaut
-    comment: "Chat très amical et joueur.", // Commentaire par défaut
+    comment: t('cat.defaultComment', 'Chat très amical et joueur.'), // Commentaire par défaut
     statusCat: "LOST", // Statut par défaut
     reportDate: todayForInput, // Date de signalement par défaut
     location: {
@@ -173,7 +175,7 @@ function RegisterCat() {
         today.setHours(0, 0, 0, 0);
         
         if (selectedDate > today) {
-          newValidationErrors.dateOfBirth = "La date de naissance ne peut pas être dans le futur";
+          newValidationErrors.dateOfBirth = t('cat.errorFutureBirthDate', 'La date de naissance ne peut pas être dans le futur');
         } else {
           newValidationErrors.dateOfBirth = "";
         }
@@ -204,7 +206,7 @@ function RegisterCat() {
         today.setHours(0, 0, 0, 0);
         
         if (selectedDate > today) {
-          newValidationErrors.reportDate = "La date de signalement ne peut pas être dans le futur";
+          newValidationErrors.reportDate = t('cat.errorFutureReportDate', 'La date de signalement ne peut pas être dans le futur');
         } else {
           newValidationErrors.reportDate = "";
         }
@@ -213,7 +215,7 @@ function RegisterCat() {
         if (updatedFormData.dateOfBirth) {
           const birthDate = new Date(updatedFormData.dateOfBirth);
           if (birthDate > selectedDate) {
-            newValidationErrors.dateComparison = "La date de signalement ne peut pas être antérieure à la date de naissance";
+            newValidationErrors.dateComparison = t('cat.errorDateComparison', 'La date de signalement ne peut pas être antérieure à la date de naissance');
           } else {
             newValidationErrors.dateComparison = "";
           }
@@ -265,7 +267,7 @@ function RegisterCat() {
     }
     
     // Vérifier si le nom du chat est vide
-    const name = formData.name.trim() === "" ? "Inconnu" : formData.name;
+    const name = formData.name.trim() === "" ? t('cat.unknown', 'Inconnu') : formData.name;
     // Mettre à jour le nom du chat dans le formulaire
     setFormData({ ...formData, name: name });
 
@@ -372,12 +374,12 @@ function RegisterCat() {
         <Card className="shadow-sm">
           <Card.Header style={{ backgroundColor: 'var(--primary-color)' }} className="text-white text-center py-3">
             <FaPaw className="me-2" size={24} />
-            <h2 className="mb-0">Signaler un chat</h2>
+            <h2 className="mb-0">{t('cat.register')}</h2>
           </Card.Header>
           <Card.Body className="p-4">
             {showSuccessMessage && (
               <Alert variant="success" className="mb-4" dismissible onClose={() => setShowSuccessMessage(false)}>
-                Le chat a été enregistré avec succès !
+                {t('cat.registerSuccess', 'Le chat a été enregistré avec succès !')}
               </Alert>
             )}
 
@@ -386,18 +388,18 @@ function RegisterCat() {
                 <Col md={6}>
                   <Card className="mb-4">
                     <Card.Header className="bg-light">
-                      <h5 className="mb-0">Informations principales</h5>
+                      <h5 className="mb-0">{t('cat.mainInfo', 'Informations principales')}</h5>
                     </Card.Header>
                     <Card.Body>
                       <Form.Group className="mb-3">
-                        <Form.Label>Statut*</Form.Label>
+                        <Form.Label>{t('cat.status')}*</Form.Label>
                         <Form.Select
                           name="statusCat"
                           value={formData.statusCat}
                           onChange={handleChange}
                           required
                         >
-                          <option value="">-- Sélectionnez le statut --</option>
+                          <option value="">{t('cat.selectStatus', '-- Sélectionnez le statut --')}</option>
                           {statusCatOptions.map(option => (
                             <option key={option.value} value={option.value}>
                               {option.label}
@@ -407,24 +409,24 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Nom du chat</Form.Label>
+                        <Form.Label>{t('cat.name')}</Form.Label>
                         <Form.Control
                           type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
-                          placeholder="Entrez le nom"
+                          placeholder={t('cat.enterName', 'Entrez le nom')}
                         />
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Race</Form.Label>
+                        <Form.Label>{t('cat.breed')}</Form.Label>
                         <Select
                           name="breed"
                           value={catBreeds.find((option) => option.value === formData.breed)}
                           onChange={(selectedOption) => handleSelectChange(selectedOption, { name: 'breed' })}
                           options={catBreeds}
-                          placeholder="Sélectionnez la race"
+                          placeholder={t('cat.selectBreed', 'Sélectionnez la race')}
                           isClearable
                           className="basic-select"
                           classNamePrefix="select"
@@ -432,14 +434,14 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Genre*</Form.Label>
+                        <Form.Label>{t('cat.gender')}*</Form.Label>
                         <Form.Select
                           name="gender"
                           value={formData.gender}
                           onChange={handleChange}
                           required
                         >
-                          <option value="">-- Sélectionnez le genre --</option>
+                          <option value="">{t('cat.selectGender', '-- Sélectionnez le genre --')}</option>
                           {genderOptions.map(option => (
                             <option key={option} value={option}>
                               {option}
@@ -452,7 +454,7 @@ function RegisterCat() {
 
                   <Card>
                     <Card.Header className="bg-light">
-                      <h5 className="mb-0">Dates</h5>
+                      <h5 className="mb-0">{t('cat.dates', 'Dates')}</h5>
                     </Card.Header>
                     <Card.Body>
                       {validationErrors.dateComparison && (
@@ -463,7 +465,7 @@ function RegisterCat() {
                       <Row>
                         <Col sm={6}>
                           <Form.Group className="mb-3">
-                            <Form.Label>Date de naissance</Form.Label>
+                            <Form.Label>{t('cat.birthDate')}</Form.Label>
                             <Form.Control
                               type="date"
                               name="dateOfBirth"
@@ -481,7 +483,7 @@ function RegisterCat() {
                         </Col>
                         <Col sm={6}>
                           <Form.Group className="mb-3">
-                            <Form.Label>Date de signalement*</Form.Label>
+                            <Form.Label>{t('cat.reportDate', 'Date de signalement')}*</Form.Label>
                             <Form.Control
                               type="date"
                               name="reportDate"
@@ -506,18 +508,18 @@ function RegisterCat() {
                 <Col md={6}>
                   <Card className="mb-4">
                     <Card.Header className="bg-light">
-                      <h5 className="mb-0">Caractéristiques physiques</h5>
+                      <h5 className="mb-0">{t('cat.characteristics', 'Caractéristiques')}</h5>
                     </Card.Header>
                     <Card.Body>
                       <Form.Group className="mb-3">
-                        <Form.Label>Couleur*</Form.Label>
+                        <Form.Label>{t('cat.color')}</Form.Label>
                         <Form.Select
                           name="color"
                           value={formData.color}
                           onChange={handleChange}
                           required
                         >
-                          <option value="">-- Sélectionnez la couleur --</option>
+                          <option value="">{t('cat.selectColor', '-- Sélectionnez la couleur --')}</option>
                           {colorOptions.map(option => (
                             <option key={option} value={option}>
                               {formatValue(option)}
@@ -527,30 +529,14 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Type de fourrure</Form.Label>
-                        <Form.Select
-                          name="furType"
-                          value={formData.furType}
-                          onChange={handleChange}
-                        >
-                          <option value="">-- Sélectionnez le type de fourrure --</option>
-                          {furTypeOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-
-                      <Form.Group className="mb-3">
-                        <Form.Label>Couleur des yeux*</Form.Label>
+                        <Form.Label>{t('cat.eyeColor')}</Form.Label>
                         <Form.Select
                           name="eyeColor"
                           value={formData.eyeColor}
                           onChange={handleChange}
                           required
                         >
-                          <option value="">-- Sélectionnez la couleur des yeux --</option>
+                          <option value="">{t('cat.selectEyeColor', '-- Sélectionnez la couleur des yeux --')}</option>
                           {eyeColorOptions.map(option => (
                             <option key={option} value={option}>
                               {formatValue(option)}
@@ -560,13 +546,29 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Numéro de puce</Form.Label>
+                        <Form.Label>{t('cat.furType')}</Form.Label>
+                        <Form.Select
+                          name="furType"
+                          value={formData.furType}
+                          onChange={handleChange}
+                        >
+                          <option value="">{t('cat.selectFurType', '-- Sélectionnez le type de fourrure --')}</option>
+                          {furTypeOptions.map(option => (
+                            <option key={option} value={option}>
+                              {formatValue(option)}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t('cat.chipNumber', 'Numéro de puce')}</Form.Label>
                         <Form.Control
                           type="text"
                           name="chipNumber"
                           value={formData.chipNumber}
                           onChange={handleChange}
-                          placeholder="Entrez le numéro de puce"
+                          placeholder={t('cat.enterChipNumber', 'Entrez le numéro de puce')}
                         />
                       </Form.Group>
                     </Card.Body>
@@ -574,11 +576,11 @@ function RegisterCat() {
 
                   <Card className="mb-4">
                     <Card.Header className="bg-light">
-                      <h5 className="mb-0">Photo et commentaires</h5>
+                      <h5 className="mb-0">{t('cat.image', 'Image')}</h5>
                     </Card.Header>
                     <Card.Body>
+                      <p className="text-muted">{t('cat.imageHint', 'Ajoutez une photo du chat pour faciliter son identification.')}</p>
                       <Form.Group className="mb-3">
-                        <Form.Label>Photos du chat</Form.Label>
                         <ImageUploader 
                           onImageUploaded={handleImageUploaded} 
                           multiple={true} 
@@ -589,21 +591,21 @@ function RegisterCat() {
                           <div className="mt-2 text-info">
                             <small>
                               <i className="fas fa-spinner fa-spin me-1"></i>
-                              Images en cours de chargement... Veuillez patienter avant d'enregistrer.
+                              {t('cat.uploadingImages', 'Images en cours de chargement... Veuillez patienter avant d\'enregistrer.')}
                             </small>
                           </div>
                         )}
                       </Form.Group>
 
                       <Form.Group>
-                        <Form.Label>Commentaire</Form.Label>
+                        <Form.Label>{t('cat.description')}</Form.Label>
                         <Form.Control
                           as="textarea"
                           rows={3}
                           name="comment"
                           value={formData.comment}
                           onChange={handleChange}
-                          placeholder="Ajoutez des informations supplémentaires..."
+                          placeholder={t('cat.descriptionPlaceholder', 'Entrez une description du chat (signes distinctifs, comportement, etc.)')}
                         />
                       </Form.Group>
                     </Card.Body>
@@ -615,9 +617,10 @@ function RegisterCat() {
               <Card className="mb-4">
                 <Card.Header className="bg-light d-flex align-items-center">
                   <FaMapMarkerAlt className="me-2" />
-                  <h5 className="mb-0">Localisation du chat</h5>
+                  <h5 className="mb-0">{t('cat.location')}</h5>
                 </Card.Header>
                 <Card.Body>
+                  <p className="text-muted">{t('cat.locationHint', 'Indiquez l\'endroit où le chat a été vu pour la dernière fois.')}</p>
                   <Row>
                     <Col xs={12}>
                       <MapLocation 
@@ -638,13 +641,17 @@ function RegisterCat() {
                         onRequestCurrentLocation={handleRequestCurrentLocation}
                         mapHeight="300px"
                       />
-                      </Col>
+                      <Button variant="outline-secondary" onClick={handleRequestCurrentLocation} className="mt-3">
+                        <FaMapMarkerAlt className="me-2" />
+                        {t('cat.useCurrentLocation', 'Utiliser ma position actuelle')}
+                      </Button>
+                    </Col>
                   </Row>
                 </Card.Body>
               </Card>
 
               <div className="text-center mt-4">
-                <p className="text-muted mb-4">* Champs obligatoires</p>
+                <p className="text-muted mb-4">* {t('common.required', 'Champs obligatoires')}</p>
                 <Button
                   type="submit"
                   variant="primary"
@@ -652,15 +659,15 @@ function RegisterCat() {
                   className="px-5"
                   style={{ ...buttonStyles, minWidth: "200px" }}
                   disabled={isUploading}
-                  title={isUploading ? "Veuillez attendre que les images soient chargées" : ""}
+                  title={isUploading ? t('cat.waitForImages', 'Veuillez attendre que les images soient chargées') : ""}
                 >
                   {isUploading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Chargement des images...
+                      {t('cat.loadingImages', 'Chargement des images...')}
                     </>
                   ) : (
-                    "Enregistrer le chat"
+                    t('cat.register')
                   )}
                 </Button>
               </div>

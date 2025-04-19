@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Alert, Spinner, Badge, Modal, Form } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { useCatLink } from '../../hooks/useCatLink';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 
 const PendingLinkRequests = () => {
+  const { t } = useTranslation();
   const { 
     pendingRequests, 
     loading, 
@@ -60,8 +62,8 @@ const PendingLinkRequests = () => {
       if (success) {
         setLocalSuccess(
           responseStatus === 'ACCEPTED' 
-            ? 'Demande acceptée avec succès ! Le chat a été marqué comme appartenant à son propriétaire.'
-            : 'Demande refusée avec succès.'
+            ? t('pendingLinkRequests.acceptedSuccess', 'Demande acceptée avec succès ! Le chat a été marqué comme appartenant à son propriétaire.')
+            : t('pendingLinkRequests.rejectedSuccess', 'Demande refusée avec succès.')
         );
         
         // Rafraîchir la liste après un court délai
@@ -76,7 +78,7 @@ const PendingLinkRequests = () => {
         }, 1500);
       }
     } catch (error) {
-      setLocalError('Une erreur est survenue lors du traitement de la demande.');
+      setLocalError(t('pendingLinkRequests.error', 'Une erreur est survenue lors du traitement de la demande.'));
       console.error('Error responding to request:', error);
     } finally {
       setLocalLoading(false);
@@ -92,7 +94,7 @@ const PendingLinkRequests = () => {
     return (
       <div className="text-center my-4">
         <Spinner animation="border" variant="primary" />
-        <p className="mt-2">Chargement des demandes en attente...</p>
+        <p className="mt-2">{t('pendingLinkRequests.loading', 'Chargement des demandes en attente...')}</p>
       </div>
     );
   }
@@ -118,7 +120,7 @@ const PendingLinkRequests = () => {
       )}
 
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="mb-0">Demandes de liaison en attente ({pendingRequests.length})</h5>
+        <h5 className="mb-0">{t('pendingLinkRequests.title', 'Demandes de liaison en attente')} ({pendingRequests.length})</h5>
         <Button 
           variant="outline-primary" 
           size="sm" 
@@ -128,14 +130,14 @@ const PendingLinkRequests = () => {
           {loading ? (
             <Spinner animation="border" size="sm" />
           ) : (
-            "Rafraîchir"
+            t('pendingLinkRequests.refresh', 'Rafraîchir')
           )}
         </Button>
       </div>
       
       {pendingRequests.length === 0 ? (
         <Alert variant="info">
-          Vous n'avez aucune demande de liaison en attente.
+          {t('pendingLinkRequests.none', 'Aucune demande de liaison en attente.')}
         </Alert>
       ) : (
         pendingRequests.map((request) => (
@@ -143,16 +145,16 @@ const PendingLinkRequests = () => {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                  <h6 className="mb-1">Demande #{request.requestId}</h6>
+                  <h6 className="mb-1">{t('pendingLinkRequests.requestNumber', 'Demande #')} {request.requestId}</h6>
                   <p className="text-muted small mb-1">
-                    Date: {new Date(request.requestDate).toLocaleDateString()} {new Date(request.requestDate).toLocaleTimeString()}
+                    {t('pendingLinkRequests.requestDate', 'Date')}: {new Date(request.requestDate).toLocaleDateString()} {new Date(request.requestDate).toLocaleTimeString()}
                   </p>
                   <p className="text-muted small mb-0">
-                    De: {request.requester.userName || request.requester.email}
+                    {t('pendingLinkRequests.requestFrom', 'De')}: {request.requester.userName || request.requester.email}
                   </p>
                 </div>
                 <Badge bg="warning" className="px-2 py-1">
-                  En attente
+                  {t('pendingLinkRequests.pending', 'En attente')}
                 </Badge>
               </div>
               
@@ -160,12 +162,12 @@ const PendingLinkRequests = () => {
                 <div className="col-md-6">
                   <Card className="h-100">
                     <Card.Body className="p-2">
-                      <h6 className="mb-1">Chat perdu</h6>
+                      <h6 className="mb-1">{t('pendingLinkRequests.lostCat', 'Chat perdu')}</h6>
                       <p className="mb-0 small">
-                        <strong>Nom:</strong> {request.lostCatStatus.cat.name}
+                        <strong>{t('pendingLinkRequests.name', 'Nom')}: </strong> {request.lostCatStatus.cat.name}
                       </p>
                       <p className="mb-0 small">
-                        <strong>ID:</strong> {request.lostCatStatus.catStatusId}
+                        <strong>{t('pendingLinkRequests.id', 'ID')}: </strong> {request.lostCatStatus.catStatusId}
                       </p>
                     </Card.Body>
                   </Card>
@@ -173,12 +175,12 @@ const PendingLinkRequests = () => {
                 <div className="col-md-6">
                   <Card className="h-100">
                     <Card.Body className="p-2">
-                      <h6 className="mb-1">Chat trouvé</h6>
+                      <h6 className="mb-1">{t('pendingLinkRequests.foundCat', 'Chat trouvé')}</h6>
                       <p className="mb-0 small">
-                        <strong>Nom:</strong> {request.foundCatStatus.cat.name}
+                        <strong>{t('pendingLinkRequests.name', 'Nom')}: </strong> {request.foundCatStatus.cat.name}
                       </p>
                       <p className="mb-0 small">
-                        <strong>ID:</strong> {request.foundCatStatus.catStatusId}
+                        <strong>{t('pendingLinkRequests.id', 'ID')}: </strong> {request.foundCatStatus.catStatusId}
                       </p>
                     </Card.Body>
                   </Card>
@@ -187,25 +189,25 @@ const PendingLinkRequests = () => {
               
               {request.comment && (
                 <div className="mb-3">
-                  <h6 className="mb-1">Commentaire:</h6>
+                  <h6 className="mb-1">{t('pendingLinkRequests.comment', 'Commentaire')}:</h6>
                   <p className="small mb-0">{request.comment}</p>
                 </div>
               )}
               
               <div className="d-flex gap-2 justify-content-end">
                 <Button 
-                  variant="outline-danger" 
-                  size="sm"
-                  onClick={() => handleShowResponseModal(request, 'REJECTED')}
-                >
-                  <FaTimes className="me-1" /> Refuser
-                </Button>
-                <Button 
                   variant="success" 
                   size="sm"
                   onClick={() => handleShowResponseModal(request, 'ACCEPTED')}
                 >
-                  <FaCheck className="me-1" /> Accepter
+                  <FaCheck /> {t('pendingLinkRequests.accept', 'Accepter')}
+                </Button>
+                <Button 
+                  variant="danger" 
+                  size="sm"
+                  onClick={() => handleShowResponseModal(request, 'REJECTED')}
+                >
+                  <FaTimes /> {t('pendingLinkRequests.reject', 'Refuser')}
                 </Button>
               </div>
             </Card.Body>
@@ -216,9 +218,7 @@ const PendingLinkRequests = () => {
       {/* Modal de réponse */}
       <Modal show={showResponseModal} onHide={handleCloseResponseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {responseStatus === 'ACCEPTED' ? 'Accepter' : 'Refuser'} la demande de liaison
-          </Modal.Title>
+          <Modal.Title>{t('pendingLinkRequests.modalTitle', 'Répondre à la demande')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {localError && (
@@ -228,31 +228,29 @@ const PendingLinkRequests = () => {
           )}
           
           <p>
-            Vous êtes sur le point de {responseStatus === 'ACCEPTED' ? 'accepter' : 'refuser'} la demande 
-            de liaison pour le chat <strong>{selectedRequest?.foundCatStatus.cat.name}</strong>.
+            {t('pendingLinkRequests.modalText', 'Vous êtes sur le point de')} {responseStatus === 'ACCEPTED' ? t('pendingLinkRequests.accept', 'accepter') : t('pendingLinkRequests.reject', 'refuser')} {t('pendingLinkRequests.modalText2', 'la demande de liaison pour le chat')} <strong>{selectedRequest?.foundCatStatus.cat.name}</strong>.
           </p>
           
           {responseStatus === 'ACCEPTED' && (
             <Alert variant="info">
-              En acceptant cette demande, le chat sera marqué comme appartenant à son propriétaire 
-              et ne sera plus listé comme trouvé.
+              {t('pendingLinkRequests.acceptWarning', 'En acceptant cette demande, le chat sera marqué comme appartenant à son propriétaire et ne sera plus listé comme trouvé.')}
             </Alert>
           )}
           
           <Form.Group className="mb-3">
-            <Form.Label>Commentaire (optionnel)</Form.Label>
+            <Form.Label>{t('pendingLinkRequests.commentLabel', 'Commentaire (optionnel)')}</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
               value={responseComment}
               onChange={(e) => setResponseComment(e.target.value)}
-              placeholder="Ajoutez un commentaire à votre réponse..."
+              placeholder={t('pendingLinkRequests.commentPlaceholder', 'Ajoutez un commentaire...')}
             />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseResponseModal} disabled={localLoading}>
-            Annuler
+            {t('pendingLinkRequests.cancel', 'Annuler')}
           </Button>
           <Button 
             variant={responseStatus === 'ACCEPTED' ? 'success' : 'danger'}
@@ -262,10 +260,10 @@ const PendingLinkRequests = () => {
             {localLoading ? (
               <>
                 <Spinner size="sm" animation="border" className="me-1" />
-                Traitement...
+                {t('pendingLinkRequests.processing', 'Traitement...')}
               </>
             ) : (
-              responseStatus === 'ACCEPTED' ? 'Confirmer l\'acceptation' : 'Confirmer le refus'
+              responseStatus === 'ACCEPTED' ? t('pendingLinkRequests.confirmAccept', 'Confirmer l\'acceptation') : t('pendingLinkRequests.confirmReject', 'Confirmer le refus')
             )}
           </Button>
         </Modal.Footer>

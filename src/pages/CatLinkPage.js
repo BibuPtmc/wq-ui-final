@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { PendingLinkRequests, SentLinkRequests } from '../components/cats/CatLinkResponder';
 import { useAuth } from '../hooks/authProvider';
+import { useTranslation } from 'react-i18next';
 
 // Composant TabPanel pour afficher le contenu des onglets
 function TabPanel(props) {
@@ -36,6 +37,7 @@ function TabPanel(props) {
 const CatLinkPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -46,10 +48,10 @@ const CatLinkPage = () => {
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h5" gutterBottom>
-            Vous devez être connecté pour accéder à cette page.
+            {t('catLink.authRequired')}
           </Typography>
           <Typography variant="body1">
-            Veuillez vous connecter pour voir et gérer vos demandes de liaison entre chats perdus et trouvés.
+            {t('catLink.authRequiredText')}
           </Typography>
         </Paper>
       </Container>
@@ -59,12 +61,11 @@ const CatLinkPage = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Gestion des demandes de liaison
+        {t('catLink.title')}
       </Typography>
       
       <Typography variant="body1" paragraph>
-        Cette page vous permet de gérer les demandes de liaison entre chats perdus et trouvés. 
-        Vous pouvez voir les demandes que vous avez envoyées et répondre aux demandes que vous avez reçues.
+        {t('catLink.intro')}
       </Typography>
       
       <Paper sx={{ width: '100%', mt: 3 }}>
@@ -75,23 +76,22 @@ const CatLinkPage = () => {
           textColor="primary"
           variant="fullWidth"
         >
-          <Tab label="Demandes reçues" />
-          <Tab label="Demandes envoyées" />
+          <Tab label={t('catLink.tabReceived')} />
+          <Tab label={t('catLink.tabSent')} />
         </Tabs>
         
         <Divider />
         
         <TabPanel value={tabValue} index={0}>
           <Typography variant="body1" paragraph>
-            Voici les demandes de liaison en attente de votre réponse. Ces demandes ont été envoyées par des utilisateurs 
-            qui pensent que leur chat perdu correspond à un chat que vous avez signalé comme trouvé.
+            {t('catLink.receivedDesc')}
           </Typography>
           <PendingLinkRequests />
         </TabPanel>
         
         <TabPanel value={tabValue} index={1}>
           <Typography variant="body1" paragraph>
-            Voici les demandes de liaison que vous avez envoyées. Vous pouvez suivre leur statut ici.
+            {t('catLink.sentDesc')}
           </Typography>
           <SentLinkRequests />
         </TabPanel>

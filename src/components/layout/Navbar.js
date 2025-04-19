@@ -6,12 +6,15 @@ import { useAuth } from "../../hooks/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import Cart from '../ecommerce/Cart';
+import LanguageSwitcher from '../common/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 const NavBar = () => {
   const { isLoggedIn, userData, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,7 +31,7 @@ const NavBar = () => {
   }, [scrolled]);
 
   const handleLogout = () => {
-    if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+    if (window.confirm(t('auth.logoutConfirm'))) {
       logout();
       navigate("/");
     }
@@ -90,7 +93,7 @@ const NavBar = () => {
               to="/" 
               style={location.pathname === '/' ? activeLinkStyle : linkStyle}
             >
-              <FaHome className="me-1" /> Accueil
+              <FaHome className="me-1" /> {t('navbar.home')}
             </Nav.Link>
             
             <Nav.Link 
@@ -98,7 +101,7 @@ const NavBar = () => {
               to="/contact" 
               style={location.pathname === '/contact' ? activeLinkStyle : linkStyle}
             >
-              <FaEnvelope className="me-1" /> Contact
+              <FaEnvelope className="me-1" /> {t('navbar.contact')}
             </Nav.Link>
 
             <Nav.Link 
@@ -106,7 +109,7 @@ const NavBar = () => {
               to="/registerCat" 
               style={location.pathname === '/registerCat' ? activeLinkStyle : linkStyle}
             >
-              <FaExclamationTriangle className="me-1" /> Signaler
+              <FaExclamationTriangle className="me-1" /> {t('navbar.report')}
             </Nav.Link>
 
             <Nav.Link 
@@ -114,7 +117,7 @@ const NavBar = () => {
               to="/lostCats" 
               style={location.pathname === '/lostCats' ? activeLinkStyle : linkStyle}
             >
-              <FaSearch className="me-1" /> Perdu
+              <FaSearch className="me-1" /> {t('navbar.lost')}
             </Nav.Link>
 
             <Nav.Link 
@@ -122,7 +125,7 @@ const NavBar = () => {
               to="/foundCats" 
               style={location.pathname === '/foundCats' ? activeLinkStyle : linkStyle}
             >
-              <FaPaw className="me-1" /> Trouvé
+              <FaPaw className="me-1" /> {t('navbar.found')}
             </Nav.Link>
 
             <Nav.Link 
@@ -130,7 +133,7 @@ const NavBar = () => {
               to="/gps-collars" 
               style={location.pathname === '/gps-collars' ? activeLinkStyle : linkStyle}
             >
-              <FaTag className="me-1" /> Colliers GPS
+              <FaTag className="me-1" /> {t('navbar.gpsCollars')}
             </Nav.Link>
           </Nav>
 
@@ -140,23 +143,25 @@ const NavBar = () => {
                 <div className="me-3">
                   <Cart />
                 </div>
+                <LanguageSwitcher className="me-2" />
                 <Dropdown align="end">
                   <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
-                    <FaUser className="me-1" /> {userData ? `Bonjour ${userData.firstName}` : 'Bonjour'}
+                    <FaUser className="me-1" /> {userData ? `${t('navbar.hello')} ${userData.firstName}` : t('navbar.hello')}
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
                     <Dropdown.Item as={Link} to="/profile">
-                      <FaUser className="me-2" /> Profil
+                      <FaUser className="me-2" /> {t('navbar.profile')}
                     </Dropdown.Item>
                     <Dropdown.Item onClick={handleLogout}>
-                      <FaSignOutAlt className="me-2" /> Déconnexion
+                      <FaSignOutAlt className="me-2" /> {t('navbar.logout')}
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
               </>
             ) : (
-              <div className="d-flex gap-2">
+              <div className="d-flex gap-2 align-items-center">
+                <LanguageSwitcher className="me-2" />
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                   <Button
                     as={Link}
@@ -164,7 +169,7 @@ const NavBar = () => {
                     variant="outline-primary"
                     className="rounded-pill px-4"
                   >
-                    Connexion
+                    {t('navbar.login')}
                   </Button>
                 </motion.div>
 
@@ -175,7 +180,7 @@ const NavBar = () => {
                     variant="primary"
                     className="rounded-pill px-4"
                   >
-                    Inscription
+                    {t('navbar.register')}
                   </Button>
                 </motion.div>
               </div>

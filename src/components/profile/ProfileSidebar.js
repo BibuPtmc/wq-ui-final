@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, ListGroup, Button } from 'react-bootstrap';
 import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 const ProfileSidebar = ({
   connectedUser,
@@ -8,6 +9,7 @@ const ProfileSidebar = ({
   setActiveTab,
   handleDeleteAccount
 }) => {
+  const { t } = useTranslation();
   return (
     <Card className="shadow-sm sticky-top" style={{ top: "2rem" }}>
       <Card.Body className="text-center">
@@ -37,7 +39,7 @@ const ProfileSidebar = ({
         <Card.Title className="mb-3">
           {connectedUser.firstName} {connectedUser.lastName}
         </Card.Title>
-        <Card.Text className="text-muted mb-4">Particulier</Card.Text>
+        <Card.Text className="text-muted mb-4">{t('profileSidebar.role', 'Particulier')}</Card.Text>
         
         <ListGroup variant="flush">
           <ListGroup.Item 
@@ -47,7 +49,7 @@ const ProfileSidebar = ({
             className="d-flex align-items-center"
           >
             <FaUser className="me-3" />
-            <span>Profil</span>
+            <span>{t('profileSidebar.profile', 'Profil')}</span>
           </ListGroup.Item>
           <ListGroup.Item 
             action 
@@ -56,7 +58,7 @@ const ProfileSidebar = ({
             className="d-flex align-items-center"
           >
             <FaLock className="me-3" />
-            <span>Sécurité</span>
+            <span>{t('profileSidebar.security', 'Sécurité')}</span>
           </ListGroup.Item>
           <ListGroup.Item 
             action 
@@ -65,7 +67,7 @@ const ProfileSidebar = ({
             className="d-flex align-items-center"
           >
             <FaHistory className="me-3" />
-            <span>Historique des commandes</span>
+            <span>{t('profileSidebar.orders', 'Historique des commandes')}</span>
           </ListGroup.Item>
           <ListGroup.Item 
             action 
@@ -74,7 +76,7 @@ const ProfileSidebar = ({
             className="d-flex align-items-center"
           >
             <FaPaw className="me-3" />
-            <span>Chats Signalés</span>
+            <span>{t('profileSidebar.reported', 'Chats Signalés')}</span>
           </ListGroup.Item>
           <ListGroup.Item 
             action 
@@ -83,7 +85,7 @@ const ProfileSidebar = ({
             className="d-flex align-items-center"
           >
             <FaPaw className="me-3" />
-            <span>Mes chats</span>
+            <span>{t('profileSidebar.ownedCats', 'Mes chats')}</span>
           </ListGroup.Item>
           <ListGroup.Item 
             action 
@@ -92,7 +94,7 @@ const ProfileSidebar = ({
             className="d-flex align-items-center"
           >
             <FaLink className="me-3" />
-            <span>Demandes de liaison</span>
+            <span>{t('profileSidebar.pendingLinks', 'Demandes de liaison')}</span>
           </ListGroup.Item>
         </ListGroup>
 
@@ -116,7 +118,7 @@ const ProfileSidebar = ({
             e.target.style.color = '#dc3545';
           }}
         >
-          Supprimer mon compte
+          {t('profileSidebar.deleteAccount', 'Supprimer mon compte')}
         </Button>
       </Card.Body>
     </Card>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Form, Button, Container, Row, Col, Card, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../hooks/useAxios";
@@ -10,6 +11,7 @@ import useGeolocation from "../hooks/useGeolocation";
 import { reverseGeocode } from "../utils/geocodingService";
 
 const RegistrationForm = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const axios = useAxios();
 
@@ -449,10 +451,10 @@ const RegistrationForm = () => {
                               onChange={handleChange}
                               required
                             >
-                              <option value="">Sélectionnez le genre</option>
-                              <option value="Homme">Homme</option>
-                              <option value="Femme">Femme</option>
-                              <option value="Autre">Autre</option>
+                              <option value="">{t('register.selectGender', 'Sélectionnez le genre')}</option>
+                              <option value="Homme">{t('register.genderMale', 'Homme')}</option>
+                              <option value="Femme">{t('register.genderFemale', 'Femme')}</option>
+                              <option value="Autre">{t('register.genderOther', 'Autre')}</option>
                             </Form.Select>
                           </Form.Group>
                         </Col>
@@ -461,19 +463,19 @@ const RegistrationForm = () => {
                       <Form.Group className="mb-3">
                         <Form.Label>
                           <FaPhone className="me-2" />
-                          Téléphone
+                          {t('register.phoneLabel', 'Téléphone')}
                         </Form.Label>
                         <Form.Control
                           type="tel"
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder="Votre numéro de téléphone (ex: 0493 96 33 75)"
+                          placeholder={t('register.phonePlaceholder', 'Votre numéro de téléphone (ex: 0493 96 33 75)')}
                           isInvalid={!!phoneError}
                         />
                         {phoneError && (
                           <Form.Control.Feedback type="invalid">
-                            {phoneError}
+                            {t('register.phoneInvalid', phoneError)}
                           </Form.Control.Feedback>
                         )}
                       </Form.Group>
@@ -482,7 +484,7 @@ const RegistrationForm = () => {
 
                   <Card className="mb-4">
                     <Card.Body>
-                      <h5 className="mb-3">Adresse</h5>
+                      <h5 className="mb-3">{t('register.addressTitle', 'Adresse')}</h5>
                       <MapLocation
                         location={{
                           address: formData.address,
@@ -512,8 +514,8 @@ const RegistrationForm = () => {
                   <Form.Group className="mb-4">
                     <Form.Check
                       required
-                      label="J'accepte les termes et conditions"
-                      feedback="Vous devez accepter avant de soumettre."
+                      label={t('register.terms', "J'accepte les termes et conditions")}
+                      feedback={t('register.termsFeedback', 'Vous devez accepter avant de soumettre.')}
                       feedbackType="invalid"
                     />
                   </Form.Group>
@@ -525,16 +527,16 @@ const RegistrationForm = () => {
                       size="lg"
                       style={buttonStyles}
                     >
-                      S'inscrire
+                      {t('register.submit', "S'inscrire")}
                     </Button>
                   </div>
                 </Form>
 
                 <div className="text-center mt-4">
                   <p className="text-muted">
-                    Déjà membre ?{" "}
+                    {t('register.alreadyMember', 'Déjà membre ?')} {" "}
                     <Link to="/login" className="text-primary">
-                      Se connecter
+                      {t('register.login', 'Se connecter')}
                     </Link>
                   </p>
                 </div>

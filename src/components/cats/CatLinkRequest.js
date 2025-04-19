@@ -13,6 +13,7 @@ import {
   Paper
 } from '@mui/material';
 import { useCatLink } from '../../hooks/useCatLink';
+import { useTranslation } from 'react-i18next';
 
 // Composant pour créer une demande de liaison entre un chat perdu et un chat trouvé
 export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
@@ -20,6 +21,7 @@ export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
   const [comment, setComment] = useState('');
   const [open, setOpen] = useState(true);
   const { createLinkRequest, loading, error, successMessage } = useCatLink();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,7 +56,7 @@ export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Lier votre chat perdu à un chat trouvé</DialogTitle>
+      <DialogTitle>{t('catLinkRequest.title', 'Lier votre chat perdu à un chat trouvé')}</DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           {error && (
@@ -69,12 +71,12 @@ export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
           )}
           
           <Typography variant="body1" sx={{ mb: 2 }}>
-            Entrez l'ID du chat trouvé qui vous a été communiqué par la personne qui l'a trouvé.
+            {t('catLinkRequest.instruction', "Entrez l'ID du chat trouvé qui vous a été communiqué par la personne qui l'a trouvé.")}
           </Typography>
           
           <TextField
-            label="ID du chat trouvé"
-            placeholder="Par exemple: #12345"
+            label={t('catLinkRequest.foundIdLabel', 'ID du chat trouvé')}
+            placeholder={t('catLinkRequest.foundIdPlaceholder', 'Par exemple: #12345')}
             fullWidth
             value={foundCatId}
             onChange={(e) => setFoundCatId(e.target.value)}
@@ -83,8 +85,8 @@ export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
           />
           
           <TextField
-            label="Commentaire (optionnel)"
-            placeholder="Ajoutez des informations supplémentaires ici"
+            label={t('catLinkRequest.commentLabel', 'Commentaire (optionnel)')}
+            placeholder={t('catLinkRequest.commentPlaceholder', 'Ajoutez des informations supplémentaires ici')}
             fullWidth
             multiline
             rows={3}
@@ -96,7 +98,7 @@ export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Annuler
+          {t('catLinkRequest.cancel', 'Annuler')}
         </Button>
         <Button 
           onClick={handleSubmit} 
@@ -104,7 +106,7 @@ export const CatLinkRequest = ({ lostCatStatusId, onSuccess, onCancel }) => {
           color="primary" 
           disabled={loading || !foundCatId.trim()}
         >
-          {loading ? <CircularProgress size={24} /> : "Envoyer la demande"}
+          {loading ? <CircularProgress size={24} /> : t('catLinkRequest.send', 'Envoyer la demande')}
         </Button>
       </DialogActions>
     </Dialog>

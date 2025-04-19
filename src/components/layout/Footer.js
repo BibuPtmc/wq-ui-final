@@ -2,6 +2,7 @@ import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 import {
   FaHome,
   FaEnvelope,
@@ -15,6 +16,7 @@ import {
 } from "react-icons/fa";
 
 const Footer = () => {
+  const { t, i18n } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
@@ -65,9 +67,9 @@ const Footer = () => {
       <Container>
         <Row className="py-4">
           <Col lg={4} md={6} className="mb-4 mb-lg-0">
-            <h5 style={sectionTitleStyle}>WhiskerQuest</h5>
+            <h5 style={sectionTitleStyle}>Whisker Quest</h5>
             <p className="mb-4" style={{ color: "var(--dark-text)" }}>
-              Votre compagnon de confiance pour retrouver les chats perdus.
+              {t('footer.tagline')}
             </p>
             <div className="d-flex gap-2">
               {socialLinks.map((social, index) => (
@@ -90,29 +92,29 @@ const Footer = () => {
           </Col>
 
           <Col lg={4} md={6} className="mb-4 mb-lg-0">
-            <h5 style={sectionTitleStyle}>Navigation</h5>
+            <h5 style={sectionTitleStyle}>{t('footer.about')}</h5>
             <nav>
               <Link to="/" style={linkStyle}>
                 <FaHome className="me-2" />
-                Accueil
+                {t('navbar.home')}
               </Link>
               <Link to="/lostCats" style={linkStyle}>
                 <FaPaw className="me-2" />
-                Chats Perdus
+                {t('navbar.lost')}
               </Link>
               <Link to="/foundCats" style={linkStyle}>
                 <FaPaw className="me-2" />
-                Chats Trouvés
+                {t('navbar.found')}
               </Link>
               <Link to="/contact" style={linkStyle}>
                 <FaEnvelope className="me-2" />
-                Contact
+                {t('footer.contact')}
               </Link>
             </nav>
           </Col>
 
           <Col lg={4} md={12}>
-            <h5 style={sectionTitleStyle}>Contact</h5>
+            <h5 style={sectionTitleStyle}>{t('footer.contact')}</h5>
             <div style={{ color: "var(--dark-text)" }}>
               <p className="d-flex align-items-center mb-2">
                 <FaMapMarkerAlt className="me-2" />
@@ -145,8 +147,7 @@ const Footer = () => {
         <Row>
           <Col className="text-center py-3" style={{ borderTop: "1px solid var(--secondary-color)" }}>
             <p className="mb-0">
-              {currentYear} WhiskerQuest - Développé avec{''}
-              <span style={{ color: '#dc3545' }}> ❤</span> par MOTQUIN Anaïs
+              {t('footer.copyright', { year: currentYear })} - {t('footer.followUs')} <span style={{ color: '#dc3545' }}>❤</span> MOTQUIN Anaïs
             </p>
           </Col>
         </Row>

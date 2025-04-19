@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Row, Col, Card, Badge, Alert, Button, Modal, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import { FaPaw, FaTrash, FaEdit, FaSearch } from 'react-icons/fa';
@@ -10,6 +11,7 @@ import { useCatsContext } from "../../contexts/CatsContext";
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
+  const { t } = useTranslation();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { fetchCats } = useCatsContext();
@@ -201,18 +203,18 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     <>
       <Card.Title className="mb-4">
         <FaPaw className="me-2" />
-        Mes chats
+        {t('ownedCats.title', 'Mes chats')}
       </Card.Title>
       
       {successMessage && (
         <Alert variant="success" className="mb-3">
-          {successMessage}
+          {t('ownedCats.success', successMessage)}
         </Alert>
       )}
 
       <div className="text-center mb-4">
         <Badge bg="primary" className="px-3 py-2">
-          {ownedCats.length} chats
+          {t('ownedCats.count', {count: ownedCats.length, defaultValue: '{{count}} chats'})}
         </Badge>
       </div>
 
@@ -243,19 +245,19 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                   />
                   <Card.Body>
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
+                      <Card.Title className="mb-0">{cat.name || t('ownedCats.noName', 'Chat sans nom')}</Card.Title>
                       <Badge
                         bg={cat.gender === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {cat.gender || "Inconnu"}
+                        {cat.gender || t('ownedCats.unknownGender', 'Inconnu')}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {formatValue(cat.breed) || "Inconnue"}
+                      {t('ownedCats.breed', 'Race')}: {formatValue(cat.breed) || t('ownedCats.unknownBreed', 'Inconnue')}
                       {cat.dateOfBirth && (
                         <span className="ms-2">
-                          Âge: {calculateAge(cat.dateOfBirth)}
+                          {t('ownedCats.age', 'Âge')}: {calculateAge(cat.dateOfBirth)}
                         </span>
                       )}
                     </Card.Text>
@@ -266,12 +268,13 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                         className="flex-grow-1"
                         onClick={() => onShowCatDetails(catStatus)}
                       >
-                        Voir les détails
+                        {t('ownedCats.details', 'Voir les détails')}
                       </Button>
                       <Button
                         variant="outline-success"
                         size="sm"
                         onClick={() => handleEdit(catStatus)}
+                        title={t('ownedCats.edit', 'Modifier')}
                       >
                         <FaEdit />
                       </Button>
@@ -282,6 +285,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                           e.stopPropagation();
                           onDeleteCat(cat.catId);
                         }}
+                        title={t('ownedCats.delete', 'Supprimer')}
                       >
                         <FaTrash />
                       </Button>
@@ -293,6 +297,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                           setShowLostModal(true);
                           setSelectedCat(catStatus);
                         }}
+                        title={t('ownedCats.reportLost', 'Signaler perdu')}
                       >
                         <FaSearch />
                       </Button>
@@ -312,30 +317,31 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         onShow={() => {}}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Modifier les informations du chat</Modal.Title>
+          <Modal.Title>{t('ownedCats.editTitle', 'Modifier les informations du chat')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label>Nom du chat</Form.Label>
+              <Form.Label>{t('ownedCats.name', 'Nom du chat')}</Form.Label>
               <Form.Control
                 type="text"
                 name="name"
                 value={editForm.name}
                 onChange={handleChange}
+                placeholder={t('ownedCats.namePlaceholder', 'Nom du chat')}
               />
             </Form.Group>
             
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Race</Form.Label>
+                  <Form.Label>{t('ownedCats.breed', 'Race')}</Form.Label>
                   <Form.Select
                     name="breed"
                     value={editForm.breed}
                     onChange={handleChange}
                   >
-                    <option value="">Sélectionner une race</option>
+                    <option value="">{t('ownedCats.selectBreed', 'Sélectionner une race')}</option>
                     {breedOptions.map(option => (
                       <option key={option} value={option}>
                         {formatValue(option)}
@@ -346,13 +352,13 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Genre</Form.Label>
+                  <Form.Label>{t('ownedCats.gender', 'Genre')}</Form.Label>
                   <Form.Select
                     name="gender"
                     value={editForm.gender}
                     onChange={handleChange}
                   >
-                    <option value="">Sélectionner un genre</option>
+                    <option value="">{t('ownedCats.selectGender', 'Sélectionner un genre')}</option>
                     {genderOptions.map(option => (
                       <option key={option} value={option}>
                         {option}
@@ -366,16 +372,16 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Couleur</Form.Label>
+                  <Form.Label>{t('ownedCats.color', 'Couleur')}</Form.Label>
                   <Form.Select
                     name="color"
                     value={editForm.color}
                     onChange={handleChange}
                   >
-                    <option value="">Sélectionner une couleur</option>
+                    <option value="">{t('ownedCats.selectColor', 'Sélectionner une couleur')}</option>
                     {colorOptions.map(option => (
                       <option key={option} value={option}>
-                        {option === 'AUTRE' ? 'Autre' : formatValue(option)}
+                        {option === 'AUTRE' ? t('ownedCats.otherColor', 'Autre') : formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -383,16 +389,16 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Couleur des yeux</Form.Label>
+                  <Form.Label>{t('ownedCats.eyeColor', 'Couleur des yeux')}</Form.Label>
                   <Form.Select
                     name="eyeColor"
                     value={editForm.eyeColor}
                     onChange={handleChange}
                   >
-                    <option value="">Sélectionner une couleur</option>
+                    <option value="">{t('ownedCats.selectEyeColor', 'Sélectionner une couleur')}</option>
                     {eyeColorOptions.map(option => (
                       <option key={option} value={option}>
-                        {option === 'AUTRE' ? 'Autre' : formatValue(option)}
+                        {option === 'AUTRE' ? t('ownedCats.otherEyeColor', 'Autre') : formatValue(option)}
                       </option>
                     ))}
                   </Form.Select>
@@ -403,13 +409,13 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Type de fourrure</Form.Label>
+                  <Form.Label>{t('ownedCats.furType', 'Type de fourrure')}</Form.Label>
                   <Form.Select
                     name="furType"
                     value={editForm.furType}
                     onChange={handleChange}
                   >
-                    <option value="">Sélectionner un type</option>
+                    <option value="">{t('ownedCats.selectFurType', 'Sélectionner un type')}</option>
                     {furTypeOptions.map(option => (
                       <option key={option} value={option}>
                         {formatValue(option)}
@@ -420,7 +426,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Date de naissance</Form.Label>
+                  <Form.Label>{t('ownedCats.dateOfBirth', 'Date de naissance')}</Form.Label>
                   <Form.Control
                     type="date"
                     name="dateOfBirth"
@@ -432,33 +438,33 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
             </Row>
             
             <Form.Group className="mb-3">
-              <Form.Label>Numéro de puce</Form.Label>
+              <Form.Label>{t('ownedCats.chipNumber', 'Numéro de puce')}</Form.Label>
               <Form.Control
                 type="text"
                 name="chipNumber"
                 value={editForm.chipNumber}
                 onChange={handleChange}
-                placeholder="Numéro de puce (si disponible)"
+                placeholder={t('ownedCats.chipNumberPlaceholder', 'Numéro de puce (si disponible)')}
               />
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Commentaire</Form.Label>
+              <Form.Label>{t('ownedCats.comment', 'Commentaire')}</Form.Label>
               <Form.Control
                 as="textarea"
                 name="comment"
                 value={editForm.comment}
                 onChange={handleChange}
-                placeholder="Informations supplémentaires sur votre chat"
+                placeholder={t('ownedCats.commentPlaceholder', 'Informations supplémentaires sur votre chat')}
               />
             </Form.Group>
             
             <div className="d-flex justify-content-end gap-2">
               <Button variant="secondary" onClick={() => setShowModal(false)}>
-                Annuler
+                {t('ownedCats.cancel', 'Annuler')}
               </Button>
               <Button variant="primary" type="submit">
-                Enregistrer
+                {t('ownedCats.save', 'Enregistrer')}
               </Button>
             </div>
           </Form>
@@ -486,7 +492,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         }}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Signaler un chat perdu</Modal.Title>
+          <Modal.Title>{t('ownedCats.reportLostTitle', 'Signaler un chat perdu')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={(e) => {
@@ -495,18 +501,18 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
             setShowLostModal(false);
           }}>
             <Form.Group className="mb-3">
-              <Form.Label>Commentaire</Form.Label>
+              <Form.Label>{t('ownedCats.comment', 'Commentaire')}</Form.Label>
               <Form.Control
                 as="textarea"
                 name="comment"
                 value={lostForm.comment}
                 onChange={(e) => setLostForm(prev => ({ ...prev, comment: e.target.value }))}
-                placeholder="Informations supplémentaires sur la disparition de votre chat"
+                placeholder={t('ownedCats.lostCommentPlaceholder', 'Informations supplémentaires sur la disparition de votre chat')}
               />
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Localisation</Form.Label>
+              <Form.Label>{t('ownedCats.location', 'Localisation')}</Form.Label>
               <MapLocation 
                 location={lostForm.location}
                 onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
@@ -529,10 +535,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
             
             <div className="d-flex justify-content-end gap-2">
               <Button variant="secondary" onClick={() => setShowLostModal(false)}>
-                Annuler
+                {t('ownedCats.cancel', 'Annuler')}
               </Button>
               <Button variant="primary" type="submit">
-                Signaler
+                {t('ownedCats.report', 'Signaler')}
               </Button>
             </div>
           </Form>

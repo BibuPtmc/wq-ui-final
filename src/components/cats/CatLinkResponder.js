@@ -19,11 +19,13 @@ import {
   Chip
 } from '@mui/material';
 import { useCatLink } from '../../hooks/useCatLink';
+import { useTranslation } from 'react-i18next';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 // Composant pour répondre à une demande de liaison
 export const CatLinkResponse = ({ requestId, onSuccess, onCancel }) => {
+  const { t } = useTranslation();
   const [comment, setComment] = useState('');
   const [open, setOpen] = useState(true);
   const { respondToLinkRequest, loading, error, successMessage } = useCatLink();
@@ -59,7 +61,7 @@ export const CatLinkResponse = ({ requestId, onSuccess, onCancel }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Répondre à la demande de liaison</DialogTitle>
+      <DialogTitle>{t('catLinkResponder.title', 'Répondre à la demande de liaison')}</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           {error && (
@@ -74,12 +76,12 @@ export const CatLinkResponse = ({ requestId, onSuccess, onCancel }) => {
           )}
           
           <Typography variant="body1" sx={{ mb: 2 }}>
-            Un utilisateur pense que ce chat trouvé pourrait être son chat perdu. Veuillez accepter ou refuser cette demande.
+            {t('catLinkResponder.instruction', "Un utilisateur pense que ce chat trouvé pourrait être son chat perdu. Veuillez accepter ou refuser cette demande.")}
           </Typography>
           
           <TextField
-            label="Commentaire (optionnel)"
-            placeholder="Ajoutez des informations supplémentaires ici"
+            label={t('catLinkResponder.commentLabel', 'Commentaire (optionnel)')}
+            placeholder={t('catLinkResponder.commentPlaceholder', 'Ajoutez des informations supplémentaires ici')}
             fullWidth
             multiline
             rows={3}
@@ -91,7 +93,7 @@ export const CatLinkResponse = ({ requestId, onSuccess, onCancel }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Annuler
+          {t('catLinkResponder.cancel', 'Annuler')}
         </Button>
         <Button 
           onClick={handleReject} 
@@ -100,7 +102,7 @@ export const CatLinkResponse = ({ requestId, onSuccess, onCancel }) => {
           disabled={loading}
           startIcon={<CancelIcon />}
         >
-          Refuser
+          {t('catLinkResponder.reject', 'Refuser')}
         </Button>
         <Button 
           onClick={handleAccept} 
@@ -109,7 +111,7 @@ export const CatLinkResponse = ({ requestId, onSuccess, onCancel }) => {
           disabled={loading}
           startIcon={<CheckCircleIcon />}
         >
-          {loading ? <CircularProgress size={24} /> : "Accepter"}
+          {loading ? <CircularProgress size={24} /> : t('catLinkResponder.accept', 'Accepter')}
         </Button>
       </DialogActions>
     </Dialog>

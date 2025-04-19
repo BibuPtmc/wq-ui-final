@@ -3,11 +3,13 @@ import { Modal, Row, Col, Badge, Card, Button, Carousel } from 'react-bootstrap'
 import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMarkerAlt, FaEnvelope, FaPhone, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useCatSearch } from '../../contexts/CatSearchContext';
 import { useCatsContext } from '../../contexts/CatsContext';
+import { useTranslation } from 'react-i18next';
 
 function CatDetails({ selectedCatStatus, handleClose, show }) {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { userAddress, reportedCats, ownedCats } = useCatsContext();
+  const { t, i18n } = useTranslation();
   
   // État local pour stocker les données du chat sélectionné
   const [currentCatStatus, setCurrentCatStatus] = useState(selectedCatStatus);
@@ -78,12 +80,12 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
   // Fonction pour ouvrir le client email par défaut
   const handleEmailContact = () => {
     const subject = isFoundCat 
-      ? `À propos de votre chat trouvé: ${cat.name || "Sans nom"}`
-      : `À propos de votre chat perdu: ${cat.name || "Sans nom"}`;
+      ? t('cat.emailSubjectFound', { name: cat.name || t('cat.noName') })
+      : t('cat.emailSubjectLost', { name: cat.name || t('cat.noName') });
     
     const body = isFoundCat
-      ? `Bonjour,\n\nJ'ai vu votre annonce concernant un chat trouvé et je pense qu'il pourrait s'agir du mien.\n\nCordialement,`
-      : `Bonjour,\n\nJ'ai vu votre annonce concernant un chat perdu et je pense avoir vu un chat qui lui ressemble.\n\nCordialement,`;
+      ? t('cat.emailBodyFound')
+      : t('cat.emailBodyLost');
     
     window.location.href = `mailto:${contactInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
@@ -91,8 +93,8 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
   
   // Fonction pour formater la date
   const formatDate = (dateString) => {
-    if (!dateString) return "Inconnue";
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    if (!dateString) return t('common.invalid');
+    return new Date(dateString).toLocaleDateString(i18n.language, {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
@@ -104,7 +106,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
       <Modal.Header closeButton className="bg-light">
         <Modal.Title className="d-flex align-items-center">
           <FaPaw className="me-2" style={{ color: '#8B4513' }} />
-          {isFoundCat ? "Chat trouvé" : "Chat perdu"}: {cat.name || "Sans nom"}
+          {isFoundCat ? t('cat.found') : t('cat.lost')}: {cat.name || t('cat.noName')}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-0">
@@ -148,7 +150,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                   <Carousel.Item>
                     <img
                       src="/images/noImageCat.png"
-                      alt="Aucune donnée"
+                      alt={t('cat.noImage')}
                       className="w-100"
                       style={{ height: "300px", objectFit: "cover" }}
                     />
@@ -183,7 +185,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               zIndex: 10 // S'assurer que l'overlay est au-dessus du carrousel
             }}
           >
-            <h3 className="mb-0">{cat.name || "Chat sans nom"}</h3>
+            <h3 className="mb-0">{cat.name || t('cat.noName')}</h3>
             <div className="d-flex align-items-center mt-1">
               <Badge
                 bg={cat.gender === "Mâle" ? "primary" : "danger"}
@@ -191,7 +193,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               >
                 {formatValue(cat.gender)}
               </Badge>
-              <small>Race: {formatValue(cat.breed) || "Inconnue"}</small>
+              <small>{t('cat.breed')}: {formatValue(cat.breed) || t('common.unknown')}</small>
             </div>
           </div>
         </div>
@@ -203,14 +205,14 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 <Card.Body>
                   <h5 className="mb-3">
                     <FaInfoCircle className="me-2" style={{ color: '#8B4513' }} />
-                    Informations générales
+                    {t('cat.generalInfo')}
                   </h5>
                   <Row className="g-3">
                     <Col xs={12}>
                       <div className="d-flex align-items-center">
                         <FaBirthdayCake className="me-2" style={{ color: '#8B4513' }} />
                         <div>
-                          <div className="text-muted small">Date de naissance</div>
+                          <div className="text-muted small">{t('cat.birthDate')}</div>
                           <div className="fw-semibold">
                             {formatDate(cat.dateOfBirth)}
                             {cat.dateOfBirth && ` (${calculateAge(cat.dateOfBirth)})`}
@@ -222,9 +224,9 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                       <div className="d-flex align-items-center">
                         <div className="me-2" style={{ width: '16px', height: '16px', backgroundColor: cat.color || '#ccc', borderRadius: '50%' }}></div>
                         <div>
-                          <div className="text-muted small">Couleur</div>
+                          <div className="text-muted small">{t('cat.color')}</div>
                           <div className="fw-semibold">
-                            {formatValue(cat.color) || "Inconnue"}
+                            {formatValue(cat.color) || t('common.unknown')}
                           </div>
                         </div>
                       </div>
@@ -233,9 +235,9 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                       <div className="d-flex align-items-center">
                         <div className="me-2" style={{ width: '16px', height: '16px', backgroundColor: cat.eyeColor || '#ccc', borderRadius: '50%' }}></div>
                         <div>
-                          <div className="text-muted small">Couleur des yeux</div>
+                          <div className="text-muted small">{t('cat.eyeColor')}</div>
                           <div className="fw-semibold">
-                            {formatValue(cat.eyeColor) || "Inconnue"}
+                            {formatValue(cat.eyeColor) || t('common.unknown')}
                           </div>
                         </div>
                       </div>
@@ -244,9 +246,9 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                       <div className="d-flex align-items-center">
                         <FaPaw className="me-2" style={{ color: '#8B4513' }} />
                         <div>
-                          <div className="text-muted small">Pelage</div>
+                          <div className="text-muted small">{t('cat.furType')}</div>
                           <div className="fw-semibold">
-                            {formatValue(cat.furType) || "Inconnu"}
+                            {formatValue(cat.furType) || t('common.unknown')}
                           </div>
                         </div>
                       </div>
@@ -260,7 +262,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 <Card.Body>
                   <h5 className="mb-3">
                     <FaCalendarAlt className="me-2" style={{ color: '#8B4513' }} />
-                    Statut
+                    {t('cat.status')}
                   </h5>
                   <Row className="g-3">
                     <Col xs={12}>
@@ -268,7 +270,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                         <FaCalendarAlt className="me-2" style={{ color: '#8B4513' }} />
                         <div>
                           <div className="text-muted small">
-                            {isFoundCat ? "Trouvé le" : "Perdu le"}
+                            {isFoundCat ? t('cat.foundOn') : t('cat.lostOn')}
                           </div>
                           <div className="fw-semibold">
                             {formatDate(currentCatStatus.reportDate)}
@@ -280,7 +282,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                       <div className="d-flex align-items-center">
                         <FaMapMarkerAlt className="me-2" style={{ color: '#8B4513' }} />
                         <div>
-                          <div className="text-muted small">Localisation</div>
+                          <div className="text-muted small">{t('cat.location')}</div>
                           <div className="fw-semibold">
                             {isOwnedCat && userAddress ? (
                               // Si le chat est possédé, afficher l'adresse de l'utilisateur
@@ -290,7 +292,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                               currentCatStatus.location.address || 
                               `${currentCatStatus.location.city || ''} ${currentCatStatus.location.postalCode || ''}`
                             ) : (
-                              "Adresse non disponible"
+                              t('cat.addressNotAvailable')
                             )}
                           </div>
                         </div>
@@ -307,7 +309,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               <Card.Body>
                 <h5 className="mb-3">
                   <FaComments className="me-2" style={{ color: '#8B4513' }} />
-                  Description
+                  {t('cat.description')}
                 </h5>
                 <p className="mb-0">{currentCatStatus.cat.comment}</p>
               </Card.Body>
@@ -319,12 +321,12 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               <Card.Body>
                 <h5 className="mb-3">
                   <FaInfoCircle className="me-2" style={{ color: '#8B4513' }} />
-                  Contact
+                  {t('cat.contact')}
                 </h5>
                 <p className="mb-3">
                   {isFoundCat 
-                    ? "Vous avez perdu un chat qui pourrait correspondre à cette description? Contactez la personne qui l'a trouvé:"
-                    : "Vous avez vu ce chat perdu? Contactez son propriétaire:"}
+                    ? t('cat.contactFoundMessage')
+                    : t('cat.contactLostMessage')}
                 </p>
                 
                 <Row className="g-3 mb-3">
@@ -333,7 +335,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                     <div className="d-flex align-items-center">
                       <FaPhone className="me-2" style={{ color: '#8B4513' }} />
                       <div>
-                        <div className="text-muted small">Téléphone</div>
+                        <div className="text-muted small">{t('cat.phone')}</div>
                         <div className="fw-semibold">
                           {contactInfo.phone}
                         </div>
@@ -346,7 +348,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                     <div className="d-flex align-items-center">
                       <FaEnvelope className="me-2" style={{ color: '#8B4513' }} />
                       <div>
-                        <div className="text-muted small">Email</div>
+                        <div className="text-muted small">{t('cat.email')}</div>
                         <div className="fw-semibold">
                           {contactInfo.email}
                         </div>
@@ -361,7 +363,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                   onClick={handleEmailContact}
                 >
                   <FaEnvelope className="me-2" />
-                  Envoyer un email
+                  {t('cat.sendEmail')}
                 </Button>
               </Card.Body>
             </Card>
@@ -370,7 +372,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
       </Modal.Body>
       <Modal.Footer className="bg-light">
         <Button variant="secondary" onClick={handleClose}>
-          Fermer
+          {t('common.close')}
         </Button>
       </Modal.Footer>
     </Modal>

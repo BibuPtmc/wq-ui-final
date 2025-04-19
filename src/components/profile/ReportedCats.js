@@ -10,8 +10,10 @@ import CatDetails from './CatDetails';
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import { getStatusLabel } from "../../utils/enumOptions";
+import { useTranslation } from 'react-i18next';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
+  const { t } = useTranslation();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge, findPotentialFoundCats, findPotentialLostCats } = useCatSearch();
   const { fetchCats } = useCatsContext();
@@ -196,7 +198,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   if (reportedCats.length === 0) {
     return (
-      <Alert variant="info">Vous n'avez pas de chats signalés.</Alert>
+      <Alert variant="info">{t('reportedCats.none')}</Alert>
     );
   }
 
@@ -210,7 +212,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
       <div className="text-center mb-4">
         <Badge bg="primary" className="px-3 py-2">
-          {reportedCats.length} chats signalés
+          {t('reportedCats.count', { count: reportedCats.length })}
         </Badge>
       </div>
 
@@ -240,31 +242,31 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                   />
                   <Card.Body>
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
+                      <Card.Title className="mb-0">{cat.name || t('reportedCats.noName')}</Card.Title>
                       <Badge
-                        bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                        bg={cat.gender === t('enum.gender.MALE', { defaultValue: 'Mâle' }) ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {formatValue(cat.gender) || "Genre inconnu"}
+                        {formatValue(cat.gender) || t('reportedCats.unknownGender')}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      Race: {formatValue(cat.breed) || "Inconnue"}
+                      {t('reportedCats.breed')}: {formatValue(cat.breed) || t('reportedCats.unknownBreed')}
                       {cat.dateOfBirth && (
                         <span className="ms-2">
-                          Âge: {calculateAge(cat.dateOfBirth)}
+                          {t('reportedCats.age')}: {calculateAge(cat.dateOfBirth)}
                         </span>
                       )}
                     </Card.Text>
                     <Card.Text className="text-muted small">
-                      Status: {getStatusLabel(catStatus.statusCat) || "Non spécifié"}
+                      {t('reportedCats.status')}: {getStatusLabel(catStatus.statusCat) || t('reportedCats.notSpecified')}
                     </Card.Text>
                     <Card.Text className="text-muted small">
-                      Signalé le: {new Date(catStatus.reportDate).toLocaleDateString()}
+                      {t('reportedCats.reportedOn')}: {new Date(catStatus.reportDate).toLocaleDateString()}
                     </Card.Text>
                     {catStatus.comment && (
                       <Card.Text className="text-muted small">
-                        Commentaire: {catStatus.comment}
+                        {t('reportedCats.comment')}: {catStatus.comment}
                       </Card.Text>
                     )}
                     <div className="d-flex gap-2 mt-2">
@@ -274,14 +276,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         className="flex-grow-1"
                         onClick={() => handleViewDetails(catStatus)}
                       >
-                        Voir détails
+                        {t('reportedCats.details')}
                       </Button>
                       <Button
                         variant="outline-primary"
                         size="sm"
                         onClick={() => handleEdit(catStatus)}
                       >
-                        Modifier
+                        {t('reportedCats.edit')}
                       </Button>
                       <Button
                         variant="outline-danger"
@@ -306,10 +308,10 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     {catStatus.statusCat === 'FOUND' && (
                       <div className="mt-2 text-center" key={`found-id-${catStatus.catStatusId}`}>
                         <Badge bg="info" className="px-3 py-2">
-                          ID: #{catStatus.catStatusId}
+                          {t('reportedCats.id')}: #{catStatus.catStatusId}
                         </Badge>
                         <div className="small text-muted mt-1">
-                          Communiquez cet ID au propriétaire
+                          {t('reportedCats.idHelp')}
                         </div>
                       </div>
                     )}
@@ -324,10 +326,11 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         disabled={loadingMatches[cat.catId]}
                       >
                         <FaPaw className="me-2" />
-                        {loadingMatches[cat.catId] ? 'Chargement...' : 
-                          matchCounts[cat.catId] ? 
-                          `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''} trouvée${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
-                          'Aucune correspondance'}
+                        {loadingMatches[cat.catId]
+                          ? t('reportedCats.loadingMatches')
+                          : matchCounts[cat.catId]
+                            ? t('reportedCats.matchCount', { count: matchCounts[cat.catId] })
+                            : t('reportedCats.noMatches')}
                       </Button>
                     )}
                     {catStatus.statusCat === 'FOUND' && (
@@ -340,10 +343,11 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                         disabled={loadingMatches[cat.catId]}
                       >
                         <FaPaw className="me-2" />
-                        {loadingMatches[cat.catId] ? 'Chargement...' : 
-                          matchCounts[cat.catId] ? 
-                          `${matchCounts[cat.catId]} correspondance${matchCounts[cat.catId] > 1 ? 's' : ''} trouvée${matchCounts[cat.catId] > 1 ? 's' : ''}` : 
-                          'Aucune correspondance'}
+                        {loadingMatches[cat.catId]
+                          ? t('reportedCats.loadingMatches')
+                          : matchCounts[cat.catId]
+                            ? t('reportedCats.matchCount', { count: matchCounts[cat.catId] })
+                            : t('reportedCats.noMatches')}
                       </Button>
                     )}
                   </Card.Body>
@@ -356,14 +360,14 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Modifier les informations du chat</Modal.Title>
+          <Modal.Title>{t('reportedCats.editTitle')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Nom du chat</Form.Label>
+                  <Form.Label>{t('reportedCats.name')}</Form.Label>
                   <Form.Control
                     type="text"
                     name="name"
@@ -374,16 +378,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Status</Form.Label>
+                  <Form.Label>{t('reportedCats.status')}</Form.Label>
                   <Form.Select
                     name="statusCat"
                     value={editForm.statusCat}
                     onChange={handleChange}
                   >
-                    <option key="empty" value="">Sélectionner un statut</option>
-                    <option key="lost" value="LOST">Perdu</option>
-                    <option key="found" value="FOUND">Trouvé</option>
-                    <option key="own" value="OWN">Propriétaire</option>
+                    <option key="empty" value="">{t('reportedCats.selectStatus')}</option>
+                    <option key="lost" value="LOST">{t('reportedCats.lost')}</option>
+                    <option key="found" value="FOUND">{t('reportedCats.found')}</option>
+                    <option key="own" value="OWN">{t('reportedCats.own')}</option>
                   </Form.Select>
                 </Form.Group>
               </Col>

@@ -7,8 +7,10 @@ import { useAuth } from '../../hooks/authProvider';
 import { BsCart3 } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Cart = () => {
+  const { t } = useTranslation();
   const { cartItems, removeFromCart, updateQuantity, getTotal, clearCart, stripePublicKey } = useCartContext();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -140,11 +142,11 @@ const Cart = () => {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Votre Panier</Modal.Title>
+          <Modal.Title>{t('cart.title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {cartItems.length === 0 ? (
-            <p className="text-center py-3">Votre panier est vide</p>
+            <p className="text-center py-3">{t('cart.empty')}</p>
           ) : (
             <ListGroup>
               {cartItems.map((item) => (
@@ -178,18 +180,18 @@ const Cart = () => {
           )}
           {cartItems.length > 0 && (
             <div className="mt-4 text-end">
-              <h5>Total: {getTotal().toFixed(2)} €</h5>
+              <h5>{t('cart.total')}: {getTotal().toFixed(2)} €</h5>
             </div>
           )}
           {error && (
             <div className="alert alert-danger mt-3">
-              {error}
+              {t('cart.error')}: {error}
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Fermer
+            {t('cart.close')}
           </Button>
           {cartItems.length > 0 && (
             <Button
@@ -197,7 +199,7 @@ const Cart = () => {
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? 'Chargement...' : 'Payer'}
+              {loading ? t('cart.loading') : t('cart.pay')}
             </Button>
           )}
         </Modal.Footer>
