@@ -67,9 +67,9 @@ const Footer = () => {
       <Container>
         <Row className="py-4">
           <Col lg={4} md={6} className="mb-4 mb-lg-0">
-            <h5 style={sectionTitleStyle}>Whisker Quest</h5>
+            <h5 style={sectionTitleStyle}>{t('footer.brand', 'Whisker Quest')}</h5>
             <p className="mb-4" style={{ color: "var(--dark-text)" }}>
-              {t('footer.tagline')}
+              {t('footer.tagline', 'Votre compagnon de confiance pour retrouver les chats perdus.')}
             </p>
             <div className="d-flex gap-2">
               {socialLinks.map((social, index) => (
@@ -92,33 +92,33 @@ const Footer = () => {
           </Col>
 
           <Col lg={4} md={6} className="mb-4 mb-lg-0">
-            <h5 style={sectionTitleStyle}>{t('footer.about')}</h5>
+            <h5 style={sectionTitleStyle}>{t('footer.about', 'Navigation')}</h5>
             <nav>
               <Link to="/" style={linkStyle}>
                 <FaHome className="me-2" />
-                {t('navbar.home')}
+                {t('navbar.home', 'Accueil')}
               </Link>
               <Link to="/lostCats" style={linkStyle}>
                 <FaPaw className="me-2" />
-                {t('navbar.lost')}
+                {t('navbar.lost', 'Chats Perdus')}
               </Link>
               <Link to="/foundCats" style={linkStyle}>
                 <FaPaw className="me-2" />
-                {t('navbar.found')}
+                {t('navbar.found', 'Chats Trouvés')}
               </Link>
               <Link to="/contact" style={linkStyle}>
                 <FaEnvelope className="me-2" />
-                {t('footer.contact')}
+                {t('footer.contact', 'Contact')}
               </Link>
             </nav>
           </Col>
 
           <Col lg={4} md={12}>
-            <h5 style={sectionTitleStyle}>{t('footer.contact')}</h5>
+            <h5 style={sectionTitleStyle}>{t('footer.contact', 'Contact')}</h5>
             <div style={{ color: "var(--dark-text)" }}>
               <p className="d-flex align-items-center mb-2">
                 <FaMapMarkerAlt className="me-2" />
-                Braine L'Alleud, 1420, BE
+                {t('footer.address', 'Braine L\'Alleud, 1420, BE')}
               </p>
               <p className="mb-2">
                 <a 
@@ -147,7 +147,7 @@ const Footer = () => {
         <Row>
           <Col className="text-center py-3" style={{ borderTop: "1px solid var(--secondary-color)" }}>
             <p className="mb-0">
-              {t('footer.copyright', { year: currentYear })} - {t('footer.followUs')} <span style={{ color: '#dc3545' }}>❤</span> MOTQUIN Anaïs
+              {t('footer.copyright', { year: currentYear, defaultValue: `${currentYear} Whisker Quest - Développé avec` })} <span style={{ color: '#dc3545' }}>❤</span> MOTQUIN Anaïs - {t('footer.followUs', 'Suivez-nous')}
             </p>
           </Col>
         </Row>

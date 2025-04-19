@@ -34,36 +34,36 @@ export const ContactUs = () => {
   return (
     <Container className="mt-3">
       {messageSent && (
-        <div className="alert alert-success">{t('contact.sentMessage')}</div>
-      )}{" "}
+        <div className="alert alert-success">{t('contact.sentMessage', 'Message envoyé!')}</div>
+      )} {" "}
       {/* Afficher le message "Message envoyé" si le message a été envoyé avec succès */}
       <Form ref={form} onSubmit={sendEmail}>
         <Form.Group controlId="formName">
-          <Form.Label>{t('contact.name')}</Form.Label>
+          <Form.Label>{t('contact.name', 'Nom')}</Form.Label>
           <Form.Control
             type="text"
             name="user_name"
-            placeholder={t('contact.placeholderName')}
+            placeholder={t('contact.placeholderName', 'Entrez votre nom')}
             required
           />{" "}
           {/* Champ nom obligatoire */}
         </Form.Group>
         <Form.Group controlId="formEmail">
-          <Form.Label>{t('contact.email')}</Form.Label>
+          <Form.Label>{t('contact.email', 'Email')}</Form.Label>
           <Form.Control
             type="email"
             name="user_email"
-            placeholder={t('contact.placeholderEmail')}
+            placeholder={t('contact.placeholderEmail', 'Entrez votre email')}
             required
           />{" "}
           {/* Champ email obligatoire */}
         </Form.Group>
         <Form.Group controlId="formMessage">
-          <Form.Label>{t('contact.message')}</Form.Label>
+          <Form.Label>{t('contact.message', 'Message')}</Form.Label>
           <Form.Control
             as="textarea"
             name="message"
-            placeholder={t('contact.placeholderMessage')}
+            placeholder={t('contact.placeholderMessage', 'Entrez votre message')}
             rows={3}
             required
           />{" "}
@@ -72,7 +72,7 @@ export const ContactUs = () => {
         <div className="mb-3"></div>{" "}
         {/* Ajout d'un espace de 3 unités (1 rem) */}
         <Button variant="light" type="submit" style={buttonStyles}>
-          {t('contact.send')}
+          {t('contact.send', 'Envoyer')}
         </Button>
       </Form>
     </Container>

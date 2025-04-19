@@ -130,9 +130,9 @@ function RegisterCat() {
       <Container className="py-5">
         <Card className="shadow-sm">
           <Card.Body className="text-center py-5">
-            <h2 className="mb-4">Connexion requise</h2>
+            <h2 className="mb-0">{t('cat.register', 'Signaler un chat')}</h2>
             <p className="text-muted mb-4">
-              Vous devez être connecté pour signaler un chat perdu ou trouvé.
+              {t('cat.loginRequired', 'Vous devez être connecté pour signaler un chat perdu ou trouvé.')}
             </p>
             <div className="d-flex justify-content-center gap-3">
               <Button 
@@ -140,14 +140,14 @@ function RegisterCat() {
                 onClick={() => navigate("/login")}
                 className="px-4"
               >
-                Se connecter
+                {t('common.login', 'Se connecter')}
               </Button>
               <Button 
                 variant="outline-primary" 
                 onClick={() => navigate("/register")}
                 className="px-4"
               >
-                S'inscrire
+                {t('common.register', 'S\'inscrire')}
               </Button>
             </div>
           </Card.Body>
@@ -184,7 +184,7 @@ function RegisterCat() {
         if (updatedFormData.reportDate) {
           const reportDate = new Date(updatedFormData.reportDate);
           if (selectedDate > reportDate) {
-            newValidationErrors.dateComparison = "La date de naissance ne peut pas être postérieure à la date de signalement";
+            newValidationErrors.dateComparison = t('cat.errorDateComparison', 'La date de signalement ne peut pas être antérieure à la date de naissance');
           } else {
             newValidationErrors.dateComparison = "";
           }
@@ -374,7 +374,7 @@ function RegisterCat() {
         <Card className="shadow-sm">
           <Card.Header style={{ backgroundColor: 'var(--primary-color)' }} className="text-white text-center py-3">
             <FaPaw className="me-2" size={24} />
-            <h2 className="mb-0">{t('cat.register')}</h2>
+            <h2 className="mb-0">{t('cat.register', 'Signaler un chat')}</h2>
           </Card.Header>
           <Card.Body className="p-4">
             {showSuccessMessage && (
@@ -392,7 +392,7 @@ function RegisterCat() {
                     </Card.Header>
                     <Card.Body>
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.status')}*</Form.Label>
+                        <Form.Label>{t('cat.status', 'Statut')}*</Form.Label>
                         <Form.Select
                           name="statusCat"
                           value={formData.statusCat}
@@ -409,7 +409,7 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.name')}</Form.Label>
+                        <Form.Label>{t('cat.name', 'Nom du chat')}</Form.Label>
                         <Form.Control
                           type="text"
                           name="name"
@@ -420,7 +420,7 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.breed')}</Form.Label>
+                        <Form.Label>{t('cat.breed', 'Race')}</Form.Label>
                         <Select
                           name="breed"
                           value={catBreeds.find((option) => option.value === formData.breed)}
@@ -434,7 +434,7 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.gender')}*</Form.Label>
+                        <Form.Label>{t('cat.gender', 'Genre')}*</Form.Label>
                         <Form.Select
                           name="gender"
                           value={formData.gender}
@@ -465,7 +465,7 @@ function RegisterCat() {
                       <Row>
                         <Col sm={6}>
                           <Form.Group className="mb-3">
-                            <Form.Label>{t('cat.birthDate')}</Form.Label>
+                            <Form.Label>{t('cat.birthDate', 'Date de naissance')}</Form.Label>
                             <Form.Control
                               type="date"
                               name="dateOfBirth"
@@ -512,7 +512,7 @@ function RegisterCat() {
                     </Card.Header>
                     <Card.Body>
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.color')}</Form.Label>
+                        <Form.Label>{t('cat.color', 'Couleur')}</Form.Label>
                         <Form.Select
                           name="color"
                           value={formData.color}
@@ -529,7 +529,7 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.eyeColor')}</Form.Label>
+                        <Form.Label>{t('cat.eyeColor', 'Couleur des yeux')}</Form.Label>
                         <Form.Select
                           name="eyeColor"
                           value={formData.eyeColor}
@@ -546,7 +546,7 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>{t('cat.furType')}</Form.Label>
+                        <Form.Label>{t('cat.furType', 'Type de fourrure')}</Form.Label>
                         <Form.Select
                           name="furType"
                           value={formData.furType}
@@ -598,7 +598,7 @@ function RegisterCat() {
                       </Form.Group>
 
                       <Form.Group>
-                        <Form.Label>{t('cat.description')}</Form.Label>
+                        <Form.Label>{t('cat.description', 'Commentaire')}</Form.Label>
                         <Form.Control
                           as="textarea"
                           rows={3}
@@ -617,7 +617,7 @@ function RegisterCat() {
               <Card className="mb-4">
                 <Card.Header className="bg-light d-flex align-items-center">
                   <FaMapMarkerAlt className="me-2" />
-                  <h5 className="mb-0">{t('cat.location')}</h5>
+                  <h5 className="mb-0">{t('cat.location', 'Localisation du chat')}</h5>
                 </Card.Header>
                 <Card.Body>
                   <p className="text-muted">{t('cat.locationHint', 'Indiquez l\'endroit où le chat a été vu pour la dernière fois.')}</p>
@@ -667,7 +667,7 @@ function RegisterCat() {
                       {t('cat.loadingImages', 'Chargement des images...')}
                     </>
                   ) : (
-                    t('cat.register')
+                    t('cat.register', 'Signaler un chat')
                   )}
                 </Button>
               </div>

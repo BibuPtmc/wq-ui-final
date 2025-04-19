@@ -49,7 +49,7 @@ const ImageUploader = ({
     if (!allowedTypes.includes(file.type)) {
       return { 
         isValid: false, 
-        errorMessage: t('upload.unsupportedFileType', 'Unsupported file type. Accepted formats: {{formats}}', {
+        errorMessage: t('upload.unsupportedFileType', 'Type de fichier non supporté. Formats acceptés: {{formats}}', {
           formats: allowedTypes.map(type => type.split('/')[1]).join(', ')
         })
       };
@@ -60,7 +60,7 @@ const ImageUploader = ({
     if (fileSizeInMB > maxSize) {
       return { 
         isValid: false, 
-        errorMessage: t('upload.fileTooLarge', 'File too large ({{size}} MB). Maximum size: {{maxSize}} MB', {
+        errorMessage: t('upload.fileTooLarge', 'Fichier trop volumineux ({{size}} Mo). Taille maximale: {{maxSize}} Mo', {
           size: fileSizeInMB.toFixed(2),
           maxSize: maxSize
         })
@@ -80,7 +80,7 @@ const ImageUploader = ({
     
     // Check if maximum number of images is reached
     if (multiple && (previews.length + selectedFiles.length) > maxImages) {
-      setError(t('upload.tooManyImages', 'You cannot upload more than {{maxImages}} images.', { maxImages }));
+      setError(t('upload.tooManyImages', 'Vous ne pouvez pas télécharger plus de {{maxImages}} images.', { maxImages }));
       return;
     }
     
@@ -158,7 +158,7 @@ const ImageUploader = ({
       });
       
       // More precise error message
-      let errorMsg = t('upload.uploadFailed', 'Image upload failed. Please try again.');
+      let errorMsg = t('upload.uploadFailed', 'Échec du téléchargement de l\'image. Veuillez réessayer.');
       if (err.response?.data) {
         errorMsg = typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data);
       } else if (err.message) {
@@ -213,7 +213,7 @@ const ImageUploader = ({
               <div key={index} className="position-relative" style={{ width: multiple ? '120px' : '100%' }}>
                 <img 
                   src={preview} 
-                  alt={t('upload.preview', 'Preview {{number}}', { number: index + 1 })} 
+                  alt={t('upload.preview', 'Aperçu {{number}}', { number: index + 1 })} 
                   className="img-fluid rounded" 
                   style={{ 
                     height: multiple ? "120px" : "200px", 
@@ -246,7 +246,7 @@ const ImageUploader = ({
           </div>
           {multiple && (
             <small className="text-muted d-block mt-2">
-              {t('upload.imageCount', '{{current}} of {{max}} images', { current: previews.length, max: maxImages })}
+              {t('upload.imageCount', '{{current}} sur {{max}} images', { current: previews.length, max: maxImages })}
             </small>
           )}
         </div>
@@ -257,10 +257,10 @@ const ImageUploader = ({
           onClick={() => document.getElementById('file-upload').click()}
         >
           <FaCamera size={24} className="mb-2" />
-          <p className="mb-0">{t('upload.clickToAdd', 'Click to {{action}}', { action: multiple ? t('upload.addPhotos', 'add photos') : t('upload.addPhoto', 'add a photo') })}</p>
+          <p className="mb-0">{t('upload.clickToAdd', 'Cliquez pour {{action}}', { action: multiple ? t('upload.addPhotos', 'ajouter des photos') : t('upload.addPhoto', 'ajouter une photo') })}</p>
           <small className="text-muted d-block mt-2">
-            {t('upload.acceptedFormats', 'Accepted formats: {{formats}}', { formats: allowedTypes.map(type => type.split('/')[1]).join(', ') })}<br />
-            {t('upload.maxSize', 'Max size: {{size}} MB', { size: maxSize })} {multiple && t('upload.maxImages', '({{max}} images maximum)', { max: maxImages })}
+            {t('upload.acceptedFormats', 'Formats acceptés: {{formats}}', { formats: allowedTypes.map(type => type.split('/')[1]).join(', ') })}<br />
+            {t('upload.maxSize', 'Taille max: {{size}} Mo', { size: maxSize })} {multiple && t('upload.maxImages', '({{max}} images maximum)', { max: maxImages })}
           </small>
         </div>
       )}
@@ -270,7 +270,7 @@ const ImageUploader = ({
         <div className="mt-2">
           <div className="d-flex align-items-center">
             <Spinner animation="border" size="sm" className="me-2" /> 
-            <span>{t('upload.uploading', 'Uploading... {{progress}}%', { progress: uploadProgress })}</span>
+            <span>{t('upload.uploading', 'Téléchargement en cours... {{progress}}%', { progress: uploadProgress })}</span>
           </div>
           <div className="progress mt-1" style={{ height: '5px' }}>
             <div 

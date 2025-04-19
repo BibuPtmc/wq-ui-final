@@ -31,7 +31,7 @@ const NavBar = () => {
   }, [scrolled]);
 
   const handleLogout = () => {
-    if (window.confirm(t('auth.logoutConfirm'))) {
+    if (window.confirm(t('auth.logoutConfirm', 'Êtes-vous sûr de vouloir vous déconnecter ?'))) {
       logout();
       navigate("/");
     }
@@ -93,7 +93,7 @@ const NavBar = () => {
               to="/" 
               style={location.pathname === '/' ? activeLinkStyle : linkStyle}
             >
-              <FaHome className="me-1" /> {t('navbar.home')}
+              <FaHome className="me-1" /> {t('navbar.home', 'Accueil')}
             </Nav.Link>
             
             <Nav.Link 
@@ -101,7 +101,7 @@ const NavBar = () => {
               to="/contact" 
               style={location.pathname === '/contact' ? activeLinkStyle : linkStyle}
             >
-              <FaEnvelope className="me-1" /> {t('navbar.contact')}
+              <FaEnvelope className="me-1" /> {t('navbar.contact', 'Contact')}
             </Nav.Link>
 
             <Nav.Link 
@@ -109,7 +109,7 @@ const NavBar = () => {
               to="/registerCat" 
               style={location.pathname === '/registerCat' ? activeLinkStyle : linkStyle}
             >
-              <FaExclamationTriangle className="me-1" /> {t('navbar.report')}
+              <FaExclamationTriangle className="me-1" /> {t('navbar.report', 'Signaler')}
             </Nav.Link>
 
             <Nav.Link 
@@ -117,7 +117,7 @@ const NavBar = () => {
               to="/lostCats" 
               style={location.pathname === '/lostCats' ? activeLinkStyle : linkStyle}
             >
-              <FaSearch className="me-1" /> {t('navbar.lost')}
+              <FaSearch className="me-1" /> {t('navbar.lost', 'Perdu')}
             </Nav.Link>
 
             <Nav.Link 
@@ -125,7 +125,7 @@ const NavBar = () => {
               to="/foundCats" 
               style={location.pathname === '/foundCats' ? activeLinkStyle : linkStyle}
             >
-              <FaPaw className="me-1" /> {t('navbar.found')}
+              <FaPaw className="me-1" /> {t('navbar.found', 'Trouvé')}
             </Nav.Link>
 
             <Nav.Link 
@@ -133,7 +133,7 @@ const NavBar = () => {
               to="/gps-collars" 
               style={location.pathname === '/gps-collars' ? activeLinkStyle : linkStyle}
             >
-              <FaTag className="me-1" /> {t('navbar.gpsCollars')}
+              <FaTag className="me-1" /> {t('navbar.gpsCollars', 'Colliers GPS')}
             </Nav.Link>
           </Nav>
 
@@ -146,15 +146,15 @@ const NavBar = () => {
                 <LanguageSwitcher className="me-2" />
                 <Dropdown align="end">
                   <Dropdown.Toggle variant="link" id="dropdown-basic" style={linkStyle}>
-                    <FaUser className="me-1" /> {userData ? `${t('navbar.hello')} ${userData.firstName}` : t('navbar.hello')}
+                    <FaUser className="me-1" /> {userData ? `${t('navbar.hello', 'Bonjour')} ${userData.firstName}` : t('navbar.hello', 'Bonjour')}
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
                     <Dropdown.Item as={Link} to="/profile">
-                      <FaUser className="me-2" /> {t('navbar.profile')}
+                      <FaUser className="me-2" /> {t('navbar.profile', 'Profil')}
                     </Dropdown.Item>
                     <Dropdown.Item onClick={handleLogout}>
-                      <FaSignOutAlt className="me-2" /> {t('navbar.logout')}
+                      <FaSignOutAlt className="me-2" /> {t('navbar.logout', 'Déconnexion')}
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
@@ -169,7 +169,7 @@ const NavBar = () => {
                     variant="outline-primary"
                     className="rounded-pill px-4"
                   >
-                    {t('navbar.login')}
+                    {t('navbar.login', 'Connexion')}
                   </Button>
                 </motion.div>
 
@@ -180,7 +180,7 @@ const NavBar = () => {
                     variant="primary"
                     className="rounded-pill px-4"
                   >
-                    {t('navbar.register')}
+                    {t('navbar.register', 'Inscription')}
                   </Button>
                 </motion.div>
               </div>

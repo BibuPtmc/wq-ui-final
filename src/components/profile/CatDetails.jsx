@@ -80,12 +80,12 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
   // Fonction pour ouvrir le client email par défaut
   const handleEmailContact = () => {
     const subject = isFoundCat 
-      ? t('cat.emailSubjectFound', { name: cat.name || t('cat.noName') })
-      : t('cat.emailSubjectLost', { name: cat.name || t('cat.noName') });
+      ? t('cat.emailSubjectFound', { name: cat.name || t('cat.noName', 'Sans nom') }, 'À propos de votre chat trouvé: {{name}}')
+      : t('cat.emailSubjectLost', { name: cat.name || t('cat.noName', 'Sans nom') }, 'À propos de votre chat perdu: {{name}}');
     
     const body = isFoundCat
-      ? t('cat.emailBodyFound')
-      : t('cat.emailBodyLost');
+      ? t('cat.emailBodyFound', 'Bonjour,\n\nJ\'ai vu votre annonce concernant un chat trouvé et je pense qu\'il pourrait s\'agir du mien.\n\nCordialement,')
+      : t('cat.emailBodyLost', 'Bonjour,\n\nJ\'ai vu votre annonce concernant un chat perdu et je pense avoir vu un chat qui lui ressemble.\n\nCordialement,');
     
     window.location.href = `mailto:${contactInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
@@ -93,7 +93,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
   
   // Fonction pour formater la date
   const formatDate = (dateString) => {
-    if (!dateString) return t('common.invalid');
+    if (!dateString) return t('common.invalid', 'Inconnue');
     return new Date(dateString).toLocaleDateString(i18n.language, {
       day: 'numeric',
       month: 'long',
@@ -106,7 +106,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
       <Modal.Header closeButton className="bg-light">
         <Modal.Title className="d-flex align-items-center">
           <FaPaw className="me-2" style={{ color: '#8B4513' }} />
-          {isFoundCat ? t('cat.found') : t('cat.lost')}: {cat.name || t('cat.noName')}
+          {isFoundCat ? t('cat.found', 'Chat trouvé') : t('cat.lost', 'Chat perdu')}: {cat.name || t('cat.noName', 'Sans nom')}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-0">
@@ -150,7 +150,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                   <Carousel.Item>
                     <img
                       src="/noImageCat.png"
-                      alt={t('cat.noImage')}
+                      alt={t('cat.noImage', 'Aucune donnée')}
                       className="w-100"
                       style={{ height: "300px", objectFit: "cover" }}
                     />
@@ -185,15 +185,15 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               zIndex: 10 // S'assurer que l'overlay est au-dessus du carrousel
             }}
           >
-            <h3 className="mb-0">{cat.name || t('cat.noName')}</h3>
+            <h3 className="mb-0">{cat.name || t('cat.noName', 'Chat sans nom')}</h3>
             <div className="d-flex align-items-center mt-1">
               <Badge
-                bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                bg={cat.gender === t('cat.male', { defaultValue: 'Mâle' }) ? "primary" : "danger"}
                 className="me-2"
               >
-                {formatValue(cat.gender)}
+                {formatValue(cat.gender) || t('cat.unknownGender', 'Genre inconnu')}
               </Badge>
-              <small>{t('cat.breed')}: {formatValue(cat.breed) || t('common.unknown')}</small>
+              <small>{t('cat.breed', 'Race')}: {formatValue(cat.breed) || t('common.unknown', 'Inconnue')}</small>
             </div>
           </div>
         </div>
@@ -212,10 +212,10 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                       <div className="d-flex align-items-center">
                         <FaBirthdayCake className="me-2" style={{ color: '#8B4513' }} />
                         <div>
-                          <div className="text-muted small">{t('cat.birthDate')}</div>
+                          <div className="text-muted small">{t('cat.birthDate', 'Date de naissance')}</div>
                           <div className="fw-semibold">
                             {formatDate(cat.dateOfBirth)}
-                            {cat.dateOfBirth && ` (${calculateAge(cat.dateOfBirth)})`}
+                            {cat.dateOfBirth && ` (${t('cat.age', 'Âge')}: ${calculateAge(cat.dateOfBirth)})`}
                           </div>
                         </div>
                       </div>

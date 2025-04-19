@@ -142,11 +142,11 @@ const Cart = () => {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>{t('cart.title')}</Modal.Title>
+          <Modal.Title>{t('cart.title', 'Votre Panier')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {cartItems.length === 0 ? (
-            <p className="text-center py-3">{t('cart.empty')}</p>
+            <p className="text-center py-3">{t('cart.empty', 'Votre panier est vide')}</p>
           ) : (
             <ListGroup>
               {cartItems.map((item) => (
@@ -180,18 +180,18 @@ const Cart = () => {
           )}
           {cartItems.length > 0 && (
             <div className="mt-4 text-end">
-              <h5>{t('cart.total')}: {getTotal().toFixed(2)} €</h5>
+              <h5>{t('cart.total', 'Total')}: {getTotal().toFixed(2)} €</h5>
             </div>
           )}
           {error && (
             <div className="alert alert-danger mt-3">
-              {t('cart.error')}: {error}
+              {t('cart.error', 'Erreur')}: {error}
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            {t('cart.close')}
+            {t('cart.close', 'Fermer')}
           </Button>
           {cartItems.length > 0 && (
             <Button
@@ -199,7 +199,7 @@ const Cart = () => {
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? t('cart.loading') : t('cart.pay')}
+              {loading ? t('cart.loading', 'Chargement...') : t('cart.pay', 'Payer')}
             </Button>
           )}
         </Modal.Footer>

@@ -18,7 +18,7 @@ const EcommerceNavbar = () => {
     <>
       <Navbar bg="light" expand="lg" className="mb-3">
         <Container>
-          <Navbar.Brand>{t('ecommerceNavbar.shopTitle')}</Navbar.Brand>
+          <Navbar.Brand>{t('ecommerceNavbar.shopTitle', 'WhiskerQuest Shop')}</Navbar.Brand>
           <Button
             variant="outline-primary"
             onClick={() => setShowCart(true)}

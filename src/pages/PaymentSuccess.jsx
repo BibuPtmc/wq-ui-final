@@ -48,13 +48,13 @@ const PaymentSuccess = () => {
       />
       <Container className="py-5">
         <Alert variant="success" className="text-center">
-          <Alert.Heading className="display-4">{t('paymentSuccess.title')}</Alert.Heading>
+          <Alert.Heading className="display-4">{t('paymentSuccess.title', '😻 Paiement réussi ! 😻')}</Alert.Heading>
           <p className="lead mb-4">
-            {t('paymentSuccess.thankYou')}
+            {t('paymentSuccess.thankYou', 'Merci pour votre commande. Votre paiement a été traité avec succès. Vous recevrez bientôt un email de confirmation.')}
           </p>
           <hr />
           <p className="mb-4">
-            {t('paymentSuccess.processing')}
+            {t('paymentSuccess.processing', 'Votre commande est en cours de traitement et sera bientôt expédiée.')}
           </p>
           <Button 
             variant="primary" 
@@ -62,7 +62,7 @@ const PaymentSuccess = () => {
             onClick={() => navigate('/')}
             className="px-5"
           >
-            {t('paymentSuccess.backHome')}
+            {t('paymentSuccess.backHome', "Retour à l'accueil")}
           </Button>
         </Alert>
       </Container>
