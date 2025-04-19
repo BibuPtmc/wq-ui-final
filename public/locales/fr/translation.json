@@ -399,6 +399,7 @@
 "pendingLinkRequests.loading": "Chargement des demandes en attente...",
 "cart.checkout": "Passer la commande",
 "cart.clear": "Vider le panier",
+"foundCats.showFilters": "Filtrer les résultats",
 "cart.remove": "Retirer",
 "cart.quantity": "Quantité",
 "cart.success": "Commande passée avec succès !",
