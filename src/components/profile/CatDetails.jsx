@@ -149,7 +149,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                 return (
                   <Carousel.Item>
                     <img
-                      src="/images/noImageCat.png"
+                      src="/noImageCat.png"
                       alt={t('cat.noImage')}
                       className="w-100"
                       style={{ height: "300px", objectFit: "cover" }}
@@ -167,7 +167,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
                     className="w-100"
                     style={{ height: "300px", objectFit: "cover" }}
                     onError={(e) => {
-                      e.target.src = "/images/noImageCat.png";
+                      e.target.src = "/noImageCat.png";
                       e.target.onerror = null;
                     }}
                   />

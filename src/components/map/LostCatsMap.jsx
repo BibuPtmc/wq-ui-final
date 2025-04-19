@@ -5,7 +5,7 @@ import { Card, Spinner, Alert, Badge, Button } from 'react-bootstrap';
 import { FaCat, FaMapMarkerAlt } from 'react-icons/fa';
 import '../../styles/mapbox-popup.css'; 
 import useGeolocation from '../../hooks/useGeolocation';
-// Nous n'importons plus reverseGeocode ici, mais directement dans la fonction
+import { reverseGeocode } from "../../utils/geocodingService"; // Import ES6 pour Vite
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useAxiosContext } from "../../contexts/AxiosContext";
@@ -35,9 +35,6 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
 
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
     try {
-      // Importer la fonction directement ici pour éviter les problèmes de portée
-      const { reverseGeocode } = require("../../utils/geocodingService");
-      
       // Utiliser la fonction importée
       const addressInfo = await reverseGeocode(longitude, latitude);
   
@@ -114,7 +111,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
     // Utiliser l'image du chat depuis les données Cloudinary
     const catImage = catStatus.cat.imageUrl || 
       (catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0 ? catStatus.cat.imageUrls[0] : 
-      "/images/noImageCat.png");
+      "/noImageCat.png");
 
     // Construction du HTML pour le popup sans inclure les styles inline
     return {
@@ -122,7 +119,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
       latitude: catStatus.location.latitude,
       popupContent: `
         <div class="cat-popup">
-          <img src="${catImage}" alt="${catStatus.cat.name || 'Chat sans nom'}" class="cat-popup-img" onerror="this.src='/images/noImageCat.png'; this.onerror=null;">
+          <img src="${catImage}" alt="${catStatus.cat.name || 'Chat sans nom'}" class="cat-popup-img" onerror="this.src='/noImageCat.png'; this.onerror=null;">
           <h5 class="cat-popup-title">${catStatus.cat.name || 'Chat sans nom'}</h5>
           <p class="cat-popup-date">Signalé perdu le: ${reportDate}</p>
           

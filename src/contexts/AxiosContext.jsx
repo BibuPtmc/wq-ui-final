@@ -8,7 +8,7 @@ export const AxiosProvider = ({ children }) => {
   // Création de l'instance axios
   const axiosInstance = useMemo(() => {
     const instance = axios.create({
-      baseURL: process.env.REACT_APP_API,
+      baseURL: import.meta.env.VITE_API,
     });
 
     // Intercepteur de requêtes pour ajouter dynamiquement le token à chaque requête

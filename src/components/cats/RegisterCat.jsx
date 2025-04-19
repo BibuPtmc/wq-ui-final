@@ -20,7 +20,7 @@ import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
 import { useTranslation } from 'react-i18next';
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 function RegisterCat() {
   // Utiliser les fonctions du contexte

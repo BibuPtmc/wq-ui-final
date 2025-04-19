@@ -32,11 +32,11 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                     variant="top"
                     src={cat.imageUrl || 
                       (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
-                      "/images/noImageCat.png")}
+                      "/noImageCat.png")}
                     alt={cat.name}
                     style={{ height: '200px', objectFit: 'cover' }}
                     onError={(e) => {
-                      e.target.src = "/images/noImageCat.png";
+                      e.target.src = "/noImageCat.png";
                       e.target.onerror = null; // Empêche les erreurs en boucle
                     }}
                     />

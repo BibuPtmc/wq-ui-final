@@ -6,7 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import AddressAutofill from './AddressAutofill';
 
 // Utiliser la variable d'environnement
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 
 const MapLocation = ({ 

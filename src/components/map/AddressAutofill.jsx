@@ -6,7 +6,7 @@ import mapboxgl from 'mapbox-gl';
 
 
 // Utiliser la variable d'environnement
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const AddressAutofill = ({ 
   value, 
@@ -48,7 +48,7 @@ const AddressAutofill = ({
     try {
       const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`;
       const params = new URLSearchParams({
-        access_token: process.env.REACT_APP_MAPBOX_TOKEN,
+        access_token: import.meta.env.VITE_MAPBOX_TOKEN,
         types: 'address,place',
         limit: 5,
         language: 'fr',

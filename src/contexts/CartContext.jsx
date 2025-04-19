@@ -15,7 +15,7 @@ export const useCart = useCartContext;
 
 export const CartProvider = ({ children }) => {
   // Utiliser la clé publique depuis les variables d'environnement
-  const stripePublicKey = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
+  const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
   
   // Vérifier si la clé est disponible
   useEffect(() => {

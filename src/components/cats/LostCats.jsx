@@ -9,6 +9,7 @@ import CatDetails from "../profile/CatDetails";
 import MatchingResults from "./MatchingResults";
 import Select from "react-select";
 import catBreeds from "../../CatBreeds";
+import { colorOptions as colorChoices, eyeColorOptions as eyeColorChoices } from "../../utils/enumOptions";
 // Importation du nouveau contexte au lieu des hooks individuels
 import { useCatSearch } from "../../contexts/CatSearchContext";
 
@@ -41,17 +42,17 @@ function LostCats() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Options pour les filtres avec valeur vide pour "Toutes les options"
-  const colorOptions = [
+  const colorSelectOptions = [
     { value: "", label: t('lostCats.allColors', 'Toutes les couleurs') },
-    ...require("../../utils/enumOptions").colorOptions.map(value => ({ 
+    ...colorChoices.map(value => ({ 
       value, 
       label: formatValue(value) 
     }))
   ];
 
-  const eyeColorOptions = [
+  const eyeColorSelectOptions = [
     { value: "", label: t('lostCats.allEyeColors', "Toutes les couleurs d'yeux") },
-    ...require("../../utils/enumOptions").eyeColorOptions.map(value => ({ 
+    ...eyeColorChoices.map(value => ({ 
       value, 
       label: formatValue(value) 
     }))
@@ -152,8 +153,8 @@ function LostCats() {
                 <Form.Group>
                   <Form.Label>Couleur</Form.Label>
                   <Select
-                    options={colorOptions}
-                    value={colorOptions.find(option => option.value === filters.color) || colorOptions[0]}
+                    options={colorSelectOptions}
+                    value={colorSelectOptions.find(option => option.value === filters.color) || colorSelectOptions[0]}
                     onChange={(selectedOption) => handleFilterChange('color', selectedOption.value)}
                     isSearchable
                     placeholder="Toutes les couleurs"
@@ -166,8 +167,8 @@ function LostCats() {
                 <Form.Group>
                   <Form.Label>Couleur des yeux</Form.Label>
                   <Select
-                    options={eyeColorOptions}
-                    value={eyeColorOptions.find(option => option.value === filters.eyeColor) || eyeColorOptions[0]}
+                    options={eyeColorSelectOptions}
+                    value={eyeColorSelectOptions.find(option => option.value === filters.eyeColor) || eyeColorSelectOptions[0]}
                     onChange={(selectedOption) => handleFilterChange('eyeColor', selectedOption.value)}
                     isSearchable
                     placeholder="Toutes les couleurs d'yeux"
@@ -299,14 +300,14 @@ function LostCats() {
                             alt={cat.name || 'Chat'}
                             style={{ objectFit: 'cover', height: '100%', width: '100%' }}
                             onError={(e) => {
-                              e.target.src = "/images/noImageCat.png";
+                              e.target.src = "/noImageCat.png";
                               e.target.onerror = null; // Empêche les erreurs en boucle
                             }}
                           />
                         ) : (
                           <Card.Img
                             variant="top"
-                            src="/images/noImageCat.png"
+                            src="/noImageCat.png"
                             alt="Aucune photo"
                             style={{ objectFit: 'cover', height: '100%', width: '100%' }}
                           />

@@ -1,45 +1,29 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import HttpApi from 'i18next-http-backend';
 
-// Import des fichiers de traduction
-import translationEN from './locales/en/translation.json';
-import translationFR from './locales/fr/translation.json';
-import translationNL from './locales/nl/translation.json';
-
-// Les ressources de traduction
-const resources = {
-  en: {
-    translation: translationEN
-  },
-  fr: {
-    translation: translationFR
-  },
-  nl: {
-    translation: translationNL
-  }
-};
-
+// Initialise i18n
 i18n
-  // Détecte la langue du navigateur
+  .use(HttpApi) // Permet de charger les traductions depuis /public/locales
   .use(LanguageDetector)
-  // Passe l'instance i18n à react-i18next
   .use(initReactI18next)
-  // Initialise i18next
   .init({
-    resources,
-    fallbackLng: 'fr', // Langue par défaut si la langue détectée n'est pas disponible
-    debug: process.env.NODE_ENV === 'development', // Active le mode debug en développement
+    fallbackLng: 'fr',
+    debug: import.meta.env.DEV,
 
     interpolation: {
-      escapeValue: false, // Pas besoin d'échapper les valeurs car React le fait déjà
+      escapeValue: false
     },
 
-    // Options de détection de langue
     detection: {
       order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'language', // Clé utilisée dans localStorage
-      caches: ['localStorage'],
+      lookupLocalStorage: 'language',
+      caches: ['localStorage']
+    },
+
+    backend: {
+      loadPath: '/locales/{{lng}}/translation.json', // chemin vers tes fichiers publics
     }
   });
 
