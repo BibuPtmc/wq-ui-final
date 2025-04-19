@@ -146,7 +146,13 @@ const Cart = () => {
         </Modal.Header>
         <Modal.Body>
           {cartItems.length === 0 ? (
-            <p className="text-center py-3">{t('cart.empty', 'Votre panier est vide')}</p>
+            <div className="text-center py-4">
+              <span style={{fontSize: '2.5rem', color: '#ccc'}}>🛒</span>
+              <p className="mt-3">{t('cart.empty', 'Votre panier est vide')}</p>
+              <Button variant="outline-primary" onClick={() => { setShowModal(false); navigate('/gps-collars'); }}>
+                {t('cart.backToShop', 'Retourner à la boutique')}
+              </Button>
+            </div>
           ) : (
             <ListGroup>
               {cartItems.map((item) => (
