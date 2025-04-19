@@ -416,6 +416,9 @@
 "cart.loginRequired": "Connexion requise",
 "cart.login": "Se connecter",
 "cart.productUnavailable": "Produit non disponible",
-"cart.backToShop": "Retour à la boutique"
+"paymentSuccess.title": "😻 Paiement réussi ! 😻",
+"paymentSuccess.thankYou": "Merci pour votre commande. Votre paiement a été traité avec succès. Vous recevrez bientôt un email de confirmation.",
+"paymentSuccess.processing": "Votre commande est en cours de traitement et sera bientôt expédiée.",
+"paymentSuccess.backHome": "Retour à l'accueil"
 }
 
