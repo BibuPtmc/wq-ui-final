@@ -424,6 +424,47 @@ export const CatsProvider = ({ children }) => {
     }
   };
 
+  // Nouvelle fonction pour mettre à jour l'adresse de tous les chats possédés
+  const updateAllOwnedCatsAddress = async (newAddress) => {
+    try {
+      const headers = {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      };
+      // Pour chaque chat possédé, on met à jour la localisation
+      const updatePromises = ownedCats.map(async (catStatus) => {
+        const catDTO = {
+          ...catStatus.cat,
+          // On conserve toutes les infos du chat, mais on met à jour la localisation
+          location: {
+            address: newAddress.address,
+            city: newAddress.city,
+            postalCode: newAddress.postalCode,
+            latitude: newAddress.latitude,
+            longitude: newAddress.longitude,
+          }
+        };
+        await axios.put(`/cat/update`, catDTO, { headers });
+        return {
+          ...catStatus,
+          location: catDTO.location,
+          cat: {
+            ...catStatus.cat,
+            location: catDTO.location,
+          }
+        };
+      });
+      // Met à jour localement l'état après toutes les requêtes
+      const updatedCats = await Promise.all(updatePromises);
+      setOwnedCats(updatedCats);
+      setSuccessMessage('L\'adresse de tous vos chats a été mise à jour !');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      return true;
+    } catch (error) {
+      // Log réduit pour les performances
+      return false;
+    }
+  };
+
   return (
     <CatsContext.Provider value={{
       reportedCats,
@@ -439,7 +480,8 @@ export const CatsProvider = ({ children }) => {
       findPotentialFoundCats,
       findPotentialLostCats,
       fetchCats,
-      fetchUserAddress
+      fetchUserAddress,
+      updateAllOwnedCatsAddress // Exposé dans le contexte
     }}>
       {children}
     </CatsContext.Provider>

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useAxios } from '../hooks/useAxios';
 import { useAuth } from '../hooks/authProvider';
 import { reverseGeocode } from '../utils/geocodingService';
+import { useCatsContext } from './CatsContext';
 
 // Création du contexte
 const UserContext = createContext();
@@ -9,6 +10,7 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const axios = useAxios();
   const { isLoggedIn, userData, setUserData } = useAuth();
+  const { updateAllOwnedCatsAddress } = useCatsContext();
   
   // États pour le profil utilisateur
   const [profileData, setProfileData] = useState({

@@ -13,15 +13,15 @@ export const AppProviders = ({ children }) => {
     <LanguageProvider>
       <AxiosProvider>
         <AuthProvider>
-          <UserProvider>
-            <CatsProvider>
+          <CatsProvider>
+            <UserProvider>
               <CatSearchProvider>
                 <ProductProvider>
                   {children}
                 </ProductProvider>
               </CatSearchProvider>
-            </CatsProvider>
-          </UserProvider>
+            </UserProvider>
+          </CatsProvider>
         </AuthProvider>
       </AxiosProvider>
     </LanguageProvider>
