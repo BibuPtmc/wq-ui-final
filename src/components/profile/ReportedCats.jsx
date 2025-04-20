@@ -38,6 +38,10 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     eyeColor: ''
   });
 
+  // Filtres et tri
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = plus récent, 'asc' = plus ancien
+
   // Utilisation de la fonction formatEnumValue centralisée
 
   useEffect(() => {
@@ -202,6 +206,15 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     );
   }
 
+  // Application des filtres et du tri
+  const filteredCats = reportedCats
+    .filter(catStatus => !statusFilter || catStatus.statusCat === statusFilter)
+    .sort((a, b) => {
+      const dateA = new Date(a.reportDate);
+      const dateB = new Date(b.reportDate);
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+
   return (
     <>
       {successMessage && (
@@ -210,14 +223,48 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         </Alert>
       )}
 
-      <div className="text-center mb-4">
+      <div className="d-flex flex-wrap gap-3 align-items-center justify-content-center mb-4">
+        <div>
+          <Form.Label className="me-2 mb-0">Filtrer par statut :</Form.Label>
+          <Form.Select
+            size="sm"
+            style={{ width: 160, display: 'inline-block' }}
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tous</option>
+            <option value="LOST">Perdu</option>
+            <option value="FOUND">Trouvé</option>
+          </Form.Select>
+        </div>
+        <div>
+          <Form.Label className="me-2 mb-0">Trier :</Form.Label>
+          <Form.Check
+            inline
+            label="Plus récent"
+            type="radio"
+            id="sort-desc"
+            name="sortOrder"
+            checked={sortOrder === 'desc'}
+            onChange={() => setSortOrder('desc')}
+          />
+          <Form.Check
+            inline
+            label="Plus ancien"
+            type="radio"
+            id="sort-asc"
+            name="sortOrder"
+            checked={sortOrder === 'asc'}
+            onChange={() => setSortOrder('asc')}
+          />
+        </div>
         <Badge bg="primary" className="px-3 py-2">
-          {t('reportedCats.count', { count: reportedCats.length, defaultValue: `${reportedCats.length} chats signalés` })}
+          {t('reportedCats.count', { count: filteredCats.length, defaultValue: `${filteredCats.length} chats signalés` })}
         </Badge>
       </div>
 
       <Row xs={1} md={2} lg={3} className="g-4">
-        {reportedCats.map((catStatus) => {
+        {filteredCats.map((catStatus) => {
           const cat = catStatus.cat;
           return (
             <Col key={catStatus.catStatusId}>
