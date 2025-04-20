@@ -163,11 +163,17 @@ export const CatsProvider = ({ children }) => {
         }
       };
 
+      // Vérifier si le statut du chat a changé
+      const statusHasChanged = updatedData.statusCat && updatedData.statusCat !== currentCat.statusCat;
+
       // Mettre à jour les informations du chat
       await axios.put(`/cat/update`, catDTO, { headers });
-      
-      // Mettre à jour le statut du chat
-      const response = await axios.put(`/cat/updateStatus`, catStatus, { headers });
+
+      let response = null;
+      if (statusHasChanged) {
+        // Mettre à jour le statut du chat seulement si le statut a changé
+        response = await axios.put(`/cat/updateStatus`, catStatus, { headers });
+      }
 
       // Mettre à jour l'état local
       if (isChangingToOwned) {
@@ -176,14 +182,12 @@ export const CatsProvider = ({ children }) => {
         
         // Ajouter à la liste des chats possédés
         const updatedOwnedCat = {
-          catStatusId: response.catStatusId || catStatusId,
+          catStatusId: (response && response.catStatusId) || catStatusId,
           statusCat: "OWN",
-
           reportDate: formattedDate,
           location: location,
           cat: catDTO
         };
-        
         setOwnedCats(prevCats => [...prevCats, updatedOwnedCat]);
       } else {
         // Mettre à jour dans la liste des chats signalés
@@ -192,7 +196,6 @@ export const CatsProvider = ({ children }) => {
             ? {
                 ...cat,
                 statusCat: newStatus,
-
                 reportDate: formattedDate,
                 location: location,
                 cat: catDTO
@@ -240,10 +243,13 @@ export const CatsProvider = ({ children }) => {
       const now = new Date();
       const formattedDate = formatDateForJava(now.toISOString());
 
+      // Vérifier si le statut du chat a changé
+      const statusHasChanged = updatedData.statusCat && updatedData.statusCat !== currentCatStatus.statusCat;
+
       // Créer l'objet pour la mise à jour du statut
       const catStatus = {
         catStatusId: currentCatStatus.catStatusId,
-        statusCat: "OWN", // Statut possédé
+        statusCat: updatedData.statusCat || currentCatStatus.statusCat,
         reportDate: formattedDate,
         location: {
           latitude: userAddress?.latitude || currentCatStatus.location?.latitude,
@@ -260,15 +266,17 @@ export const CatsProvider = ({ children }) => {
       // Mettre à jour les informations du chat
       await axios.put(`/cat/update`, catDTO, { headers });
       
-      // Mettre à jour le statut du chat
-      await axios.put(`/cat/updateStatus`, catStatus, { headers });
+      // Mettre à jour le statut du chat uniquement si le statut a changé
+      if (statusHasChanged) {
+        await axios.put(`/cat/updateStatus`, catStatus, { headers });
+      }
       
       // Mettre à jour l'état local
       setOwnedCats(prevCats => prevCats.map(cat => 
         cat.cat.catId === catId 
           ? {
               ...cat,
-
+              statusCat: updatedData.statusCat || cat.statusCat,
               reportDate: formattedDate,
               cat: {
                 ...cat.cat,
@@ -281,7 +289,7 @@ export const CatsProvider = ({ children }) => {
                 gender: updatedData.gender || cat.cat.gender,
                 chipNumber: updatedData.chipNumber || cat.cat.chipNumber,
                 furType: convertToEnum(updatedData.furType, cat.cat.furType),
-              comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.cat.comment,
+                comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.cat.comment,
               }
             }
           : cat
@@ -330,7 +338,11 @@ export const CatsProvider = ({ children }) => {
       const now = new Date();
       const formattedDate = formatDateForJava(now.toISOString());
 
-      // Créer l'objet de localisation
+      // Utiliser l'adresse de l'utilisateur si aucune localisation personnalisée n'est fournie
+      // Toujours exiger une localisation personnalisée pour le passage d'un chat possédé à perdu
+      if (!lostData.location || !lostData.location.latitude || !lostData.location.longitude) {
+        throw new Error("Veuillez sélectionner une localisation précise où le chat a été perdu.");
+      }
       const location = {
         latitude: lostData.location.latitude,
         longitude: lostData.location.longitude,

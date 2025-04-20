@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { FaPaw, FaTrash, FaEdit, FaSearch } from 'react-icons/fa';
 import MapLocation from '../map/MapLocation';
 import useGeolocation from "../../hooks/useGeolocation";
+import { reverseGeocode } from "../../utils/geocodingService.jsx";
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
@@ -158,10 +159,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Fonction pour mettre à jour la localisation à partir des coordonnées
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
     try {
-      // Importer la fonction directement ici pour éviter les problèmes de portée
-      const { reverseGeocode } = require("../../utils/geocodingService");
-      
-      // Utiliser la fonction importée
+      // Utiliser l'import ES6 déjà disponible
       const addressInfo = await reverseGeocode(longitude, latitude);
       
       setLostForm(prev => ({

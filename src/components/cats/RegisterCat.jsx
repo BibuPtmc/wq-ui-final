@@ -26,9 +26,42 @@ function RegisterCat() {
   // Utiliser les fonctions du contexte
   const { formatValue } = useCatSearch();
   const { post } = useAxiosContext();
-  const { fetchCats } = useCatsContext();
+  const { fetchCats, userAddress } = useCatsContext();
+// Pour la carte et la géolocalisation (LOST/FOUND)
+const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
   const { t } = useTranslation();
   
+  // Fonction pour mettre à jour la localisation à partir des coordonnées
+const updateLocationFromCoordinates = async (longitude, latitude) => {
+  try {
+    const addressInfo = await reverseGeocode(longitude, latitude);
+    setFormData(prev => ({
+      ...prev,
+      location: {
+        ...prev.location,
+        longitude,
+        latitude,
+        address: addressInfo?.address || "",
+        city: addressInfo?.city || "",
+        postalCode: addressInfo?.postalCode || ""
+      }
+    }));
+  } catch (error) {
+    // Optionnel : gestion d'erreur
+  }
+};
+
+  // Fonction pour gérer la demande de localisation actuelle
+  const handleRequestCurrentLocation = () => {
+    getCurrentPosition()
+      .then(position => {
+        updateLocationFromCoordinates(position.longitude, position.latitude);
+      })
+      .catch(() => {
+        // Optionnel : gérer les erreurs ici
+      });
+  };
+
   // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
   const now = new Date();
   const formattedDate = now.getFullYear() + '-' + 
@@ -65,6 +98,22 @@ function RegisterCat() {
     }
   });
   
+  // Préremplir la localisation avec userAddress dès que disponible
+  useEffect(() => {
+    if (userAddress) {
+      setFormData(prev => ({
+        ...prev,
+        location: {
+          latitude: userAddress.latitude || "",
+          longitude: userAddress.longitude || "",
+          address: userAddress.address || "",
+          city: userAddress.city || "",
+          postalCode: userAddress.postalCode || ""
+        }
+      }));
+    }
+  }, [userAddress]);
+
   // État pour gérer les erreurs de validation
   const [validationErrors, setValidationErrors] = useState({
     dateOfBirth: "",
@@ -79,82 +128,6 @@ function RegisterCat() {
   const { isLoggedIn } = useAuth();
   // Nous gardons isLoggedIn pour les vérifications d'authentification
   // mais nous pouvons supprimer showLoginAlert car il n'est pas utilisé
-
-  // Utiliser le hook de géolocalisation
-  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
-
-  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
-    try {
-      const addressInfo = await reverseGeocode(longitude, latitude);
-  
-      setFormData(prev => ({
-        ...prev,
-        location: {
-          ...prev.location,
-          longitude,
-          latitude,
-          address: addressInfo?.address || "",
-          city: addressInfo?.city || "",
-          postalCode: addressInfo?.postalCode || ""
-        }
-      }));
-    } catch (error) {
-      console.error("Erreur lors de la récupération de l'adresse:", error);
-    }
-  }, [setFormData]);
-
-  // Initialisation avec la position actuelle
-  useEffect(() => {
-    if (isLoggedIn) {
-      getCurrentPosition()
-        .then(position => {
-          updateLocationFromCoordinates(position.longitude, position.latitude);
-        })
-        .catch(error => {
-          // Log supprimé pour améliorer les performances
-        });
-    }
-  }, [isLoggedIn, getCurrentPosition, updateLocationFromCoordinates]);
-
-  // Gérer la demande de localisation actuelle par l'utilisateur
-  const handleRequestCurrentLocation = () => {
-    getCurrentPosition()
-      .then(position => {
-        updateLocationFromCoordinates(position.longitude, position.latitude);
-      });
-  };
-
-  // Si l'utilisateur n'est pas connecté, afficher une alerte
-  if (!isLoggedIn) {
-    return (
-      <Container className="py-5">
-        <Card className="shadow-sm">
-          <Card.Body className="text-center py-5">
-            <h2 className="mb-0">{t('cat.register', 'Signaler un chat')}</h2>
-            <p className="text-muted mb-4">
-              {t('cat.loginRequired', 'Vous devez être connecté pour signaler un chat perdu ou trouvé.')}
-            </p>
-            <div className="d-flex justify-content-center gap-3">
-              <Button 
-                variant="primary" 
-                onClick={() => navigate("/login")}
-                className="px-4"
-              >
-                {t('common.login', 'Se connecter')}
-              </Button>
-              <Button 
-                variant="outline-primary" 
-                onClick={() => navigate("/register")}
-                className="px-4"
-              >
-                {t('common.register', 'S\'inscrire')}
-              </Button>
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-    );
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -613,40 +586,56 @@ function RegisterCat() {
                 </Col>
               </Row>
 
-              {/* Section Localisation avec Mapbox */}
+              {/* Section Localisation dynamique selon le statut */}
               <Card className="mb-4">
                 <Card.Header className="bg-light d-flex align-items-center">
                   <FaMapMarkerAlt className="me-2" />
                   <h5 className="mb-0">{t('cat.location', 'Localisation du chat')}</h5>
                 </Card.Header>
                 <Card.Body>
-                  <p className="text-muted">{t('cat.locationHint', 'Indiquez l\'endroit où le chat a été vu pour la dernière fois.')}</p>
-                  <Row>
-                    <Col xs={12}>
-                      <MapLocation 
-                        location={formData.location}
-                        onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
-                        onAddressChange={(addressData) => {
-                          setFormData({
-                            ...formData,
-                            location: {
-                              ...formData.location,
-                              ...addressData
-                            }
-                          });
-                        }}
-                        isLocating={isLocating}
-                        geoError={geoError}
-                        onGeoErrorDismiss={() => setGeoError(null)}
-                        onRequestCurrentLocation={handleRequestCurrentLocation}
-                        mapHeight="300px"
-                      />
-                      <Button variant="outline-secondary" onClick={handleRequestCurrentLocation} className="mt-3">
-                        <FaMapMarkerAlt className="me-2" />
-                        {t('cat.useCurrentLocation', 'Utiliser ma position actuelle')}
-                      </Button>
-                    </Col>
-                  </Row>
+                  {formData.statusCat === "OWN" ? (
+                    <>
+                      <p className="text-muted mb-2">{t('cat.locationUserOnly', 'L\'adresse de votre profil sera utilisée comme localisation du chat.')}</p>
+                      <div className="border rounded bg-light p-3">
+                        <strong>{t('cat.address', 'Adresse')} :</strong> {formData.location.address || "-"}<br />
+                        <strong>{t('cat.city', 'Ville')} :</strong> {formData.location.city || "-"}<br />
+                        <strong>{t('cat.postalCode', 'Code postal')} :</strong> {formData.location.postalCode || "-"}<br />
+                        <strong>{t('cat.latitude', 'Latitude')} :</strong> {formData.location.latitude || "-"}<br />
+                        <strong>{t('cat.longitude', 'Longitude')} :</strong> {formData.location.longitude || "-"}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-muted">{t('cat.locationHint', 'Indiquez l\'endroit où le chat a été vu pour la dernière fois.')}</p>
+                      <Row>
+                        <Col xs={12}>
+                          <MapLocation 
+                            location={formData.location}
+                            onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
+                            onAddressChange={(addressData) => {
+                              setFormData({
+                                ...formData,
+                                location: {
+                                  ...formData.location,
+                                  ...addressData
+                                }
+                              });
+                            }}
+                            isLocating={isLocating}
+                            geoError={geoError}
+                            onGeoErrorDismiss={() => setGeoError(null)}
+                            onRequestCurrentLocation={handleRequestCurrentLocation}
+                            mapHeight="300px"
+                            disableMapClick={formData.statusCat === 'OWN'}
+                          />
+                          <Button variant="outline-secondary" onClick={handleRequestCurrentLocation} className="mt-3">
+                            <FaMapMarkerAlt className="me-2" />
+                            {t('cat.useCurrentLocation', 'Utiliser ma position actuelle')}
+                          </Button>
+                        </Col>
+                      </Row>
+                    </>
+                  )}
                 </Card.Body>
               </Card>
 
