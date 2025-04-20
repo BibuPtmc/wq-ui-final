@@ -238,15 +238,17 @@ export const UserProvider = ({ children }) => {
       setOrdersLoading(true);
       const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       const response = await axios.get('/ecommerce/orders', { headers });
-      
-      setOrders(response || []);
+      // Filtrer les commandes pour ne garder que celles de l'utilisateur connecté
+      const userId = userData?.id;
+      const myOrders = Array.isArray(response) ? response.filter(order => order.userId === userId) : [];
+      setOrders(myOrders);
       setOrdersLoaded(true);
     } catch (error) {
       // Log réduit pour améliorer les performances
     } finally {
       setOrdersLoading(false);
     }
-  }, [axios, isLoggedIn, ordersLoaded]);
+  }, [axios, isLoggedIn, ordersLoaded, userData]);
 
   // Fonction pour mettre à jour la localisation à partir des coordonnées
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {

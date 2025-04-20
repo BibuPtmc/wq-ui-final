@@ -116,6 +116,7 @@
 "foundCats.matchCount_other": "{{count}} correspondance",
 "foundCats.moreInfo": "Plus d'informations",
 "reportedCats.moreInfo": "Plus d'informations",
+  "reportedCats.none": "Vous n'avez pas de chats signalés.",
 "ownedCats.moreInfo": "Plus d'informations",
 "foundCats.noResultsText": "Essayez de modifier vos filtres ou revenez plus tard.",
 "foundCats.noResultsTitle": "Aucun chat trouvé ne correspond à vos critères",
