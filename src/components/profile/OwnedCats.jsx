@@ -182,9 +182,8 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     setGeoError(null);
     try {
       const position = await getCurrentPosition();
-      if (position && position.coords) {
-        const { longitude, latitude } = position.coords;
-        await updateLocationFromCoordinates(longitude, latitude);
+      if (position && position.longitude && position.latitude) {
+        await updateLocationFromCoordinates(position.longitude, position.latitude);
       }
     } catch (error) {
       setGeoError(error.message);
