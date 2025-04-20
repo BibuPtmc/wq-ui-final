@@ -484,12 +484,6 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     <option value="ROUX">{t('reportedCats.red', 'Roux')}</option>
                     <option value="MIXTE">{t('reportedCats.mixed', 'Mixte')}</option>
                     <option value="AUTRE">{t('reportedCats.other', 'Autre')}</option>
-                    <option value="NOIR">Noir</option>
-                    <option value="BLANC">Blanc</option>
-                    <option value="GRIS">Gris</option>
-                    <option value="ROUX">Roux</option>
-                    <option value="MIXTE">Mixte</option>
-                    <option value="AUTRE">Autre</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
