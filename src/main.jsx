@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import NavBar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
-import RegistrationForm from "./register/RegistrationForm";
+import RegistrationForm from "./pages/auth/RegistrationForm";
 import RegisterCat from "./components/cats/RegisterCat";
 import LostCats from "./components/cats/LostCats";
 import FoundCats from "./components/cats/FoundCats";

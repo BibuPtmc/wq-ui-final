@@ -2,13 +2,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { Form, Button, Container, Row, Col, Card, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
-import { useAxios } from "../hooks/useAxios";
+import { useAxios } from "../../hooks/useAxios";
 import { motion } from "framer-motion";
 import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash, FaMapMarkerAlt } from "react-icons/fa";
-import { buttonStyles } from "../styles/styles";
-import MapLocation from "../components/map/MapLocation";
-import useGeolocation from "../hooks/useGeolocation";
-import { reverseGeocode } from "../utils/geocodingService";
+import { buttonStyles } from "../../styles/styles";
+import MapLocation from "../../components/map/MapLocation";
+import useGeolocation from "../../hooks/useGeolocation";
+import { reverseGeocode } from "../../utils/geocodingService";
 
 const RegistrationForm = () => {
   const { t } = useTranslation();

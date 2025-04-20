@@ -430,6 +430,18 @@
 "paymentSuccess.title": "😻 Paiement réussi ! 😻",
 "paymentSuccess.thankYou": "Merci pour votre commande. Votre paiement a été traité avec succès. Vous recevrez bientôt un email de confirmation.",
 "paymentSuccess.processing": "Votre commande est en cours de traitement et sera bientôt expédiée.",
-"paymentSuccess.backHome": "Retour à l'accueil"
+"paymentSuccess.backHome": "Retour à l'accueil",
+"register.selectGender": "Sélectionnez le genre",
+"register.genderMale": "Homme",
+"register.genderFemale": "Femme",
+"register.genderOther": "Autre",
+"register.phoneLabel": "Téléphone",
+"register.phonePlaceholder": "Votre numéro de téléphone (ex: 0493 96 33 75)",
+"register.addressTitle": "Adresse",
+"register.terms": "J'accepte les termes et conditions",
+"register.termsFeedback": "Vous devez accepter avant de soumettre.",
+"register.submit": "S'inscrire",
+"register.alreadyMember": "Déjà membre ?",
+"register.login": "Se connecter"
 }
 
