@@ -8,22 +8,26 @@ import { ProductProvider } from './ProductContext';
 import { LanguageProvider } from './LanguageContext';
 
 // Composant qui combine tous les providers de l'application
+import { NotificationProvider } from './NotificationContext';
+
 export const AppProviders = ({ children }) => {
   return (
-    <LanguageProvider>
-      <AxiosProvider>
-        <AuthProvider>
-          <CatsProvider>
-            <UserProvider>
-              <CatSearchProvider>
-                <ProductProvider>
-                  {children}
-                </ProductProvider>
-              </CatSearchProvider>
-            </UserProvider>
-          </CatsProvider>
-        </AuthProvider>
-      </AxiosProvider>
-    </LanguageProvider>
+    <NotificationProvider>
+      <LanguageProvider>
+        <AxiosProvider>
+          <AuthProvider>
+            <CatsProvider>
+              <UserProvider>
+                <CatSearchProvider>
+                  <ProductProvider>
+                    {children}
+                  </ProductProvider>
+                </CatSearchProvider>
+              </UserProvider>
+            </CatsProvider>
+          </AuthProvider>
+        </AxiosProvider>
+      </LanguageProvider>
+    </NotificationProvider>
   );
 };

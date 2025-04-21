@@ -33,7 +33,6 @@ const NavBar = () => {
   const handleLogout = () => {
     if (window.confirm(t('auth.logoutConfirm', 'Êtes-vous sûr de vouloir vous déconnecter ?'))) {
       logout();
-      navigate("/");
     }
   };
 

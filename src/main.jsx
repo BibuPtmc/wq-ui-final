@@ -20,7 +20,8 @@ import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./styles/global.css";
 import { useAuth } from "./hooks/authProvider";
 import { AppProviders } from "./contexts/AppProviders";
-
+import AxiosLogoutHandler from "./contexts/AxiosLogoutHandler";
+import NotificationBar from "./components/NotificationBar";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -39,52 +40,56 @@ const ProtectedRoute = ({ children }) => {
 const App = () => {
   return (
     <CartProvider>
-      <BrowserRouter>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <NavBar />
-            <Routes>
-              <Route exact path="/" element={<HomePage />} />
-              <Route path="/register" element={<RegistrationForm />} />
-              <Route path="/contact" element={<ContactUs />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route 
-                path="/registerCat" 
-                element={
-                  <ProtectedRoute>
-                    <RegisterCat />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/foundCats" element={<FoundCats />} />
-              <Route path="/lostCats" element={<LostCats />} />
-              <Route path="/gps-collars" element={<GpsCollars />} />
-              <Route path="/success" element={<PaymentSuccess />} />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-          </div>
-          <Footer />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <NavBar />
+          <Routes>
+            <Route exact path="/" element={<HomePage />} />
+            <Route path="/register" element={<RegistrationForm />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route 
+              path="/registerCat" 
+              element={
+                <ProtectedRoute>
+                  <RegisterCat />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/foundCats" element={<FoundCats />} />
+            <Route path="/lostCats" element={<LostCats />} />
+            <Route path="/gps-collars" element={<GpsCollars />} />
+            <Route path="/success" element={<PaymentSuccess />} />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
         </div>
-      </BrowserRouter>
+        <Footer />
+      </div>
     </CartProvider>
   );
 };
 
 root.render(
-  <AppProviders>
-    <App />
-  </AppProviders>
+  <BrowserRouter>
+    <AppProviders>
+      <>
+        <AxiosLogoutHandler />
+        <NotificationBar />
+        <App />
+      </>
+    </AppProviders>
+  </BrowserRouter>
 );

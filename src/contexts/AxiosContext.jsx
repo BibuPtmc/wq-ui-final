@@ -4,7 +4,7 @@ import axios from 'axios';
 // Création du contexte
 const AxiosContext = createContext();
 
-export const AxiosProvider = ({ children }) => {
+export const AxiosProvider = ({ children, onLogout }) => {
   // Création de l'instance axios
   const axiosInstance = useMemo(() => {
     const instance = axios.create({
@@ -34,7 +34,9 @@ export const AxiosProvider = ({ children }) => {
           if (error.response.status === 401) {
             // Token expiré ou invalide
             console.error('Authentication error: Token expired or invalid');
-            // On pourrait implémenter une logique de déconnexion automatique ici
+            if (typeof onLogout === 'function') {
+              onLogout(); // Déclenche le logout centralisé !
+            }
           }
         } else if (error.request) {
           // La requête a été faite mais aucune réponse n'a été reçue
@@ -50,7 +52,7 @@ export const AxiosProvider = ({ children }) => {
     );
 
     return instance;
-  }, []);
+  }, [onLogout]);
 
   // Méthodes HTTP encapsulées
   const get = useCallback(async (url, config = {}) => {

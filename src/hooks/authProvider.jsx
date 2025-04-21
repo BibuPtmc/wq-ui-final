@@ -1,9 +1,13 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useAxiosContext } from "../contexts/AxiosContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useNotification } from "../contexts/NotificationContext";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const location = useLocation();
+  const { showNotification } = useNotification();
   const { get } = useAxiosContext();
   const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
@@ -77,12 +81,27 @@ export const AuthProvider = ({ children }) => {
     }
   }, [fetchUserData]);
 
-  const logout = useCallback(() => {
+  const navigate = useNavigate();
+
+  /**
+   * Déconnecte l'utilisateur.
+   * Si la déconnexion est causée par une erreur 401, affiche une notification spécifique.
+   * Sinon, notification générique.
+   * @param {Object} [options]
+   * @param {boolean} [options.sessionExpired]
+   */
+  const logout = useCallback((options = {}) => {
     setIsLoggedIn(false);
     setUserDataWithStorage(null);
     sessionStorage.removeItem("token");
     initialLoadDone.current = false;
-  }, [setUserDataWithStorage]);
+    navigate('/login', { replace: true });
+    if (options.sessionExpired) {
+      showNotification("Votre session a expiré, veuillez vous reconnecter.", "error");
+    } else {
+      showNotification("Vous avez été déconnecté.", "info");
+    }
+  }, [setUserDataWithStorage, navigate, showNotification]);
 
   if (loading) {
     return null; // Or a loading spinner
