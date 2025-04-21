@@ -114,8 +114,8 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                         <Col sm={6} key={`distance-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
                             <CircularProgressbar 
-                              value={match.distanceMatch || 0} 
-                              text={`${match.distanceMatch || 0}%`} 
+                              value={match.distanceScore || 0} 
+                              text={`${match.distanceScore || 0}%`} 
                               styles={buildStyles({ 
                                 textColor: '#8B4513',
                                 pathColor: '#8B4513',
