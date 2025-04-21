@@ -238,9 +238,11 @@ export const UserProvider = ({ children }) => {
       setOrdersLoading(true);
       const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       const response = await axios.get('/ecommerce/orders', { headers });
-      // Filtrer les commandes pour ne garder que celles de l'utilisateur connecté
       const userId = userData?.id;
-      const myOrders = Array.isArray(response) ? response.filter(order => order.userId === userId) : [];
+      // Filtrage robuste : accepte userId ou user.id
+      const myOrders = Array.isArray(response)
+        ? response.filter(order => (order.userId === userId || (order.user && order.user.id === userId)))
+        : [];
       setOrders(myOrders);
       setOrdersLoaded(true);
     } catch (error) {
@@ -249,6 +251,13 @@ export const UserProvider = ({ children }) => {
       setOrdersLoading(false);
     }
   }, [axios, isLoggedIn, ordersLoaded, userData]);
+
+  // Rafraîchir les commandes à chaque changement d'utilisateur
+  useEffect(() => {
+    if (isLoggedIn && userData?.id) {
+      fetchOrders(true); // force refresh
+    }
+  }, [isLoggedIn, userData?.id, fetchOrders]);
 
   // Fonction pour mettre à jour la localisation à partir des coordonnées
   const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
