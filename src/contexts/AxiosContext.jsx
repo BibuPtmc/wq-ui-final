@@ -33,10 +33,18 @@ export const AxiosProvider = ({ children, onLogout }) => {
           // Gestion spécifique des erreurs d'authentification
           if (error.response.status === 401) {
             // Token expiré ou invalide
-            console.error('Authentication error: Token expired or invalid');
             if (typeof onLogout === 'function') {
               onLogout(); // Déclenche le logout centralisé !
             }
+            // Affiche l'état de connexion et du token dans la console
+            setTimeout(() => {
+              const token = sessionStorage.getItem('token');
+              if (!token) {
+                console.info('%cVous êtes déconnecté(e). Le token est maintenant vide.', 'color: green; font-weight: bold;');
+              } else {
+                console.warn('%cDéconnexion attendue, mais le token existe encore :', 'color: orange; font-weight: bold;', token);
+              }
+            }, 100);
           }
         } else if (error.request) {
           // La requête a été faite mais aucune réponse n'a été reçue

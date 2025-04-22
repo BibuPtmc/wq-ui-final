@@ -94,6 +94,14 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
     setUserDataWithStorage(null);
     sessionStorage.removeItem("token");
+    setTimeout(() => {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        console.info('%cVous êtes déconnecté(e). Le token est maintenant vide.', 'color: green; font-weight: bold;');
+      } else {
+        console.warn('%cDéconnexion attendue, mais le token existe encore :', 'color: orange; font-weight: bold;', token);
+      }
+    }, 100);
     initialLoadDone.current = false;
     navigate('/login', { replace: true });
     if (options.sessionExpired) {
