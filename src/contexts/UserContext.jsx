@@ -158,10 +158,11 @@ export const UserProvider = ({ children }) => {
       // Préparer les données pour l'API
       const passwordData = {
         currentPassword: passwordFormData.currentPassword,
-        newPassword: passwordFormData.newPassword
+        newPassword: passwordFormData.newPassword,
+        matchingPassword: passwordFormData.matchingPassword
       };
       
-      await axios.put("users/updatePassword", passwordData, { headers });
+      await axios.put("users/update", passwordData, { headers });
       
       // Réinitialiser le formulaire
       setPasswordForm({
