@@ -33,7 +33,7 @@ export const CatsProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      // Log réduit pour améliorer les performances
+      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
     }
   }, [axios]);
 
@@ -69,7 +69,7 @@ export const CatsProvider = ({ children }) => {
       setLoading(false);
       initialFetchDone.current = true;
     } catch (error) {
-      // Log réduit pour améliorer les performances
+      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
       setLoading(false);
     }
   }, [axios, isLoggedIn, fetchUserAddress]);
@@ -91,17 +91,22 @@ export const CatsProvider = ({ children }) => {
       const headers = {
         Authorization: `Bearer ${sessionStorage.getItem("token")}`,
       };
-      // Utiliser le nouvel endpoint pour supprimer un statut de chat
-      await axios.delete(`/cat-status/delete?id=${catStatusId}`, { headers });
-      setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
+      // Trouver le chat signalé correspondant
+      const catToDelete = reportedCats.find(cat => cat.catStatusId === catStatusId);
+      if (!catToDelete) throw new Error("Chat signalé introuvable");
+      const catId = catToDelete.cat.catId;
+      // Utiliser le même endpoint que pour les chats possédés
+      await axios.delete(`/cat/delete?id=${catId}`, { headers });
+      setReportedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
       setSuccessMessage('Le chat a été supprimé avec succès !');
-      setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
+      setTimeout(() => setSuccessMessage(''), 3000);
       return true;
     } catch (error) {
-      // Log réduit pour améliorer les performances
+      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
       return false;
     }
   };
+
 
   const handleEditReportedCat = async (catStatusId, updatedData) => {
     try {
@@ -393,7 +398,7 @@ export const CatsProvider = ({ children }) => {
       setTimeout(() => setSuccessMessage(''), 3000);
       return true;
     } catch (error) {
-      // Log réduit pour améliorer les performances
+      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
       return false;
     }
   };
@@ -406,7 +411,7 @@ export const CatsProvider = ({ children }) => {
       const response = await axios.get(`/cat/potentialFoundCats/${catId}`, { headers });
       return response;
     } catch (error) {
-      // Log réduit pour améliorer les performances
+      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
       return [];
     }
   };
@@ -419,7 +424,7 @@ export const CatsProvider = ({ children }) => {
       const response = await axios.get(`/cat/potentialLostCats/${catId}`, { headers });
       return response;
     } catch (error) {
-      // Log réduit pour améliorer les performances
+      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
       return [];
     }
   };
