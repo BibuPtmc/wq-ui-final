@@ -69,7 +69,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       chipNumber: catStatus.cat.chipNumber || '',
       furType: catStatus.cat.furType || 'COURTE',
       comment: catStatus.cat.comment || '',
-      images: catStatus.cat.imageUrls || [] // ← pour plusieurs images
+      images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
+  ? catStatus.cat.imageUrls
+  : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
     };
     
     // Log supprimé pour améliorer les performances
@@ -100,8 +102,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
         comment: selectedCat.cat.comment || '',
-        images: selectedCat.cat.imageUrls || [] // ← pour plusieurs images
-      };
+        images: selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0
+        ? selectedCat.cat.imageUrls
+        : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : [])      };
       
       // Log supprimé pour améliorer les performances
       setEditForm(newFormData);
@@ -145,8 +148,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     e.preventDefault();
     const payload = {
       ...editForm,
-      imageUrls: editForm.images, // Ajoute cette ligne
-    };
+      imageUrls: editForm.images,
+      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null
+        };
     const success = await onEditCat(selectedCat.cat.catId, payload);
     setShowModal(false);
     if (success) {
