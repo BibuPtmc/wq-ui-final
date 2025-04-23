@@ -9,6 +9,7 @@ import { reverseGeocode } from "../../utils/geocodingService.jsx";
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
+import ImageUploader from "../common/ImageUploader";
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
@@ -30,7 +31,8 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     dateOfBirth: '',
     chipNumber: '',
     furType: '',
-    comment: ''
+    comment: '',
+    images: [] // Ajout pour les images
   });
   const [lostForm, setLostForm] = useState({
     comment: '',
@@ -66,7 +68,8 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       dateOfBirth: formattedDate,
       chipNumber: catStatus.cat.chipNumber || '',
       furType: catStatus.cat.furType || 'COURTE',
-      comment: catStatus.cat.comment || ''
+      comment: catStatus.cat.comment || '',
+      images: catStatus.cat.imageUrls || [] // ← pour plusieurs images
     };
     
     // Log supprimé pour améliorer les performances
@@ -96,7 +99,8 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         dateOfBirth: formattedDate,
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
-        comment: selectedCat.cat.comment || ''
+        comment: selectedCat.cat.comment || '',
+        images: selectedCat.cat.imageUrls || [] // ← pour plusieurs images
       };
       
       // Log supprimé pour améliorer les performances
@@ -139,7 +143,11 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await onEditCat(selectedCat.cat.catId, editForm);
+    const payload = {
+      ...editForm,
+      imageUrls: editForm.images, // Ajoute cette ligne
+    };
+    const success = await onEditCat(selectedCat.cat.catId, payload);
     setShowModal(false);
     if (success) {
       // Rafraîchir les données après l'édition
@@ -453,6 +461,18 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                 value={editForm.comment}
                 onChange={handleChange}
                 placeholder={t('ownedCats.commentPlaceholder', 'Informations supplémentaires sur votre chat')}
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Photos</Form.Label>
+              <ImageUploader
+                onImageUploaded={urls => setEditForm(prev => ({ ...prev, images: urls }))}
+                initialImage={editForm.images}
+                multiple={true}
+                maxImages={5}
+                maxSize={5}
+                allowedTypes={["image/jpeg", "image/png", "image/gif", "image/webp"]}
               />
             </Form.Group>
             

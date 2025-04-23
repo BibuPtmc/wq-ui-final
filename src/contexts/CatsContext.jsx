@@ -241,6 +241,8 @@ export const CatsProvider = ({ children }) => {
         gender: updatedData.gender || currentCatStatus.cat.gender,
         chipNumber: updatedData.chipNumber || currentCatStatus.cat.chipNumber,
         furType: convertToEnum(updatedData.furType, currentCatStatus.cat.furType),
+        imageUrls: updatedData.imageUrls || currentCatStatus.cat.imageUrls,
+        imageUrl: updatedData.imageUrl || currentCatStatus.cat.imageUrl,
         comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCatStatus.cat.comment
       };
 
