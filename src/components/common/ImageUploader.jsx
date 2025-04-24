@@ -25,7 +25,7 @@ const ImageUploader = ({
   onUploadStatusChange = null // Callback to inform parent about upload status
 }) => {
   const { t } = useTranslation();
-  const { post } = useAxiosContext();
+  const { post, delete: del } = useAxiosContext();
   // Initialiser previews comme un tableau, même si initialImage est une seule URL
   const [previews, setPreviews] = useState(() => {
     if (!initialImage) return [];
@@ -68,6 +68,13 @@ const ImageUploader = ({
     }
     
     return { isValid: true };
+  };
+
+  const extractPublicIdFromUrl = (url) => {
+    // Ex: https://res.cloudinary.com/ton-cloud/image/upload/v123456/whiskerquest/xyz123.jpg
+    // public_id = whiskerquest/xyz123
+    const matches = url.match(/upload\/(?:v\d+\/)?([^\.]+)\./);
+    return matches ? matches[1] : null;
   };
 
   /**
@@ -178,20 +185,26 @@ const ImageUploader = ({
    * Handles image deletion
    * @param {number} index - Index of the image to delete
    */
-  const handleRemoveImage = (index) => {
-    // Créer des copies des tableaux pour ne pas modifier directement l'état
+  const handleRemoveImage = async (index) => {
+    const urlToDelete = uploadedUrls[index];
+    const publicId = extractPublicIdFromUrl(urlToDelete);
+  
+    if (publicId) {
+      try {
+        await del(`/media/delete?publicId=${publicId}`);
+      } catch (err) {
+        setError("Erreur lors de la suppression de l'image sur le serveur.");
+        return;
+      }
+    }
+  
+    // Mise à jour locale (comme avant)
     const newPreviews = [...previews];
     const newUploadedUrls = [...uploadedUrls];
-    
-    // Supprimer l'image à l'index spécifié
     newPreviews.splice(index, 1);
     newUploadedUrls.splice(index, 1);
-    
-    // Mettre à jour les états
     setPreviews(newPreviews);
     setUploadedUrls(newUploadedUrls);
-    
-    // Notifier le parent
     onImageUploaded(multiple ? newUploadedUrls : newUploadedUrls.length > 0 ? newUploadedUrls[0] : null);
     setError(null);
   };

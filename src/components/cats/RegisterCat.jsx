@@ -30,6 +30,9 @@ function RegisterCat() {
 // Pour la carte et la géolocalisation (LOST/FOUND)
 const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
   const { t } = useTranslation();
+  const [uploaderKey, setUploaderKey] = useState(Date.now());
+
+  
   
   // Fonction pour mettre à jour la localisation à partir des coordonnées
 const updateLocationFromCoordinates = async (longitude, latitude) => {
@@ -312,7 +315,8 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
         breed: "",
         color: "",
         dateOfBirth: "",
-        imageUrl: "", // Réinitialiser l'URL de l'image
+        imageUrl: "",
+        imageUrls: [],
         gender: "",
         chipNumber: "",
         furType: "",
@@ -328,6 +332,8 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
           postalCode: ""
         }
       });
+      setUploaderKey(Date.now());
+
 
       setTimeout(() => {
         setShowSuccessMessage(false);
@@ -555,6 +561,7 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                       <p className="text-muted">{t('cat.imageHint', 'Ajoutez une photo du chat pour faciliter son identification.')}</p>
                       <Form.Group className="mb-3">
                         <ImageUploader 
+                          key={uploaderKey}
                           onImageUploaded={handleImageUploaded} 
                           multiple={true} 
                           maxImages={5} 

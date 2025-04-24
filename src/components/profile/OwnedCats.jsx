@@ -9,6 +9,7 @@ import { reverseGeocode } from "../../utils/geocodingService.jsx";
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
+import ImageUploader from "../common/ImageUploader";
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
@@ -16,6 +17,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { fetchCats } = useCatsContext();
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
@@ -30,7 +32,8 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     dateOfBirth: '',
     chipNumber: '',
     furType: '',
-    comment: ''
+    comment: '',
+    images: [] // Ajout pour les images
   });
   const [lostForm, setLostForm] = useState({
     comment: '',
@@ -66,7 +69,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       dateOfBirth: formattedDate,
       chipNumber: catStatus.cat.chipNumber || '',
       furType: catStatus.cat.furType || 'COURTE',
-      comment: catStatus.cat.comment || ''
+      comment: catStatus.cat.comment || '',
+      images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
+  ? catStatus.cat.imageUrls
+  : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
     };
     
     // Log supprimé pour améliorer les performances
@@ -96,8 +102,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         dateOfBirth: formattedDate,
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
-        comment: selectedCat.cat.comment || ''
-      };
+        comment: selectedCat.cat.comment || '',
+        images: selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0
+        ? selectedCat.cat.imageUrls
+        : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : [])      };
       
       // Log supprimé pour améliorer les performances
       setEditForm(newFormData);
@@ -139,7 +147,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await onEditCat(selectedCat.cat.catId, editForm);
+    const payload = {
+      ...editForm,
+      imageUrls: editForm.images,
+      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null
+        };
+    const success = await onEditCat(selectedCat.cat.catId, payload);
     setShowModal(false);
     if (success) {
       // Rafraîchir les données après l'édition
@@ -456,12 +469,30 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
               />
             </Form.Group>
             
+            <Form.Group className="mb-3">
+              <Form.Label>Photos</Form.Label>
+              <ImageUploader
+                onImageUploaded={urls => setEditForm(prev => ({ ...prev, images: urls }))}
+                initialImage={editForm.images}
+                multiple={true}
+                maxImages={5}
+                maxSize={5}
+                allowedTypes={["image/jpeg", "image/png", "image/gif", "image/webp"]}
+                onUploadStatusChange={setIsImageUploading}
+              />
+            </Form.Group>
+            
             <div className="d-flex justify-content-end gap-2">
               <Button variant="secondary" onClick={() => setShowModal(false)}>
                 {t('ownedCats.cancel', 'Annuler')}
               </Button>
-              <Button variant="primary" type="submit">
-                {t('ownedCats.save', 'Enregistrer')}
+              <Button variant="primary" type="submit" disabled={isImageUploading}>
+                {isImageUploading && (
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                )}
+                {isImageUploading
+                  ? t('ownedCats.savingImages', 'Traitement des images...')
+                  : t('ownedCats.save', 'Enregistrer')}
               </Button>
             </div>
           </Form>
