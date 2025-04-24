@@ -17,6 +17,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { fetchCats } = useCatsContext();
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
@@ -477,6 +478,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                 maxImages={5}
                 maxSize={5}
                 allowedTypes={["image/jpeg", "image/png", "image/gif", "image/webp"]}
+                onUploadStatusChange={setIsImageUploading}
               />
             </Form.Group>
             
@@ -484,8 +486,13 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
               <Button variant="secondary" onClick={() => setShowModal(false)}>
                 {t('ownedCats.cancel', 'Annuler')}
               </Button>
-              <Button variant="primary" type="submit">
-                {t('ownedCats.save', 'Enregistrer')}
+              <Button variant="primary" type="submit" disabled={isImageUploading}>
+                {isImageUploading && (
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                )}
+                {isImageUploading
+                  ? t('ownedCats.savingImages', 'Traitement des images...')
+                  : t('ownedCats.save', 'Enregistrer')}
               </Button>
             </div>
           </Form>
