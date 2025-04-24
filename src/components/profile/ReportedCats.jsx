@@ -11,6 +11,7 @@ import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import { getStatusLabel } from "../../utils/enumOptions";
 import { useTranslation } from 'react-i18next';
+import ImageUploader from "../common/ImageUploader";
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { t } = useTranslation();
@@ -35,8 +36,10 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     gender: '',
     chipNumber: '',
     furType: '',
-    eyeColor: ''
+    eyeColor: '',
+    images: []
   });
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   // Filtres et tri
   const [statusFilter, setStatusFilter] = useState('');
@@ -145,12 +148,12 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       gender: catStatus.cat.gender || '',
       chipNumber: catStatus.cat.chipNumber || '',
       furType: getEnumValue(catStatus.cat.furType) || '',
-      eyeColor: getEnumValue(catStatus.cat.eyeColor) || ''
+      eyeColor: getEnumValue(catStatus.cat.eyeColor) || '',
+      images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
+        ? catStatus.cat.imageUrls
+        : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
     });
     setShowModal(true);
-    
-    // Afficher les valeurs dans la console pour débogage
-    // Logs supprimés pour améliorer les performances
   };
 
   const handleViewDetails = (catStatus) => {
@@ -164,7 +167,13 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await onEdit(selectedCat.catStatusId, editForm);
+    // Préparer le payload avec images comme dans OwnedCats
+    const payload = {
+      ...editForm,
+      imageUrls: editForm.images,
+      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null
+    };
+    const success = await onEdit(selectedCat.catStatusId, payload);
     setShowModal(false);
     if (success) {
       // Rafraîchir les données après l'édition
@@ -177,6 +186,21 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       ...editForm,
       [e.target.name]: e.target.value
     });
+  };
+
+  // Handler pour la mise à jour des images
+  const handleImageUploaded = (imageData) => {
+    if (Array.isArray(imageData)) {
+      setEditForm(prev => ({
+        ...prev,
+        images: imageData
+      }));
+    } else {
+      setEditForm(prev => ({
+        ...prev,
+        images: imageData ? [imageData] : []
+      }));
+    }
   };
 
   const handleShowMatches = async (cat) => {
@@ -585,12 +609,28 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
               </Col>
             </Row>
 
+            <Form.Group className="mb-3">
+              <Form.Label>Photos</Form.Label>
+              <ImageUploader
+                onImageUploaded={handleImageUploaded}
+                initialImage={editForm.images}
+                multiple={true}
+                maxImages={5}
+                maxSize={5}
+                allowedTypes={["image/jpeg", "image/png", "image/gif", "image/webp"]}
+                onUploadStatusChange={setIsImageUploading}
+              />
+            </Form.Group>
+
             <div className="d-flex justify-content-end gap-2 mt-3">
               <Button variant="secondary" onClick={() => setShowModal(false)}>
                 Annuler
               </Button>
-              <Button variant="primary" type="submit">
-                Enregistrer
+              <Button variant="primary" type="submit" disabled={isImageUploading}>
+                {isImageUploading && (
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                )}
+                {isImageUploading ? 'Traitement des images...' : 'Enregistrer'}
               </Button>
             </div>
           </Form>
