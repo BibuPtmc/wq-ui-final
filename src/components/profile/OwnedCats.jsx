@@ -245,9 +245,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                 <Card className="cat-card shadow-sm h-100">
                   <Card.Img
                     variant="top"
-                    src={cat.imageUrl || 
-                      (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
-                      "/noImageCat.png")
+                    src={
+                      (cat.imageUrls && Array.isArray(cat.imageUrls) && cat.imageUrls.length > 0)
+                        ? cat.imageUrls[0]
+                        : (cat.imageUrl ? cat.imageUrl : "/noImageCat.png")
                     }
                     alt={cat.name}
                     onError={(e) => {
