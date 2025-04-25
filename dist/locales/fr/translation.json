@@ -137,6 +137,7 @@
 "reportedCats.idHelp": "Communiquez cet ID au propriétaire",
 "reportedCats.editTitle": "Modifier les informations du chat",
 "reportedCats.name": "Nom du chat",
+"reportedCats.noName": "Chat sans nom",
 "reportedCats.selectStatus": "Sélectionner un statut",
 "reportedCats.lost": "Perdu",
 "reportedCats.found": "Trouvé",

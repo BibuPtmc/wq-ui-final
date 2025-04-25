@@ -1,4 +1,66 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+
+/**
+ * Affiche une notification d’erreur API standardisée.
+ * @param {function} showNotification - Fonction de notification du contexte
+ * @param {string} contextMsg - Message d’intention (ex: "lors de la modification du chat")
+ * @param {object} error - Objet erreur capturé
+ */
+function notifyApiError(showNotification, contextMsg, error) {
+  showNotification(
+    `Erreur ${contextMsg} : ` +
+    (error?.response?.data?.message || error?.message || "Erreur inconnue"),
+    "error"
+  );
+}
+
+/**
+ * Construit un objet cat conforme à l’API à partir d’un objet source.
+ * @param {object} catData - Données du chat (formulaire ou state)
+ * @param {function} convertToEnum - Fonction de conversion enum
+ * @returns {object}
+ */
+function buildCatDTO(catData, convertToEnum) {
+  return {
+    catId: catData.catId,
+    name: catData.name,
+    breed: convertToEnum(catData.breed, ""),
+    color: convertToEnum(catData.color, ""),
+    dateOfBirth: catData.dateOfBirth,
+    imageCatData: catData.imageCatData,
+    gender: catData.gender,
+    chipNumber: catData.chipNumber,
+    furType: convertToEnum(catData.furType, ""),
+    eyeColor: convertToEnum(catData.eyeColor, "")
+  };
+}
+
+/**
+ * Construit un objet catDTO pour update/create à partir de données mises à jour et d’un état courant.
+ * @param {object} updatedData - Données du formulaire ou de la modification
+ * @param {object} currentCat - Données actuelles du chat (state)
+ * @param {function} convertToEnum - Fonction de conversion enum
+ * @returns {object}
+ */
+function buildUpdatedCatDTO(updatedData, currentCat, convertToEnum) {
+  return {
+    catId: updatedData.catId || currentCat.catId,
+    name: updatedData.name || currentCat.name,
+    color: convertToEnum(updatedData.color, currentCat.color),
+    eyeColor: convertToEnum(updatedData.eyeColor, currentCat.eyeColor),
+    breed: convertToEnum(updatedData.breed, currentCat.breed),
+    dateOfBirth: updatedData.dateOfBirth || currentCat.dateOfBirth,
+    imageCatData: updatedData.imageCatData || currentCat.imageCatData,
+    gender: updatedData.gender || currentCat.gender,
+    chipNumber: updatedData.chipNumber || currentCat.chipNumber,
+    furType: convertToEnum(updatedData.furType, currentCat.furType),
+    imageUrls: updatedData.imageUrls || currentCat.imageUrls,
+    imageUrl: updatedData.imageUrl || currentCat.imageUrl,
+    comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment
+  };
+}
+
+
 import { useAxios } from '../hooks/useAxios';
 import { formatDateForJava, convertToEnum } from '../utils/enumUtils';
 import { useAuth } from '../hooks/authProvider';
@@ -19,6 +81,10 @@ export const CatsProvider = ({ children }) => {
   // Use a ref to track if we've already run the initial fetch
   const initialFetchDone = useRef(false);
 
+  /**
+   * Récupère l'adresse de l'utilisateur connecté depuis l'API et met à jour le state local userAddress.
+   * Affiche une notification en cas d'erreur.
+   */
   const fetchUserAddress = useCallback(async () => {
     try {
       const response = await axios.get("users/me");
@@ -33,10 +99,15 @@ export const CatsProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
     }
   }, [axios]);
 
+  /**
+   * Récupère les chats signalés et possédés de l'utilisateur depuis l'API.
+   * Met à jour les états reportedCats et ownedCats, ainsi que l'adresse utilisateur.
+   * Gère le chargement et les notifications d'erreur.
+   */
   const fetchCats = useCallback(async () => {
     try {
       // Vérifier si l'utilisateur est connecté
@@ -67,7 +138,7 @@ export const CatsProvider = ({ children }) => {
       setLoading(false);
       initialFetchDone.current = true;
     } catch (error) {
-      showNotification("Erreur lors de la récupération des chats: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      notifyApiError(showNotification, "lors de la récupération des chats", error);
       setLoading(false);
     }
   }, [axios, isLoggedIn, fetchUserAddress]);
@@ -84,6 +155,10 @@ export const CatsProvider = ({ children }) => {
     }
   }, [isLoggedIn, fetchCats]);
 
+  /**
+   * Supprime un chat signalé (catStatusId) via l'API et met à jour le state local.
+   * Affiche une notification de succès ou d'erreur.
+   */
   const handleDeleteReportedCat = async (catStatusId) => {
     try {
       // Trouver le chat signalé correspondant
@@ -96,12 +171,15 @@ export const CatsProvider = ({ children }) => {
       showNotification('Le chat a été supprimé avec succès !', 'success');
       return true;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification("Erreur lors de la suppression du chat signalé : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return false;
     }
   };
 
-
+  /**
+   * Modifie les informations d'un chat signalé et/ou change son statut (ex : vers possédé).
+   * Met à jour l'API et le state local, affiche une notification adaptée.
+   */
   const handleEditReportedCat = async (catStatusId, updatedData) => {
     try {
       const currentCat = reportedCats.find(cat => cat.catStatusId === catStatusId);
@@ -110,20 +188,8 @@ export const CatsProvider = ({ children }) => {
       }
 
       // Utilisation de la fonction convertToEnum centralisée
-      const catDTO = {
-        catId: currentCat.cat.catId,
-        name: updatedData.name,
-        color: convertToEnum(updatedData.color, currentCat.cat.color),
-        eyeColor: convertToEnum(updatedData.eyeColor, currentCat.cat.eyeColor),
-        breed: convertToEnum(updatedData.breed, currentCat.cat.breed),
-        dateOfBirth: updatedData.dateOfBirth || currentCat.cat.dateOfBirth,
-        imageUrl: updatedData.imageUrl || currentCat.cat.imageUrl,
-        imageUrls: updatedData.imageUrls || currentCat.cat.imageUrls,
-        gender: updatedData.gender || currentCat.cat.gender,
-        chipNumber: updatedData.chipNumber || currentCat.cat.chipNumber,
-        furType: convertToEnum(updatedData.furType, currentCat.cat.furType),
-        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.cat.comment
-      };
+      const catDTO = buildUpdatedCatDTO(updatedData, currentCat.cat, convertToEnum);
+
 
       // Vérifier si nous changeons le statut du chat (par exemple, de trouvé à possédé)
       const newStatus = updatedData.statusCat || currentCat.statusCat;
@@ -202,11 +268,15 @@ export const CatsProvider = ({ children }) => {
       showNotification('Le chat a été mis à jour avec succès !', 'success');
       return true;
     } catch (error) {
-      showNotification("Erreur lors de la mise à jour du chat: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      notifyApiError(showNotification, "lors de la mise à jour du chat signalé", error);
       return false;
     }
   };
 
+  /**
+   * Modifie les informations d'un chat possédé (catId) via l'API et met à jour le state local.
+   * Affiche une notification de succès ou d'erreur.
+   */
   const handleEditOwnedCat = async (catId, updatedData) => {
     try {
       const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
@@ -215,21 +285,7 @@ export const CatsProvider = ({ children }) => {
       }
 
       // Utilisation de la fonction convertToEnum centralisée
-      const catDTO = {
-        catId: catId,
-        name: updatedData.name,
-        color: convertToEnum(updatedData.color, currentCatStatus.cat.color),
-        eyeColor: convertToEnum(updatedData.eyeColor, currentCatStatus.cat.eyeColor),
-        breed: convertToEnum(updatedData.breed, currentCatStatus.cat.breed),
-        dateOfBirth: updatedData.dateOfBirth || currentCatStatus.cat.dateOfBirth,
-        imageCatData: updatedData.imageCatData || currentCatStatus.cat.imageCatData,
-        gender: updatedData.gender || currentCatStatus.cat.gender,
-        chipNumber: updatedData.chipNumber || currentCatStatus.cat.chipNumber,
-        furType: convertToEnum(updatedData.furType, currentCatStatus.cat.furType),
-        imageUrls: updatedData.imageUrls || currentCatStatus.cat.imageUrls,
-        imageUrl: updatedData.imageUrl || currentCatStatus.cat.imageUrl,
-        comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCatStatus.cat.comment
-      };
+      const catDTO = buildUpdatedCatDTO(updatedData, currentCatStatus.cat, convertToEnum);
 
       // Formater la date actuelle pour Java LocalDateTime
       const now = new Date();
@@ -270,27 +326,13 @@ export const CatsProvider = ({ children }) => {
               ...cat,
               statusCat: updatedData.statusCat || cat.statusCat,
               reportDate: formattedDate,
-              cat: {
-                ...cat.cat,
-                name: updatedData.name,
-                color: convertToEnum(updatedData.color, cat.cat.color),
-                eyeColor: convertToEnum(updatedData.eyeColor, cat.cat.eyeColor),
-                breed: convertToEnum(updatedData.breed, cat.cat.breed),
-                dateOfBirth: updatedData.dateOfBirth || cat.cat.dateOfBirth,
-                imageCatData: updatedData.imageCatData || cat.cat.imageCatData,
-                gender: updatedData.gender || cat.cat.gender,
-                chipNumber: updatedData.chipNumber || cat.cat.chipNumber,
-                furType: convertToEnum(updatedData.furType, cat.cat.furType),
-                comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : cat.cat.comment,
-              }
+              cat: catDTO
             }
           : cat
       ));
-      
-      showNotification('Le chat a été mis à jour avec succès !', 'success');
       return true;
     } catch (error) {
-      showNotification("Erreur lors de la mise à jour du chat: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      notifyApiError(showNotification, "lors de la mise à jour du chat possédé", error);
       return false;
     }
   };
@@ -299,15 +341,21 @@ export const CatsProvider = ({ children }) => {
     try {
       await axios.delete(`/cat/delete?id=${catId}`);
       setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-      showNotification('Le chat a été supprimé avec succès !', 'success'); // Le message disparaît après 3 secondes
+      showNotification('Le chat a été supprimé avec succès !', 'success'); 
       return true;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat:", error);
+      notifyApiError(showNotification, "lors de la suppression du chat possédé", error);
       return false;
     }
   };
 
+
   // Fonction pour déclarer un chat possédé comme perdu avec une localisation personnalisée
+  /**
+   * Déclare un chat possédé comme perdu avec une localisation personnalisée.
+   * Met à jour l'API, retire le chat de la liste des possédés et l'ajoute aux signalés.
+   * Affiche une notification adaptée.
+   */
   const handleReportCatAsLost = async (catId, lostData) => {
     try {
       const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
@@ -336,18 +384,7 @@ export const CatsProvider = ({ children }) => {
 
       // Créer l'objet catStatus pour déclarer le chat comme perdu (structure similaire à RegisterCat)
       const catStatus = {
-        cat: {
-          catId: catId,
-          name: currentCatStatus.cat.name,
-          breed: convertToEnum(currentCatStatus.cat.breed, ""),
-          color: convertToEnum(currentCatStatus.cat.color, ""),
-          dateOfBirth: currentCatStatus.cat.dateOfBirth,
-          imageCatData: currentCatStatus.cat.imageCatData,
-          gender: currentCatStatus.cat.gender,
-          chipNumber: currentCatStatus.cat.chipNumber,
-          furType: convertToEnum(currentCatStatus.cat.furType, ""),
-          eyeColor: convertToEnum(currentCatStatus.cat.eyeColor, "")
-        },
+        cat: buildCatDTO(currentCatStatus.cat, convertToEnum),
         comment: lostData.comment || "Chat perdu",
         statusCat: "LOST", // Statut perdu
         reportDate: formattedDate,
@@ -375,32 +412,44 @@ export const CatsProvider = ({ children }) => {
       showNotification('Votre chat a été déclaré comme perdu avec succès !', 'success');
       return true;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return false;
     }
   };
 
+  /**
+   * Recherche les chats trouvés potentiellement correspondants à un chat perdu donné (catId).
+   * Retourne la liste depuis l'API ou [] en cas d'erreur, notifie l'utilisateur.
+   */
   const findPotentialFoundCats = async (catId) => {
     try {
       const response = await axios.get(`/cat/potentialFoundCats/${catId}`);
       return response;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return [];
     }
   };
 
+  /**
+   * Recherche les chats perdus potentiellement correspondants à un chat trouvé donné (catId).
+   * Retourne la liste depuis l'API ou [] en cas d'erreur, notifie l'utilisateur.
+   */
   const findPotentialLostCats = async (catId) => {
     try {
       const response = await axios.get(`/cat/potentialLostCats/${catId}`);
       return response;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return [];
     }
   };
 
   // Nouvelle fonction pour mettre à jour l'adresse de tous les chats possédés
+  /**
+   * Met à jour l'adresse de tous les chats possédés avec une nouvelle adresse (newAddress).
+   * Met à jour l'API et le state local, affiche une notification de succès.
+   */
   const updateAllOwnedCatsAddress = async (newAddress) => {
     try {
       // Pour chaque chat possédé, on met à jour la localisation
@@ -442,7 +491,6 @@ export const CatsProvider = ({ children }) => {
       reportedCats,
       ownedCats,
       loading,
-
       userAddress,
       handleDeleteReportedCat,
       handleEditReportedCat,
@@ -453,7 +501,7 @@ export const CatsProvider = ({ children }) => {
       findPotentialLostCats,
       fetchCats,
       fetchUserAddress,
-      updateAllOwnedCatsAddress // Exposé dans le contexte
+      updateAllOwnedCatsAddress
     }}>
       {children}
     </CatsContext.Provider>
