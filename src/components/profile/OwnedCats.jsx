@@ -11,6 +11,7 @@ import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
+import { convertToEnum } from "../../utils/enumUtils";
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   const { t } = useTranslation();
@@ -63,13 +64,13 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : []);
     const newFormData = {
       name: catStatus.cat.name || '',
-      breed: catStatus.cat.breed || 'UNKNOWN',
-      color: catStatus.cat.color || 'AUTRE',
-      eyeColor: catStatus.cat.eyeColor || 'AUTRE',
+      breed: convertToEnum(catStatus.cat.breed, 'UNKNOWN'),
+      color: convertToEnum(catStatus.cat.color, 'AUTRE'),
+      eyeColor: convertToEnum(catStatus.cat.eyeColor, 'AUTRE'),
       gender: catStatus.cat.gender || 'Inconnu',
       dateOfBirth: formattedDate,
       chipNumber: catStatus.cat.chipNumber || '',
-      furType: catStatus.cat.furType || 'COURTE',
+      furType: convertToEnum(catStatus.cat.furType, 'COURTE'),
       comment: catStatus.cat.comment || '',
       images: Array.isArray(images) ? images : []
     };

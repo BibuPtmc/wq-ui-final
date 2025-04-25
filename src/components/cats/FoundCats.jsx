@@ -8,7 +8,7 @@ import "../../styles/global.css";
 import CatDetails from "../profile/CatDetails";
 import MatchingResults from "./MatchingResults";
 import Select from "react-select";
-import catBreeds from "../../CatBreeds";
+import { breedOptions } from "../../utils/enumOptions";
 import { colorOptions as colorChoices, eyeColorOptions as eyeColorChoices } from "../../utils/enumOptions";
 import { CatFoundIdDisplay } from "./CatLinkRequest";
 // Importation du nouveau contexte au lieu des hooks individuels
@@ -59,13 +59,13 @@ function FoundCats() {
     }))
   ];
 
-  const breedOptions = [
-    { value: "", label: t('foundCats.allBreeds', "Toutes les races") },
-    ...catBreeds.map(breed => ({ 
-      value: breed.value, 
-      label: formatValue(breed.value) 
-    }))
-  ];
+  const breedSelectOptions = [
+  { value: "", label: t('foundCats.allBreeds', "Toutes les races") },
+  ...breedOptions.map(breed => ({
+    value: breed,
+    label: formatValue(breed)
+  }))
+];
 
   const handleClose = () => setShow(false);
   
@@ -140,8 +140,8 @@ function FoundCats() {
                 <Form.Group>
                   <Form.Label>Race</Form.Label>
                   <Select
-                    options={breedOptions}
-                    value={breedOptions.find(option => option.value === filters.breed) || breedOptions[0]}
+                    options={breedSelectOptions}
+                    value={breedSelectOptions.find(option => option.value === filters.breed) || breedSelectOptions[0]}
                     onChange={(selectedOption) => handleFilterChange('breed', selectedOption.value)}
                     isSearchable
                     placeholder="Toutes les races"

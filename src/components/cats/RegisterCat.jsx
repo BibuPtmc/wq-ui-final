@@ -5,15 +5,14 @@ import Select from "react-select";
 import { motion } from "framer-motion";
 import { FaPaw, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
-import catBreeds from "../../CatBreeds";
+import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
 import { useAuth } from "../../hooks/authProvider";
 import mapboxgl from 'mapbox-gl';
 import "mapbox-gl/dist/mapbox-gl.css";
 import useGeolocation from "../../hooks/useGeolocation";
 import MapLocation from "../map/MapLocation";
 import { reverseGeocode } from "../../utils/geocodingService";
-import { colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
-// Utiliser les contextes centralisés au lieu des imports directs
+import { convertToEnum } from "../../utils/enumUtils";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useAxiosContext } from "../../contexts/AxiosContext";
 import { useCatsContext } from "../../contexts/CatsContext";
@@ -255,42 +254,37 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
       city: formData.location.city,
       postalCode: formData.location.postalCode
     };
-    
+
+    // Création du payload imbriqué avec conversion centralisée des enums
     const catStatus = {
       cat: {
-        name: formData.name,
-        breed: formData.breed,
-        color: formData.color,
+        name: name,
+        breed: convertToEnum(formData.breed, 'UNKNOWN'),
+        color: convertToEnum(formData.color, 'AUTRE'),
         dateOfBirth: formData.dateOfBirth,
         imageUrl: formData.imageUrl,
-        imageUrls: formData.imageUrls, // Ajouter le tableau d'URLs d'images
+        imageUrls: formData.imageUrls,
         gender: formData.gender,
         chipNumber: formData.chipNumber,
-        furType: formData.furType,
-        eyeColor: formData.eyeColor,
-        comment: formData.comment,
+        furType: convertToEnum(formData.furType, 'COURTE'),
+        eyeColor: convertToEnum(formData.eyeColor, 'AUTRE'),
+        comment: formData.comment
       },
-      comment: formData.comment,
-      statusCat: formData.statusCat,
+      statusCat: convertToEnum(formData.statusCat, ''),
       reportDate: formattedDate,
-      location: localisation // Ajout de la localisation
+      comment: formData.comment,
+      location: localisation
     };
-    
-    try {
-      // Créer un objet FormData pour envoyer les données au format multipart/form-data
-      const formData = new FormData();
-      
-      // Convertir l'objet catStatus en JSON et l'ajouter comme partie "catData"
-      formData.append('catData', new Blob([JSON.stringify(catStatus)], {
-        type: 'application/json'
-      }));
-      
-      // Ajouter les images si disponibles
-      // Note: Dans cette implémentation, nous n'envoyons pas les fichiers car ils ont déjà été uploadés
-      // individuellement par le composant ImageUploader. Le backend utilisera les URLs stockées dans catStatus.
-      
+
+    // Ajouter les données du formulaire au payload imbriqué
+    const formDataWithPayload = new FormData();
+    formDataWithPayload.append('catData', new Blob([JSON.stringify(catStatus)], {
+      type: 'application/json'
+    }));
+
+    try { 
       // Envoyer la requête avec le bon Content-Type
-      await post("/cat/register", formData, {
+      await post("/cat/register", formDataWithPayload, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -401,15 +395,15 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                       <Form.Group className="mb-3">
                         <Form.Label>{t('cat.breed', 'Race')}</Form.Label>
                         <Select
-                          name="breed"
-                          value={catBreeds.find((option) => option.value === formData.breed)}
-                          onChange={(selectedOption) => handleSelectChange(selectedOption, { name: 'breed' })}
-                          options={catBreeds}
-                          placeholder={t('cat.selectBreed', 'Sélectionnez la race')}
-                          isClearable
-                          className="basic-select"
-                          classNamePrefix="select"
-                        />
+  name="breed"
+  value={formData.breed ? { value: formData.breed, label: formatValue(formData.breed) } : null}
+  onChange={(selectedOption) => handleSelectChange(selectedOption, { name: 'breed' })}
+  options={breedOptions.map(option => ({ value: option, label: formatValue(option) }))}
+  placeholder={t('cat.selectBreed', 'Sélectionnez la race')}
+  isClearable
+  className="basic-select"
+  classNamePrefix="select"
+/>
                       </Form.Group>
 
                       <Form.Group className="mb-3">
