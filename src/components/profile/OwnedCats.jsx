@@ -33,7 +33,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     chipNumber: '',
     furType: '',
     comment: '',
-    images: [] // Ajout pour les images
+    images: [] // Toujours initialisé à []
   });
   const [lostForm, setLostForm] = useState({
     comment: '',
@@ -50,16 +50,17 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Options et fonctions de formatage importées depuis les utilitaires centralisés
 
   const handleEdit = (catStatus) => {
-    // Log supprimé pour améliorer les performances
     setSelectedCat(catStatus);
-    
     // Formatage de la date pour l'input date
     let formattedDate = '';
     if (catStatus.cat.dateOfBirth) {
       const date = new Date(catStatus.cat.dateOfBirth);
       formattedDate = date.toISOString().split('T')[0];
     }
-    
+    // Toujours garantir images: []
+    const images = catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
+      ? catStatus.cat.imageUrls
+      : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : []);
     const newFormData = {
       name: catStatus.cat.name || '',
       breed: catStatus.cat.breed || 'UNKNOWN',
@@ -70,29 +71,25 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       chipNumber: catStatus.cat.chipNumber || '',
       furType: catStatus.cat.furType || 'COURTE',
       comment: catStatus.cat.comment || '',
-      images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
-  ? catStatus.cat.imageUrls
-  : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
+      images: Array.isArray(images) ? images : []
     };
-    
-    // Log supprimé pour améliorer les performances
     setEditForm(newFormData);
-    
     setShowModal(true);
   };
 
   // Effet pour surveiller les changements de selectedCat et mettre à jour le formulaire
   useEffect(() => {
     if (selectedCat && selectedCat.cat) {
-      // Log supprimé pour améliorer les performances
-      
       // Formatage de la date pour l'input date
       let formattedDate = '';
       if (selectedCat.cat.dateOfBirth) {
         const date = new Date(selectedCat.cat.dateOfBirth);
         formattedDate = date.toISOString().split('T')[0];
       }
-      
+      // Toujours garantir images: []
+      const images = selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0
+        ? selectedCat.cat.imageUrls
+        : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : []);
       const newFormData = {
         name: selectedCat.cat.name || '',
         breed: selectedCat.cat.breed || 'UNKNOWN',
@@ -103,11 +100,8 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
         comment: selectedCat.cat.comment || '',
-        images: selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0
-        ? selectedCat.cat.imageUrls
-        : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : [])      };
-      
-      // Log supprimé pour améliorer les performances
+        images: Array.isArray(images) ? images : []
+      };
       setEditForm(newFormData);
     }
   }, [selectedCat]);
@@ -116,7 +110,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   useEffect(() => {
     if (selectedCat) {
       // Pour le modal d'édition
-      setEditForm({
+      setEditForm(prev => ({
         name: selectedCat.cat.name || '',
         breed: selectedCat.cat.breed || '',
         color: selectedCat.cat.color || '',
@@ -125,8 +119,11 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         dateOfBirth: selectedCat.cat.dateOfBirth ? selectedCat.cat.dateOfBirth.substring(0, 10) : '',
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || '',
-        comment: selectedCat.cat.comment || ''
-      });
+        comment: selectedCat.cat.comment || '',
+        images: (selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0)
+          ? selectedCat.cat.imageUrls
+          : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : [])
+      }));
 
       // Pour le modal de signalement de perte
       if (showLostModal) {
@@ -147,16 +144,23 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("editForm", editForm);
+    console.log("selectedCat", selectedCat);
+    // Nettoyage du payload : on retire 'images' avant l'envoi
+    const { images, ...rest } = editForm;
     const payload = {
-      ...editForm,
-      imageUrls: editForm.images,
-      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null
-        };
+      ...rest,
+      imageUrls: images,
+      imageUrl: images.length > 0 ? images[0] : null
+    };
+    console.log("payload", payload);
     const success = await onEditCat(selectedCat.cat.catId, payload);
+    console.log("edit success", success);
     setShowModal(false);
     if (success) {
       // Rafraîchir les données après l'édition
       await fetchCats();
+      console.log("Cats fetched");
     }
   };
 

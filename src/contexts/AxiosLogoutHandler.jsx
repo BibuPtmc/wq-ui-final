@@ -16,7 +16,8 @@ export default function AxiosLogoutHandler() {
     const interceptor = axiosInstance.interceptors.response.use(
       response => response,
       error => {
-        if (error.response && error.response.status === 401) {
+        // Déclenche le logout sur 401 (Unauthorized) ou 403 (Forbidden)
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
           logout({ sessionExpired: true });
         }
         return Promise.reject(error);
