@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useAxios } from '../hooks/useAxios';
 import { formatDateForJava, convertToEnum } from '../utils/enumUtils';
 import { useAuth } from '../hooks/authProvider';
+import { useNotification } from './NotificationContext';
 
 // Création du contexte
 const CatsContext = createContext();
@@ -12,7 +13,7 @@ export const CatsProvider = ({ children }) => {
   const [reportedCats, setReportedCats] = useState([]);
   const [ownedCats, setOwnedCats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [successMessage, setSuccessMessage] = useState('');
+  const { showNotification } = useNotification();
   const [userAddress, setUserAddress] = useState(null);
 
   // Use a ref to track if we've already run the initial fetch
@@ -20,8 +21,7 @@ export const CatsProvider = ({ children }) => {
 
   const fetchUserAddress = useCallback(async () => {
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get("users/me", { headers });
+      const response = await axios.get("users/me");
       
       if (response && response.address) {
         setUserAddress({
@@ -33,7 +33,7 @@ export const CatsProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
     }
   }, [axios]);
 
@@ -45,11 +45,9 @@ export const CatsProvider = ({ children }) => {
       // Indiquer que le chargement est en cours
       setLoading(true);
       
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      
       // Fetch reported cats
       try {
-        const reportedResponse = await axios.get("cat/reportedCats", { headers });
+        const reportedResponse = await axios.get("cat/reportedCats");
         setReportedCats(reportedResponse || []); 
       } catch (error) {
         setReportedCats([]);
@@ -57,7 +55,7 @@ export const CatsProvider = ({ children }) => {
 
       // Fetch owned cats
       try {
-        const ownedResponse = await axios.get("cat/ownedCats", { headers });
+        const ownedResponse = await axios.get("cat/ownedCats");
         setOwnedCats(ownedResponse || []);
       } catch (error) {
         setOwnedCats([]);
@@ -69,7 +67,7 @@ export const CatsProvider = ({ children }) => {
       setLoading(false);
       initialFetchDone.current = true;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
+      showNotification("Erreur lors de la récupération des chats: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       setLoading(false);
     }
   }, [axios, isLoggedIn, fetchUserAddress]);
@@ -88,21 +86,17 @@ export const CatsProvider = ({ children }) => {
 
   const handleDeleteReportedCat = async (catStatusId) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
       // Trouver le chat signalé correspondant
       const catToDelete = reportedCats.find(cat => cat.catStatusId === catStatusId);
       if (!catToDelete) throw new Error("Chat signalé introuvable");
       const catId = catToDelete.cat.catId;
       // Utiliser le même endpoint que pour les chats possédés
-      await axios.delete(`/cat/delete?id=${catId}`, { headers });
+      await axios.delete(`/cat/delete?id=${catId}`);
       setReportedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-      setSuccessMessage('Le chat a été supprimé avec succès !');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showNotification('Le chat a été supprimé avec succès !', 'success');
       return true;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return false;
     }
   };
@@ -110,10 +104,6 @@ export const CatsProvider = ({ children }) => {
 
   const handleEditReportedCat = async (catStatusId, updatedData) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-
       const currentCat = reportedCats.find(cat => cat.catStatusId === catStatusId);
       if (!currentCat) {
         throw new Error("Chat non trouvé");
@@ -172,12 +162,12 @@ export const CatsProvider = ({ children }) => {
       const statusHasChanged = updatedData.statusCat && updatedData.statusCat !== currentCat.statusCat;
 
       // Mettre à jour les informations du chat
-      await axios.put(`/cat/update`, catDTO, { headers });
+      await axios.put(`/cat/update`, catDTO);
 
       let response = null;
       if (statusHasChanged) {
         // Mettre à jour le statut du chat seulement si le statut a changé
-        response = await axios.put(`/cat/updateStatus`, catStatus, { headers });
+        response = await axios.put(`/cat/updateStatus`, catStatus);
       }
 
       // Mettre à jour l'état local
@@ -209,21 +199,16 @@ export const CatsProvider = ({ children }) => {
         ));
       }
       
-      setSuccessMessage('Le chat a été mis à jour avec succès !');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showNotification('Le chat a été mis à jour avec succès !', 'success');
       return true;
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du chat:", error);
+      showNotification("Erreur lors de la mise à jour du chat: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return false;
     }
   };
 
   const handleEditOwnedCat = async (catId, updatedData) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-
       const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
       if (!currentCatStatus) {
         throw new Error("Chat non trouvé");
@@ -271,11 +256,11 @@ export const CatsProvider = ({ children }) => {
       };
 
       // Mettre à jour les informations du chat
-      await axios.put(`/cat/update`, catDTO, { headers });
+      await axios.put(`/cat/update`, catDTO);
       
       // Mettre à jour le statut du chat uniquement si le statut a changé
       if (statusHasChanged) {
-        await axios.put(`/cat/updateStatus`, catStatus, { headers });
+        await axios.put(`/cat/updateStatus`, catStatus);
       }
       
       // Mettre à jour l'état local
@@ -302,24 +287,19 @@ export const CatsProvider = ({ children }) => {
           : cat
       ));
       
-      setSuccessMessage('Le chat a été mis à jour avec succès !');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showNotification('Le chat a été mis à jour avec succès !', 'success');
       return true;
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du chat:", error);
+      showNotification("Erreur lors de la mise à jour du chat: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return false;
     }
   };
 
   const handleDeleteOwnedCat = async (catId) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-      await axios.delete(`/cat/delete?id=${catId}`, { headers });
+      await axios.delete(`/cat/delete?id=${catId}`);
       setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-      setSuccessMessage('Le chat a été supprimé avec succès !');
-      setTimeout(() => setSuccessMessage(''), 3000); // Le message disparaît après 3 secondes
+      showNotification('Le chat a été supprimé avec succès !', 'success'); // Le message disparaît après 3 secondes
       return true;
     } catch (error) {
       console.error("Erreur lors de la suppression du chat:", error);
@@ -330,10 +310,6 @@ export const CatsProvider = ({ children }) => {
   // Fonction pour déclarer un chat possédé comme perdu avec une localisation personnalisée
   const handleReportCatAsLost = async (catId, lostData) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-
       const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
       if (!currentCatStatus) {
         throw new Error("Chat non trouvé");
@@ -379,7 +355,7 @@ export const CatsProvider = ({ children }) => {
       };
 
       // Mettre à jour le statut du chat
-      const response = await axios.post(`/cat/register`, catStatus, { headers });
+      const response = await axios.post(`/cat/register`, catStatus);
       
       // Mettre à jour l'état local
       setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
@@ -396,37 +372,30 @@ export const CatsProvider = ({ children }) => {
       
       setReportedCats(prevCats => [...prevCats, updatedCat]);
       
-      setSuccessMessage('Votre chat a été déclaré comme perdu avec succès !');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showNotification('Votre chat a été déclaré comme perdu avec succès !', 'success');
       return true;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return false;
     }
   };
 
   const findPotentialFoundCats = async (catId) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-      const response = await axios.get(`/cat/potentialFoundCats/${catId}`, { headers });
+      const response = await axios.get(`/cat/potentialFoundCats/${catId}`);
       return response;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return [];
     }
   };
 
   const findPotentialLostCats = async (catId) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
-      const response = await axios.get(`/cat/potentialLostCats/${catId}`, { headers });
+      const response = await axios.get(`/cat/potentialLostCats/${catId}`);
       return response;
     } catch (error) {
-      console.error("Erreur lors de la suppression du chat signalé:", error?.response?.data || error.message || error);
+      showNotification("Erreur lors de la récupération de l'adresse utilisateur: " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
       return [];
     }
   };
@@ -434,9 +403,6 @@ export const CatsProvider = ({ children }) => {
   // Nouvelle fonction pour mettre à jour l'adresse de tous les chats possédés
   const updateAllOwnedCatsAddress = async (newAddress) => {
     try {
-      const headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      };
       // Pour chaque chat possédé, on met à jour la localisation
       const updatePromises = ownedCats.map(async (catStatus) => {
         const catDTO = {
@@ -450,7 +416,7 @@ export const CatsProvider = ({ children }) => {
             longitude: newAddress.longitude,
           }
         };
-        await axios.put(`/cat/update`, catDTO, { headers });
+        await axios.put(`/cat/update`, catDTO);
         return {
           ...catStatus,
           location: catDTO.location,
@@ -463,8 +429,7 @@ export const CatsProvider = ({ children }) => {
       // Met à jour localement l'état après toutes les requêtes
       const updatedCats = await Promise.all(updatePromises);
       setOwnedCats(updatedCats);
-      setSuccessMessage('L\'adresse de tous vos chats a été mise à jour !');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showNotification('L\'adresse de tous vos chats a été mise à jour !', 'success');
       return true;
     } catch (error) {
       // Log réduit pour les performances
@@ -477,7 +442,7 @@ export const CatsProvider = ({ children }) => {
       reportedCats,
       ownedCats,
       loading,
-      successMessage,
+
       userAddress,
       handleDeleteReportedCat,
       handleEditReportedCat,
