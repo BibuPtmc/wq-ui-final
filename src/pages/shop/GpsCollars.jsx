@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import '../../styles/global.css';
 import { useCartContext } from '../../contexts/CartContext';
 import { useProductContext } from '../../hooks/useProductContext';
-import { useAuth } from '../../hooks/authProvider';
+import { useAuth } from '../../contexts/authProvider';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 

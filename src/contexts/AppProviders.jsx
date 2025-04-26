@@ -1,13 +1,11 @@
 import React from 'react';
 import { AxiosProvider } from './AxiosContext';
-import { AuthProvider } from '../hooks/authProvider';
+import { AuthProvider } from './authProvider';
 import { UserProvider } from './UserContext';
 import { CatsProvider } from './CatsContext';
 import { CatSearchProvider } from './CatSearchContext';
 import { ProductProvider } from './ProductContext';
 import { LanguageProvider } from './LanguageContext';
-
-// Composant qui combine tous les providers de l'application
 import { NotificationProvider } from './NotificationContext';
 
 export const AppProviders = ({ children }) => {

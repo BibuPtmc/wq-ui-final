@@ -9,7 +9,7 @@ import {
   Divider 
 } from '@mui/material';
 import { PendingLinkRequests, SentLinkRequests } from '../components/cats/CatLinkResponder';
-import { useAuth } from '../hooks/authProvider';
+import { useAuth } from '../contexts/authProvider';
 import { useTranslation } from 'react-i18next';
 
 // Composant TabPanel pour afficher le contenu des onglets

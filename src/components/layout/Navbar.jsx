@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Navbar, Nav, Button, Container, Dropdown } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "../../image/log.webp";
-import { useAuth } from "../../hooks/authProvider";
+import { useAuth } from "../../contexts/authProvider";
 import { FaHome, FaEnvelope, FaExclamationTriangle, FaSearch, FaPaw, FaUser, FaSignOutAlt, FaTag } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import Cart from '../ecommerce/Cart';

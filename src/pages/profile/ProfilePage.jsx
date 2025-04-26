@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
-import { useAuth } from "../../hooks/authProvider";
+import { useAuth } from "../../contexts/authProvider";
 import { useUserContext } from "../../contexts/UserContext";
 import { useCatsContext } from '../../contexts/CatsContext';
 import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';

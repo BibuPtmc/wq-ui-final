@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAxios } from '../hooks/useAxios';
-import { useAuth } from '../hooks/authProvider';
+import { useAuth } from '../contexts/authProvider';
 import { reverseGeocode } from '../utils/geocodingService';
 import { useCatsContext } from './CatsContext';
 

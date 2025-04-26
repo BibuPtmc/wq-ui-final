@@ -18,7 +18,7 @@ import { CartProvider } from './contexts/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./styles/global.css";
-import { useAuth } from "./hooks/authProvider";
+import { useAuth } from "./contexts/authProvider";
 import { AppProviders } from "./contexts/AppProviders";
 import AxiosLogoutHandler from "./contexts/AxiosLogoutHandler";
 import NotificationBar from "./components/NotificationBar";

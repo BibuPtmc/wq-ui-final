@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { FaPaw, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
 import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
-import { useAuth } from "../../hooks/authProvider";
+import { useAuth } from "../../contexts/authProvider";
 import mapboxgl from 'mapbox-gl';
 import "mapbox-gl/dist/mapbox-gl.css";
 import useGeolocation from "../../hooks/useGeolocation";

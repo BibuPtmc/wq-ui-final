@@ -86,7 +86,7 @@ export const AxiosProvider = ({ children, onLogout }) => {
     post,
     put,
     delete: del // 'delete' est un mot réservé en JS, donc on utilise 'del' en interne
-  }), [axiosInstance, get, post, put, del]);
+  }), [axiosInstance, del, get, post, put]);
 
   return (
     <AxiosContext.Provider value={contextValue}>
