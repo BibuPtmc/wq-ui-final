@@ -14,7 +14,7 @@ import MapLocation from "../map/MapLocation";
 import { reverseGeocode } from "../../utils/geocodingService";
 import { convertToEnum } from "../../utils/enumUtils";
 import { useCatSearch } from "../../contexts/CatSearchContext";
-import { useAxiosContext } from "../../contexts/AxiosContext";
+import { useAxios } from "../../hooks/useAxios";
 import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 function RegisterCat() {
   // Utiliser les fonctions du contexte
   const { formatValue } = useCatSearch();
-  const { post } = useAxiosContext();
+  const axios = useAxios();
   const { fetchCats, userAddress } = useCatsContext();
 // Pour la carte et la géolocalisation (LOST/FOUND)
 const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
@@ -284,7 +284,7 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
 
     try { 
       // Envoyer la requête avec le bon Content-Type
-      await post("/cat/register", formDataWithPayload, {
+      await axios.post("/cat/register", formDataWithPayload, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

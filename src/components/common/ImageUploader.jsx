@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { FaCamera, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
-import { useAxiosContext } from '../../contexts/AxiosContext';
+import { useAxios } from '../../hooks/useAxios';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -25,7 +25,7 @@ const ImageUploader = ({
   onUploadStatusChange = null // Callback to inform parent about upload status
 }) => {
   const { t } = useTranslation();
-  const { post, delete: del } = useAxiosContext();
+  const axios = useAxios();
   // Initialiser previews comme un tableau, même si initialImage est une seule URL
   const [previews, setPreviews] = useState(() => {
     if (!initialImage) return [];
@@ -130,7 +130,7 @@ const ImageUploader = ({
         const formData = new FormData();
         formData.append('file', file); // Garder 'file' comme nom de paramètre pour l'upload individuel
         
-        const response = await post('/media/upload', formData, {
+        const response = await axios.post('/media/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           },
@@ -191,7 +191,7 @@ const ImageUploader = ({
   
     if (publicId) {
       try {
-        await del(`/media/delete?publicId=${publicId}`);
+        await axios.delete(`/media/delete?publicId=${publicId}`);
       } catch (err) {
         setError("Erreur lors de la suppression de l'image sur le serveur.");
         return;

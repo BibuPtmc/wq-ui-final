@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { useAxios } from './useAxios';
+import { useAxios } from '../hooks/useAxios';
 
 export const useCatLink = () => {
   const axios = useAxios();
@@ -17,15 +17,13 @@ export const useCatLink = () => {
     setLoading(true);
     setError(null);
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       await axios.post(
         "/cat-link/request", 
         {
           lostCatStatusId,
           foundCatStatusId,
           comment
-        },
-        { headers }
+        }
       );
       
       setSuccessMessage("Demande de liaison envoyée avec succès !");
@@ -45,15 +43,13 @@ export const useCatLink = () => {
     setLoading(true);
     setError(null);
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       await axios.post(
         "/cat-link/respond", 
         {
           requestId,
           status,
           comment
-        },
-        { headers }
+        }
       );
       
       // Mettre à jour la liste des demandes en attente
@@ -86,8 +82,7 @@ export const useCatLink = () => {
         setLoading(true);
         setError(null);
         try {
-          const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-          const response = await axios.get("/cat-link/responder/pending", { headers });
+          const response = await axios.get("/cat-link/responder/pending");
           setPendingRequests(response || []);
         } catch (error) {
           console.error("Erreur lors de la récupération des demandes en attente:", error);
@@ -105,8 +100,7 @@ export const useCatLink = () => {
     setLoading(true);
     setError(null);
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get("/cat-link/requester", { headers });
+      const response = await axios.get("/cat-link/requester");
       setSentRequests(response || []);
       setLoading(false);
       return response;

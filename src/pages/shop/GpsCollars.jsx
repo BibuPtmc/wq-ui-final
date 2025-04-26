@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import '../../styles/global.css';
 import { useCartContext } from '../../contexts/CartContext';
-import { useProductContext } from '../../contexts/ProductContext';
+import { useProductContext } from '../../hooks/useProductContext';
 import { useAuth } from '../../hooks/authProvider';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

@@ -39,6 +39,12 @@
 "cat.foundOn": "Trouvé le",
 "cat.furType": "Pelage",
 "cat.gender": "Genre",
+
+  "matching.color": "Couleur",
+  "matching.breed": "Race",
+  "matching.fur": "Pelage",
+  "matching.eyes": "Yeux",
+  "matching.distance": "Distance",
 "cat.generalInfo": "Informations générales",
 "cat.image": "Image",
 "cat.imageHint": "Ajoutez une photo du chat pour faciliter son identification.",

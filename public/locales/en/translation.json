@@ -29,6 +29,12 @@
 "cat.foundOn": "Found on",
 "cat.furType": "Fur type",
 "cat.gender": "Gender",
+
+  "matching.color": "Color",
+  "matching.breed": "Breed",
+  "matching.fur": "Fur",
+  "matching.eyes": "Eyes",
+  "matching.distance": "Distance",
 "cat.generalInfo": "General information",
 "cat.image": "Image",
 "cat.imageHint": "Add a photo of the cat to help with identification.",
