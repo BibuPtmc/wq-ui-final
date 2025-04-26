@@ -21,7 +21,7 @@ import "./styles/global.css";
 import { useAuth } from "./contexts/authProvider";
 import { AppProviders } from "./contexts/AppProviders";
 import AxiosLogoutHandler from "./contexts/AxiosLogoutHandler";
-import NotificationBar from "./components/NotificationBar";
+import NotificationBar from "./components/common/NotificationBar";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
