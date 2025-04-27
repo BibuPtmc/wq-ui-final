@@ -1,15 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-// import { useAxios } from '../hooks/useAxios'; // Sera utilisé pour les futures fonctionnalités
+import { useAxios } from '../hooks/useAxios';
 
 // Création du contexte
-const ProductContext = createContext();
+export const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // const axiosInstance = useAxios(); // Sera utilisé pour les futures fonctionnalités
+  const axios = useAxios();
 
   // Récupération des produits
   const fetchProducts = useCallback(async () => {
@@ -17,15 +16,15 @@ export const ProductProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.get('http://localhost:8080/ecommerce/products');
-      setProducts(response.data || []);
+      const response = await axios.get('/ecommerce/products');
+      setProducts(response?.data || response || []);
     } catch (error) {
       // Log réduit pour améliorer les performances
       setError('Erreur lors de la récupération des produits');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [axios]);
 
   // Charger les produits au montage du composant
   useEffect(() => {
@@ -53,11 +52,3 @@ export const ProductProvider = ({ children }) => {
   );
 };
 
-// Hook personnalisé pour utiliser le contexte
-export const useProductContext = () => {
-  const context = useContext(ProductContext);
-  if (!context) {
-    throw new Error('useProductContext must be used within a ProductProvider');
-  }
-  return context;
-};

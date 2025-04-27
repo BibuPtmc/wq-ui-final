@@ -10,6 +10,7 @@ import CatDetails from './CatDetails';
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import { getStatusLabel } from "../../utils/enumOptions";
+import { convertToEnum } from "../../utils/enumUtils";
 import { useTranslation } from 'react-i18next';
 import ImageUploader from "../common/ImageUploader";
 
@@ -111,8 +112,6 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     
     fetchMatchCounts();
   }, [reportedCats, matchCounts, loadingMatches, findPotentialFoundCats, findPotentialLostCats]); // eslint-disable-line react-hooks/exhaustive-deps
-  // We're intentionally not re-running this effect when findPotential*Cats functions change
-  // to prevent an infinite loop of API calls
 
   const handleDelete = async (catStatusId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce chat ?')) {
@@ -124,31 +123,19 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     }
   };
 
-  // Fonction pour s'assurer que les valeurs des énumérations sont correctement initialisées
-  const getEnumValue = (value) => {
-    if (!value) return '';
-    // Si la valeur est déjà en majuscules et contient des underscores, c'est probablement déjà une énumération
-    if (value === value.toUpperCase() && value.includes('_')) {
-      return value;
-    }
-    // Sinon, convertir en format d'énumération (majuscules, sans accents, espaces remplacés par des underscores)
-    return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase().replace(/\s+/g, "_");
-  };
-
   const handleEdit = (catStatus) => {
     setSelectedCat(catStatus);
     setEditForm({
       name: catStatus.cat.name || '',
       statusCat: catStatus.statusCat || '',
       comment: catStatus.cat.comment || '', // Utiliser le commentaire du chat au lieu du commentaire du statut
-      breed: getEnumValue(catStatus.cat.breed) || '',
-      color: getEnumValue(catStatus.cat.color) || '',
+      breed: convertToEnum(catStatus.cat.breed, '') || '',
+      color: convertToEnum(catStatus.cat.color, '') || '',
       dateOfBirth: catStatus.cat.dateOfBirth || '',
       gender: catStatus.cat.gender || '',
       chipNumber: catStatus.cat.chipNumber || '',
-      furType: getEnumValue(catStatus.cat.furType) || '',
-      eyeColor: getEnumValue(catStatus.cat.eyeColor) || '',
+      furType: convertToEnum(catStatus.cat.furType, '') || '',
+      eyeColor: convertToEnum(catStatus.cat.eyeColor, '') || '',
       images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
         ? catStatus.cat.imageUrls
         : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
@@ -159,10 +146,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const handleViewDetails = (catStatus) => {
     setSelectedCat(catStatus);
     setShowDetailsModal(true);
+    // Ne pas fermer les correspondances, mais les cacher temporairement
+    setShowMatches(false);
   };
 
   const handleCloseDetails = () => {
     setShowDetailsModal(false);
+    // Réafficher les correspondances si elles étaient visibles avant
+    if (matches.length > 0) {
+      setShowMatches(true);
+    }
   };
 
   const handleSubmit = async (e) => {

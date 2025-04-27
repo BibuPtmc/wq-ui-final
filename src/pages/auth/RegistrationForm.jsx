@@ -9,6 +9,7 @@ import { buttonStyles } from "../../styles/styles";
 import MapLocation from "../../components/map/MapLocation";
 import useGeolocation from "../../hooks/useGeolocation";
 import { reverseGeocode } from "../../utils/geocodingService";
+import { formatPhoneNumber, validatePhone } from '../../utils/validationUtils';
 
 const RegistrationForm = () => {
   const { t } = useTranslation();
@@ -64,50 +65,12 @@ const RegistrationForm = () => {
     return true;
   };
   
-  // Fonction pour valider le format du numéro de téléphone
-  const validatePhone = (phone) => {
-    // Accepte les formats: 0123456789, 01 23 45 67 89, 01-23-45-67-89, +32123456789, etc.
-    const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
+  const handlePhoneChange = (e) => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setFormData(prev => ({ ...prev, phone: formattedPhone }));
     
-    if (!phone) {
-      // Le téléphone n'est pas obligatoire
-      setPhoneError("");
-      return true;
-    }
-    
-    if (!phoneRegex.test(phone)) {
-      setPhoneError("Le format du numéro de téléphone n'est pas valide");
-      return false;
-    }
-    
-    setPhoneError("");
-    return true;
-  };
-  
-  // Fonction pour formater le numéro de téléphone pendant la saisie
-  const formatPhoneNumber = (phoneNumber) => {
-    // Supprimer tous les caractères non numériques sauf le + au début
-    let cleaned = phoneNumber.replace(/[^\d+]/g, "");
-    
-    // Si le numéro commence par +, on le conserve
-    if (cleaned.startsWith("+")) {
-      // Format international: +32 493 96 33 75
-      if (cleaned.length > 3) {
-        let formatted = "+" + cleaned.substring(1, 3);
-        if (cleaned.length > 5) formatted += " " + cleaned.substring(3, 6);
-        if (cleaned.length > 7) formatted += " " + cleaned.substring(6, 8);
-        if (cleaned.length > 9) formatted += " " + cleaned.substring(8, 10);
-        if (cleaned.length > 10) formatted += " " + cleaned.substring(10);
-        return formatted;
-      }
-      return cleaned;
-    } else {
-      // Format belge: 0493 96 33 75
-      if (cleaned.length > 4) cleaned = cleaned.substring(0, 4) + " " + cleaned.substring(4);
-      if (cleaned.length > 7) cleaned = cleaned.substring(0, 7) + " " + cleaned.substring(7);
-      if (cleaned.length > 10) cleaned = cleaned.substring(0, 10) + " " + cleaned.substring(10);
-      return cleaned;
-    }
+    const { isValid, errorMessage } = validatePhone(formattedPhone);
+    setPhoneError(errorMessage);
   };
 
   // Utiliser le hook de géolocalisation
@@ -154,9 +117,7 @@ const RegistrationForm = () => {
     
     // Traitement spécial pour le numéro de téléphone
     if (name === 'phone') {
-      const formattedPhone = formatPhoneNumber(value);
-      setFormData({ ...formData, [name]: formattedPhone });
-      validatePhone(formattedPhone);
+      handlePhoneChange(e);
     } else {
       setFormData({ ...formData, [name]: value });
     }

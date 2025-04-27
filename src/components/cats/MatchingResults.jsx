@@ -6,8 +6,11 @@ import 'react-circular-progressbar/dist/styles.css';
 import { useCatSearch } from '../../contexts/CatSearchContext';
 
 
+import { useTranslation } from 'react-i18next';
+
 function MatchingResults({ matches, show, handleClose, onViewDetails }) {
   const { formatValue } = useCatSearch();
+  const { t } = useTranslation();
   return (
     <Modal show={show} onHide={handleClose} size="lg" centered>
       <Modal.Header closeButton style={{ 
@@ -63,7 +66,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                               })}
                             />
                           </div>
-                          <div className="text-muted small mt-2">Couleur</div>
+                          <div className="text-muted small mt-2">{t('matching.color', 'Couleur')}</div>
                         </Col>
                         <Col sm={6} key={`breed-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
@@ -77,7 +80,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                               })}
                             />
                           </div>
-                          <div className="text-muted small mt-2">Race</div>
+                          <div className="text-muted small mt-2">{t('matching.breed', 'Race')}</div>
                         </Col>
                       </Row>
                       <Row className="text-center mb-3">
@@ -93,7 +96,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                               })}
                             />
                           </div>
-                          <div className="text-muted small mt-2">Pelage</div>
+                          <div className="text-muted small mt-2">{t('matching.fur', 'Pelage')}</div>
                         </Col>
                         <Col sm={6} key={`eye-${match.matchedCat.catStatusId}`}>
                           <div style={{ width: 60, height: 60, margin: 'auto' }}>
@@ -107,7 +110,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                               })}
                             />
                           </div>
-                          <div className="text-muted small mt-2">Yeux</div>
+                          <div className="text-muted small mt-2">{t('matching.eyes', 'Yeux')}</div>
                         </Col>
                       </Row>
                       <Row className="text-center mb-3">
@@ -123,7 +126,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                               })}
                             />
                           </div>
-                          <div className="text-muted small mt-2">Distance</div>
+                          <div className="text-muted small mt-2">{t('matching.distance', 'Distance')}</div>
                         </Col>
                       </Row>
 

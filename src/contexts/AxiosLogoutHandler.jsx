@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuth } from '../hooks/authProvider';
+import { useAuth } from '../contexts/authProvider';
 import { useAxiosContext } from './AxiosContext';
 
 /**

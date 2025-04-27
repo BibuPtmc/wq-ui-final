@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { useAxiosContext } from "../contexts/AxiosContext";
+import { useAxios } from '../hooks/useAxios';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../contexts/NotificationContext";
 
@@ -8,7 +8,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const location = useLocation();
   const { showNotification } = useNotification();
-  const { get } = useAxiosContext();
+  const axios = useAxios();
   const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
     // Si nous n'avons pas pu récupérer les données du sessionStorage, essayons l'API
     try {
-      const response = await get("users/me");
+      const response = await axios.get("users/me");
       setIsLoggedIn(true);
       setUserDataWithStorage(response);
     } catch (error) {
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       initialLoadDone.current = true;
     }
-  }, [get, setUserDataWithStorage, userData]);
+  }, [setUserDataWithStorage, userData]);
 
   useEffect(() => {
     if (!initialLoadDone.current) {
