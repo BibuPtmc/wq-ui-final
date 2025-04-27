@@ -74,11 +74,19 @@ const CatList = ({
   const fetchMatchCounts = type === 'found' ? fetchFoundMatchCounts : fetchLostMatchCounts;
   const findMatches = type === 'found' ? findPotentialLostCats : findPotentialFoundCats;
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => {
+    setShow(false);
+    // Réafficher les correspondances si elles étaient visibles avant
+    if (matches.length > 0) {
+      setShowMatches(true);
+    }
+  };
   
   const handleShow = (catStatus) => {
     setSelectedCatStatus(catStatus);
     setShow(true);
+    // Ne pas fermer les correspondances, mais les cacher temporairement
+    setShowMatches(false);
   };
 
   const handleShowMatches = async (cat) => {

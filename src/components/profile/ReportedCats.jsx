@@ -112,8 +112,6 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     
     fetchMatchCounts();
   }, [reportedCats, matchCounts, loadingMatches, findPotentialFoundCats, findPotentialLostCats]); // eslint-disable-line react-hooks/exhaustive-deps
-  // We're intentionally not re-running this effect when findPotential*Cats functions change
-  // to prevent an infinite loop of API calls
 
   const handleDelete = async (catStatusId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce chat ?')) {
@@ -148,10 +146,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const handleViewDetails = (catStatus) => {
     setSelectedCat(catStatus);
     setShowDetailsModal(true);
+    // Ne pas fermer les correspondances, mais les cacher temporairement
+    setShowMatches(false);
   };
 
   const handleCloseDetails = () => {
     setShowDetailsModal(false);
+    // Réafficher les correspondances si elles étaient visibles avant
+    if (matches.length > 0) {
+      setShowMatches(true);
+    }
   };
 
   const handleSubmit = async (e) => {
