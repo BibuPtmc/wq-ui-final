@@ -165,21 +165,30 @@ const CatList = ({
                     transition={{ duration: 0.3 }}
                   >
                     <Card className="h-100 shadow-sm">
-                      <Card.Img
-                        variant="top"
-                        src={cat.imageUrl || 
-                          (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
-                          "/noImageCat.png")}
-                        alt={cat.name}
-                        style={{ height: '200px', objectFit: 'cover' }}
-                        onError={(e) => {
-                          e.target.src = "/noImageCat.png";
-                          e.target.onerror = null;
-                        }}
-                      />
+                      <div className="position-relative">
+                        <Card.Img
+                          variant="top"
+                          src={cat.imageUrl || 
+                            (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
+                            "/noImageCat.png")}
+                          alt={cat.name}
+                          style={{ height: '200px', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.src = "/noImageCat.png";
+                            e.target.onerror = null;
+                          }}
+                        />
+                        <Badge 
+                          bg="dark" 
+                          className="position-absolute top-0 end-0 m-2"
+                          style={{ opacity: 0.8 }}
+                        >
+                          {cat.imageUrls ? cat.imageUrls.length : (cat.imageUrl ? 1 : 0)} photo{cat.imageUrls ? (cat.imageUrls.length > 1 ? 's' : '') : (cat.imageUrl ? '' : 's')}
+                        </Badge>
+                      </div>
                       <Card.Body className="d-flex flex-column">
                         <div className="d-flex justify-content-between align-items-start mb-2">
-                          <Card.Title>{cat.name || "Chat sans nom"}</Card.Title>
+                          <Card.Title className="mb-0">{cat.name || "Chat sans nom"}</Card.Title>
                           <Badge 
                             bg={
                               cat.gender === 'Femelle' ? 'danger' : 
