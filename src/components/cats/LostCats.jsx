@@ -7,15 +7,13 @@ import { BiCalendar } from "react-icons/bi";
 import "../../styles/global.css";
 import CatDetails from "../profile/CatDetails";
 import MatchingResults from "./MatchingResults";
-import Select from "react-select";
+import CatFilters from "./CatFilters";
 import { breedOptions } from "../../utils/enumOptions";
 import { colorOptions as colorChoices, eyeColorOptions as eyeColorChoices } from "../../utils/enumOptions";
-// Importation du nouveau contexte au lieu des hooks individuels
 import { useCatSearch } from "../../contexts/CatSearchContext";
 
 function LostCats() {
   const { t } = useTranslation();
-  // Utilisation du contexte CatSearch au lieu de la logique dupliquée
   const {
     filteredLostCats,
     loadingLost,
@@ -34,14 +32,12 @@ function LostCats() {
     findPotentialFoundCats
   } = useCatSearch();
 
-  // États locaux qui restent dans le composant
   const [show, setShow] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorSelectOptions = [
     { value: "", label: t('lostCats.allColors', 'Toutes les couleurs') },
     ...colorChoices.map(value => ({ 
@@ -75,7 +71,6 @@ function LostCats() {
 
   const handleShowMatches = async (cat) => {
     try {
-      // Utiliser la fonction déjà extraite du contexte
       const matchResults = await findPotentialFoundCats(cat.catId);
       setMatches(matchResults);
       setShowMatches(true);
@@ -90,20 +85,16 @@ function LostCats() {
     setShowMatches(false);
   };
 
-  // Chargement initial des données
   useEffect(() => {
     fetchLostCats();
   }, [fetchLostCats]);
 
-  // Appliquer les filtres lorsqu'ils changent
   useEffect(() => {
     applyFiltersToLostCats();
   }, [filters, applyFiltersToLostCats]);
 
-  // Récupérer le nombre de correspondances pour chaque chat une seule fois après le chargement initial
   useEffect(() => {
     if (filteredLostCats.length > 0 && !loadingLost) {
-      // Utiliser setTimeout pour éviter les appels simultanés
       const timer = setTimeout(() => {
         fetchLostMatchCounts();
       }, 500);
@@ -114,165 +105,26 @@ function LostCats() {
 
   return (
     <Container className="py-4">
-      <h1 className="text-center mb-4">{t('lostCats.title', 'Chats perdus')}</h1>
-      
-      {/* Bouton pour afficher/masquer les filtres */}
-      <div className="d-flex justify-content-end mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>{t('lostCats.title', 'Chats perdus')}</h1>
         <Button
-          variant={showFilters ? "secondary" : "outline-secondary"}
+          variant="outline-primary"
           onClick={() => setShowFilters(!showFilters)}
           className="d-flex align-items-center"
         >
           <FaFilter className="me-2" />
-          {showFilters ? t('lostCats.hideFilters', 'Masquer les filtres') : t('lostCats.showFilters', 'Filtrer les résultats')}
+          {showFilters ? t('lostCats.hideFilters', 'Masquer les filtres') : t('lostCats.showFilters', 'Afficher les filtres')}
         </Button>
       </div>
+
+      {showFilters && <CatFilters type="lost" />}
       
-      {/* Filtres */}
-      {showFilters && (
-        <Card className="mb-4 shadow-sm">
-          <Card.Body>
-            <h5 className="mb-3">Filtres</h5>
-            <Row>
-              {/* Filtres par caractéristiques */}
-              <Col md={4} className="mb-3">
-                <Form.Group>
-                  <Form.Label>Race</Form.Label>
-                  <Select
-                    options={breedSelectOptions}
-                    value={breedSelectOptions.find(option => option.value === filters.breed) || breedSelectOptions[0]}
-                    onChange={(selectedOption) => handleFilterChange('breed', selectedOption.value)}
-                    isSearchable
-                    placeholder="Toutes les races"
-                    className="mb-3"
-                  />
-                </Form.Group>
-              </Col>
-              
-              <Col md={4} className="mb-3">
-                <Form.Group>
-                  <Form.Label>Couleur</Form.Label>
-                  <Select
-                    options={colorSelectOptions}
-                    value={colorSelectOptions.find(option => option.value === filters.color) || colorSelectOptions[0]}
-                    onChange={(selectedOption) => handleFilterChange('color', selectedOption.value)}
-                    isSearchable
-                    placeholder="Toutes les couleurs"
-                    className="mb-3"
-                  />
-                </Form.Group>
-              </Col>
-              
-              <Col md={4} className="mb-3">
-                <Form.Group>
-                  <Form.Label>Couleur des yeux</Form.Label>
-                  <Select
-                    options={eyeColorSelectOptions}
-                    value={eyeColorSelectOptions.find(option => option.value === filters.eyeColor) || eyeColorSelectOptions[0]}
-                    onChange={(selectedOption) => handleFilterChange('eyeColor', selectedOption.value)}
-                    isSearchable
-                    placeholder="Toutes les couleurs d'yeux"
-                    className="mb-3"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            <Row>
-              {/* Filtres par localisation */}
-              <Col md={6} className="mb-3">
-                <Form.Group>
-                  <Form.Label>Code postal</Form.Label>
-                  <InputGroup>
-                    <Form.Control
-                      type="text"
-                      placeholder="Entrez un code postal"
-                      value={filters.postalCode}
-                      onChange={(e) => handleFilterChange('postalCode', e.target.value)}
-                      disabled={filters.location.latitude && filters.location.longitude}
-                    />
-                    {filters.postalCode && (
-                      <Button 
-                        variant="outline-secondary" 
-                        onClick={() => handleFilterChange('postalCode', '')}
-                      >
-                        <FaTimes />
-                      </Button>
-                    )}
-                  </InputGroup>
-                </Form.Group>
-              </Col>
-              
-              <Col md={6} className="mb-3">
-                <Form.Group>
-                  <Form.Label>Position actuelle</Form.Label>
-                  <div className="d-flex">
-                    <Button
-                      variant={filters.location.latitude ? "success" : "outline-primary"}
-                      onClick={useCurrentLocation}
-                      disabled={filters.postalCode !== ""}
-                      className="flex-grow-1 me-2"
-                    >
-                      <FaMapMarkerAlt className="me-2" />
-                      {filters.location.latitude 
-                        ? "Position utilisée" 
-                        : "Utiliser ma position"}
-                    </Button>
-                    
-                    {filters.location.latitude && (
-                      <Button 
-                        variant="outline-danger"
-                        onClick={clearCurrentLocation}
-                      >
-                        <FaTimes />
-                      </Button>
-                    )}
-                  </div>
-                  
-                  {filters.location.address && (
-                    <small className="text-muted d-block mt-1">
-                      {filters.location.address}, {filters.location.postalCode} {filters.location.city}
-                    </small>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            {/* Rayon de recherche (uniquement si la position est utilisée) */}
-            {(filters.location.latitude || filters.postalCode) && (
-              <Row>
-                <Col md={12}>
-                  <Form.Group>
-                    <Form.Label>
-                      Rayon de recherche: {filters.location.radius} km
-                    </Form.Label>
-                    <Form.Range
-                      min={1}
-                      max={100}
-                      value={filters.location.radius}
-                      onChange={(e) => handleFilterChange('radius', parseInt(e.target.value))}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            )}
-            
-            <div className="d-flex justify-content-end mt-3">
-              <Button variant="outline-secondary" onClick={resetFilters} className="me-2">
-                Réinitialiser
-              </Button>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
-      
-      {/* Liste des chats perdus */}
       {loadingLost ? (
         <div className="text-center py-5">
           <Spinner animation="border" role="status">
             <span className="visually-hidden">Chargement...</span>
           </Spinner>
-          <p className="mt-3">Chargement des chats perdus...</p>
+          <p className="mt-3">{t('lostCats.loading', 'Chargement des chats perdus...')}</p>
         </div>
       ) : filteredLostCats.length > 0 ? (
         <>
@@ -292,7 +144,6 @@ function LostCats() {
                   >
                     <Card className="h-100 shadow-sm">
                       <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
-                        {/* Utiliser imageUrl comme image principale */}
                         {cat.imageUrl ? (
                           <Card.Img
                             variant="top"
@@ -301,7 +152,7 @@ function LostCats() {
                             style={{ objectFit: 'cover', height: '100%', width: '100%' }}
                             onError={(e) => {
                               e.target.src = "/noImageCat.png";
-                              e.target.onerror = null; // Empêche les erreurs en boucle
+                              e.target.onerror = null;
                             }}
                           />
                         ) : (
@@ -313,7 +164,6 @@ function LostCats() {
                           />
                         )}
                         
-                        {/* Indicateur de photos multiples si le chat a plusieurs images */}
                         {cat.imageUrls && cat.imageUrls.length > 1 && (
                           <div 
                             className="position-absolute top-0 end-0 m-2 bg-dark bg-opacity-75 text-white px-2 py-1 rounded-pill"
