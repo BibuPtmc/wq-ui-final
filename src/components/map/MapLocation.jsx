@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Alert, Row, Col } from 'react-bootstrap';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import AddressAutofill from './AddressAutofill';
 
 // Utiliser la variable d'environnement
