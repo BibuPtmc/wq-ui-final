@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const SecuritySettings = ({
   passwordForm,
@@ -12,6 +13,7 @@ const SecuritySettings = ({
   const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showMatchingPassword, setShowMatchingPassword] = React.useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -21,11 +23,24 @@ const SecuritySettings = ({
     }));
   };
 
+  useEffect(() => {
+    if (updateSuccess) {
+      // Attendre 2 secondes avant de déconnecter et rediriger
+      const timer = setTimeout(() => {
+        // Supprimer le token d'authentification
+        localStorage.removeItem('token');
+        // Rediriger vers la page de login
+        navigate('/login');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [updateSuccess, navigate]);
+
   return (
     <Form onSubmit={handleSubmit} className="mt-4">
       {updateSuccess && (
         <Alert variant="success" className="mb-3">
-          Votre mot de passe a été mis à jour avec succès !
+          Votre mot de passe a été mis à jour avec succès ! Vous allez être redirigé vers la page de connexion...
         </Alert>
       )}
       {updateError && (

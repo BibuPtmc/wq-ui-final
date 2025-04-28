@@ -147,6 +147,11 @@ function LoginPage() {
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </Button>
                     </div>
+                    <div className="text-end mt-2">
+                      <Link to="/forgot-password" className="text-decoration-none">
+                        Mot de passe oublié ?
+                      </Link>
+                    </div>
                   </Form.Group>
 
                   <div className="d-grid">
