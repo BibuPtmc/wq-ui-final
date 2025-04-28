@@ -27,6 +27,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const [matches, setMatches] = useState([]);
   const [matchCounts, setMatchCounts] = useState({});
   const [loadingMatches, setLoadingMatches] = useState({});
+  const [wasInMatchesView, setWasInMatchesView] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
     statusCat: '',
@@ -136,9 +137,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       chipNumber: catStatus.cat.chipNumber || '',
       furType: convertToEnum(catStatus.cat.furType, '') || '',
       eyeColor: convertToEnum(catStatus.cat.eyeColor, '') || '',
-      images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
-        ? catStatus.cat.imageUrls
-        : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
+      images: catStatus.cat.imageUrls || [],
     });
     setShowModal(true);
   };
@@ -146,16 +145,19 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const handleViewDetails = (catStatus) => {
     setSelectedCat(catStatus);
     setShowDetailsModal(true);
+    // Sauvegarder l'état actuel des correspondances
+    setWasInMatchesView(showMatches);
     // Ne pas fermer les correspondances, mais les cacher temporairement
     setShowMatches(false);
   };
 
   const handleCloseDetails = () => {
     setShowDetailsModal(false);
-    // Réafficher les correspondances si elles étaient visibles avant
-    if (matches.length > 0) {
+    // Réafficher les correspondances uniquement si l'utilisateur était dans la vue des correspondances
+    if (wasInMatchesView && matches.length > 0) {
       setShowMatches(true);
     }
+    setWasInMatchesView(false);
   };
 
   const handleSubmit = async (e) => {
@@ -296,7 +298,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     src={
                       (cat.imageUrls && Array.isArray(cat.imageUrls) && cat.imageUrls.length > 0)
                         ? cat.imageUrls[0]
-                        : (cat.imageUrl ? cat.imageUrl : "/noImageCat.png")
+                        : "/noImageCat.png"
                     }
                     alt={cat.name}
                     onError={(e) => {

@@ -251,10 +251,9 @@ function RegisterCat() {
                       <p className="text-muted">{t('cat.imageHint', 'Ajoutez une photo du chat pour faciliter son identification.')}</p>
                       <Form.Group className="mb-3">
                         <ImageUploader
+                          key={uploaderKey}
                           onImageUploaded={handleImageUploaded}
                           initialImage={formData.imageUrls}
-                          multiple={true}
-                          maxImages={5}
                           onUploadStatusChange={setIsUploading}
                         />
                         {isUploading && (

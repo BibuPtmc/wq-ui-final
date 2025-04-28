@@ -121,11 +121,11 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
             {/* Logique d'affichage des images */}
             {(() => {
               // Collecter toutes les images valides
-              const validImages = [];
+              const images = [];
               
               // Ajouter l'image principale si elle existe
               if (cat.imageUrl) {
-                validImages.push({
+                images.push({
                   url: cat.imageUrl,
                   alt: cat.name || 'Chat'
                 });
@@ -134,9 +134,8 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               // Ajouter les images supplémentaires si elles existent
               if (cat.imageUrls && cat.imageUrls.length > 0) {
                 cat.imageUrls.forEach((url, index) => {
-                  // Ne pas répéter l'image principale et vérifier que l'URL est valide
-                  if (url && url !== cat.imageUrl) {
-                    validImages.push({
+                  if (url) {
+                    images.push({
                       url: url,
                       alt: `${cat.name || 'Chat'} #${index + 1}`
                     });
@@ -145,7 +144,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               }
               
               // Si aucune image valide n'est trouvée, afficher l'image par défaut
-              if (validImages.length === 0) {
+              if (images.length === 0) {
                 return (
                   <Carousel.Item>
                     <img
@@ -159,7 +158,7 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
               }
               
               // Sinon, afficher toutes les images valides
-              return validImages.map((image, index) => (
+              return images.map((image, index) => (
                 <Carousel.Item key={index}>
                   <img
                     src={image.url}

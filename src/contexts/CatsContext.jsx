@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 
 /**
- * Affiche une notification d’erreur API standardisée.
+ * Affiche une notification d'erreur API standardisée.
  * @param {function} showNotification - Fonction de notification du contexte
- * @param {string} contextMsg - Message d’intention (ex: "lors de la modification du chat")
+ * @param {string} contextMsg - Message d'intention (ex: "lors de la modification du chat")
  * @param {object} error - Objet erreur capturé
  */
 function notifyApiError(showNotification, contextMsg, error) {
@@ -15,7 +15,7 @@ function notifyApiError(showNotification, contextMsg, error) {
 }
 
 /**
- * Construit un objet cat conforme à l’API à partir d’un objet source.
+ * Construit un objet cat conforme à l'API à partir d'un objet source.
  * @param {object} catData - Données du chat (formulaire ou state)
  * @param {function} convertToEnum - Fonction de conversion enum
  * @returns {object}
@@ -36,7 +36,7 @@ function buildCatDTO(catData, convertToEnum) {
 }
 
 /**
- * Construit un objet catDTO pour update/create à partir de données mises à jour et d’un état courant.
+ * Construit un objet catDTO pour update/create à partir de données mises à jour et d'un état courant.
  * @param {object} updatedData - Données du formulaire ou de la modification
  * @param {object} currentCat - Données actuelles du chat (state)
  * @param {function} convertToEnum - Fonction de conversion enum
@@ -55,7 +55,6 @@ function buildUpdatedCatDTO(updatedData, currentCat, convertToEnum) {
     chipNumber: updatedData.chipNumber || currentCat.chipNumber,
     furType: convertToEnum(updatedData.furType, currentCat.furType),
     imageUrls: updatedData.imageUrls || currentCat.imageUrls,
-    imageUrl: updatedData.imageUrl || currentCat.imageUrl,
     comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment
   };
 }

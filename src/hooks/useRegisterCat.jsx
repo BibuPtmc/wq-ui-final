@@ -248,19 +248,25 @@ export const useRegisterCat = () => {
       
       setFormData({
         ...formData,
-        name: "",
-        breed: "",
-        color: "",
+        name: t('cat.defaultName', 'Mittens'),
+        breed: "SIAMESE",
+        color: "BLANC",
         dateOfBirth: "",
         imageUrls: [],
-        gender: "",
-        chipNumber: "",
-        furType: "",
-        eyeColor: "",
-        comment: "",
-        statusCat: "",
+        gender: "Femelle",
+        chipNumber: "123456789",
+        furType: "COURTE",
+        eyeColor: "BLEU",
+        comment: t('cat.defaultComment', 'Chat très amical et joueur.'),
+        statusCat: "LOST",
         reportDate: todayForInput,
-        location: {
+        location: userAddress ? {
+          latitude: userAddress.latitude || "",
+          longitude: userAddress.longitude || "",
+          address: userAddress.address || "",
+          city: userAddress.city || "",
+          postalCode: userAddress.postalCode || ""
+        } : {
           latitude: "",
           longitude: "",
           address: "",

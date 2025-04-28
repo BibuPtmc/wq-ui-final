@@ -33,9 +33,7 @@ function MatchingResults({ matches, show, handleClose, onViewDetails }) {
                   <Card className="h-100 shadow-sm">
                   <Card.Img
                     variant="top"
-                    src={cat.imageUrl || 
-                      (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
-                      "/noImageCat.png")}
+                    src={cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : "/noImageCat.png"}
                     alt={cat.name}
                     style={{ height: '200px', objectFit: 'cover' }}
                     onError={(e) => {

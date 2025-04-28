@@ -59,9 +59,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       formattedDate = date.toISOString().split('T')[0];
     }
     // Toujours garantir images: []
-    const images = catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
-      ? catStatus.cat.imageUrls
-      : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : []);
+    const images = catStatus.cat.imageUrls || [];
     const newFormData = {
       name: catStatus.cat.name || '',
       breed: convertToEnum(catStatus.cat.breed, 'UNKNOWN'),
@@ -88,9 +86,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         formattedDate = date.toISOString().split('T')[0];
       }
       // Toujours garantir images: []
-      const images = selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0
-        ? selectedCat.cat.imageUrls
-        : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : []);
+      const images = selectedCat.cat.imageUrls || [];
       const newFormData = {
         name: selectedCat.cat.name || '',
         breed: selectedCat.cat.breed || 'UNKNOWN',
@@ -121,9 +117,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || '',
         comment: selectedCat.cat.comment || '',
-        images: (selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0)
-          ? selectedCat.cat.imageUrls
-          : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : [])
+        images: selectedCat.cat.imageUrls || []
       }));
 
       // Pour le modal de signalement de perte
@@ -249,7 +243,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     src={
                       (cat.imageUrls && Array.isArray(cat.imageUrls) && cat.imageUrls.length > 0)
                         ? cat.imageUrls[0]
-                        : (cat.imageUrl ? cat.imageUrl : "/noImageCat.png")
+                        : "/noImageCat.png"
                     }
                     alt={cat.name}
                     onError={(e) => {

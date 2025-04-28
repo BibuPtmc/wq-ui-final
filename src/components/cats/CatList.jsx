@@ -65,6 +65,7 @@ const CatList = ({
   const [showMatches, setShowMatches] = useState(false);
   const [matches, setMatches] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [wasInMatchesView, setWasInMatchesView] = useState(false);
 
   // Sélectionner les données en fonction du type
   const cats = type === 'found' ? filteredFoundCats : filteredLostCats;
@@ -76,15 +77,18 @@ const CatList = ({
 
   const handleClose = () => {
     setShow(false);
-    // Réafficher les correspondances si elles étaient visibles avant
-    if (matches.length > 0) {
+    // Réafficher les correspondances uniquement si l'utilisateur était dans la vue des correspondances
+    if (wasInMatchesView && matches.length > 0) {
       setShowMatches(true);
     }
+    setWasInMatchesView(false);
   };
   
   const handleShow = (catStatus) => {
     setSelectedCatStatus(catStatus);
     setShow(true);
+    // Sauvegarder l'état actuel des correspondances
+    setWasInMatchesView(showMatches);
     // Ne pas fermer les correspondances, mais les cacher temporairement
     setShowMatches(false);
   };
@@ -168,9 +172,7 @@ const CatList = ({
                       <div className="position-relative">
                         <Card.Img
                           variant="top"
-                          src={cat.imageUrl || 
-                            (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
-                            "/noImageCat.png")}
+                          src={cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : "/noImageCat.png"}
                           alt={cat.name}
                           style={{ height: '200px', objectFit: 'cover' }}
                           onError={(e) => {
@@ -183,7 +185,7 @@ const CatList = ({
                           className="position-absolute top-0 end-0 m-2"
                           style={{ opacity: 0.8 }}
                         >
-                          {cat.imageUrls ? cat.imageUrls.length : (cat.imageUrl ? 1 : 0)} photo{cat.imageUrls ? (cat.imageUrls.length > 1 ? 's' : '') : (cat.imageUrl ? '' : 's')}
+                          {cat.imageUrls ? cat.imageUrls.length : 0} photo{cat.imageUrls && cat.imageUrls.length > 1 ? 's' : ''}
                         </Badge>
                       </div>
                       <Card.Body className="d-flex flex-column">
