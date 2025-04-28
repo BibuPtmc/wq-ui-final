@@ -250,11 +250,11 @@ function RegisterCat() {
                     <Card.Body>
                       <p className="text-muted">{t('cat.imageHint', 'Ajoutez une photo du chat pour faciliter son identification.')}</p>
                       <Form.Group className="mb-3">
-                        <ImageUploader 
-                          key={uploaderKey}
-                          onImageUploaded={handleImageUploaded} 
-                          multiple={true} 
-                          maxImages={5} 
+                        <ImageUploader
+                          onImageUploaded={handleImageUploaded}
+                          initialImage={formData.imageUrls}
+                          multiple={true}
+                          maxImages={5}
                           onUploadStatusChange={setIsUploading}
                         />
                         {isUploading && (

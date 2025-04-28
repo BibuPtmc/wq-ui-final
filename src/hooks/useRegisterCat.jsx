@@ -34,7 +34,6 @@ export const useRegisterCat = () => {
     breed: "SIAMESE",
     color: "BLANC",
     dateOfBirth: "",
-    imageUrl: "",
     imageUrls: [],
     gender: "Femelle",
     chipNumber: "123456789",
@@ -179,13 +178,11 @@ export const useRegisterCat = () => {
     if (Array.isArray(imageData)) {
       setFormData(prev => ({
         ...prev,
-        imageUrl: imageData.length > 0 ? imageData[0] : "",
         imageUrls: imageData
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        imageUrl: imageData,
         imageUrls: imageData ? [imageData] : []
       }));
     }
@@ -215,7 +212,6 @@ export const useRegisterCat = () => {
         breed: convertToEnum(formData.breed, 'UNKNOWN'),
         color: convertToEnum(formData.color, 'AUTRE'),
         dateOfBirth: formData.dateOfBirth,
-        imageUrl: formData.imageUrl,
         imageUrls: formData.imageUrls,
         gender: formData.gender,
         chipNumber: formData.chipNumber,
@@ -256,7 +252,6 @@ export const useRegisterCat = () => {
         breed: "",
         color: "",
         dateOfBirth: "",
-        imageUrl: "",
         imageUrls: [],
         gender: "",
         chipNumber: "",
