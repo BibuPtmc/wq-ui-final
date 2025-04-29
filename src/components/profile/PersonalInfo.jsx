@@ -5,6 +5,7 @@ import MapLocation from '../map/MapLocation';
 import { reverseGeocode } from '../../utils/geocodingService';
 import { useTranslation } from 'react-i18next';
 import { formatPhoneNumber, validatePhone } from '../../utils/validationUtils';
+import useEnums from '../../hooks/useEnums';
 
 const PersonalInfo = ({ 
   formData, 
@@ -16,7 +17,9 @@ const PersonalInfo = ({
   const { t } = useTranslation();
   const [birthDayError, setBirthDayError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
+
+
   // Format today's date as YYYY-MM-DD for the date input max attribute
   const today = new Date().toISOString().split('T')[0];
   
@@ -171,12 +174,16 @@ const PersonalInfo = ({
               name="gender"
               value={formData.gender}
               onChange={handleChange}
+              disabled={enumsLoading || enumsError}
             >
               <option value="">{t('personalInfo.genderSelect', 'Sélectionnez votre genre')}</option>
-              <option value="Homme">{t('personalInfo.genderMale', 'Homme')}</option>
-              <option value="Femme">{t('personalInfo.genderFemale', 'Femme')}</option>
-              <option value="Autre">{t('personalInfo.genderOther', 'Autre')}</option>
+              {enums && enums.gender.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </Form.Select>
+            {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
           </Form.Group>
         </Col>
         <Col md={4}>

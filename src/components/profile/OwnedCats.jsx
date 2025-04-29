@@ -10,11 +10,12 @@ import { reverseGeocode } from "../../utils/geocodingService.jsx";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
-import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
 import { convertToEnum } from "../../utils/enumUtils";
+import useEnums from '../../hooks/useEnums';
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   const { t } = useTranslation();
+  const { enums, loading: enumsLoading, error: enumsError, getEnumLabel } = useEnums();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { fetchCats } = useCatsContext();
@@ -257,14 +258,14 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <Card.Title className="mb-0">{cat.name || t('ownedCats.noName', 'Chat sans nom')}</Card.Title>
                       <Badge
-                        bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                        bg={getEnumLabel(enums?.catGender, cat.gender) === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {cat.gender || t('ownedCats.unknownGender', 'Inconnu')}
+                        {getEnumLabel(enums?.catGender, cat.gender) || t('ownedCats.unknownGender', 'Inconnu')}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      {t('ownedCats.breed', 'Race')}: {formatValue(cat.breed) || t('ownedCats.unknownBreed', 'Inconnue')}
+                      {t('ownedCats.breed', 'Race')}: {getEnumLabel(enums?.breed, cat.breed) || t('ownedCats.unknownBreed', 'Inconnue')}
                       {cat.dateOfBirth && (
                         <span className="ms-2">
                           {t('ownedCats.age', 'Âge')}: {calculateAge(cat.dateOfBirth)}
@@ -350,11 +351,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="breed"
                     value={editForm.breed}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectBreed', 'Sélectionner une race')}</option>
-                    {breedOptions.map(option => (
-                      <option key={option} value={option}>
-                        {formatValue(option)}
+                    {enums && enums.breed.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -367,11 +369,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="gender"
                     value={editForm.gender}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectGender', 'Sélectionner un genre')}</option>
-                    {genderOptions.map(option => (
-                      <option key={option} value={option}>
-                        {option}
+                    {enums && enums.catGender.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -387,11 +390,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="color"
                     value={editForm.color}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectColor', 'Sélectionner une couleur')}</option>
-                    {colorOptions.map(option => (
-                      <option key={option} value={option}>
-                        {option === 'AUTRE' ? t('ownedCats.otherColor', 'Autre') : formatValue(option)}
+                    {enums && enums.catColor.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -404,11 +408,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="eyeColor"
                     value={editForm.eyeColor}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectEyeColor', 'Sélectionner une couleur')}</option>
-                    {eyeColorOptions.map(option => (
-                      <option key={option} value={option}>
-                        {option === 'AUTRE' ? t('ownedCats.otherEyeColor', 'Autre') : formatValue(option)}
+                    {enums && enums.eyeColor.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -424,11 +429,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="furType"
                     value={editForm.furType}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectFurType', 'Sélectionner un type')}</option>
-                    {furTypeOptions.map(option => (
-                      <option key={option} value={option}>
-                        {formatValue(option)}
+                    {enums && enums.furType.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>

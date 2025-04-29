@@ -4,10 +4,11 @@ import { FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
 import Select from 'react-select';
 import { useTranslation } from 'react-i18next';
 import { useCatSearch } from '../../contexts/CatSearchContext';
-import { breedOptions, colorOptions, eyeColorOptions } from '../../utils/enumOptions';
+import useEnums from '../../hooks/useEnums';
 
 const CatFilters = ({ type = 'lost' }) => {
   const { t } = useTranslation();
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
   const {
     filters,
     handleFilterChange,
@@ -20,25 +21,25 @@ const CatFilters = ({ type = 'lost' }) => {
   // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorSelectOptions = [
     { value: "", label: t('filters.allColors', 'Toutes les couleurs') },
-    ...colorOptions.map(value => ({ 
-      value, 
-      label: formatValue(value) 
+    ...(enums?.catColor || []).map(opt => ({
+      value: opt.value,
+      label: opt.label
     }))
   ];
-
+  
   const eyeColorSelectOptions = [
     { value: "", label: t('filters.allEyeColors', "Toutes les couleurs d'yeux") },
-    ...eyeColorOptions.map(value => ({ 
-      value, 
-      label: formatValue(value) 
+    ...(enums?.eyeColor || []).map(opt => ({
+      value: opt.value,
+      label: opt.label
     }))
   ];
-
+  
   const breedSelectOptions = [
     { value: "", label: t('filters.allBreeds', "Toutes les races") },
-    ...breedOptions.map(breed => ({
-      value: breed,
-      label: formatValue(breed)
+    ...(enums?.breed || []).map(opt => ({
+      value: opt.value,
+      label: opt.label
     }))
   ];
 

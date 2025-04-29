@@ -10,11 +10,14 @@ import MapLocation from "../../components/map/MapLocation";
 import useGeolocation from "../../hooks/useGeolocation";
 import { reverseGeocode } from "../../utils/geocodingService";
 import { formatPhoneNumber, validatePhone } from '../../utils/validationUtils';
+import useEnums from '../../hooks/useEnums'; // tout en haut du fichier
+
 
 const RegistrationForm = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const axios = useAxios();
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
 
   const [formData, setFormData] = useState({
     userName: "bibu",
@@ -411,12 +414,14 @@ const RegistrationForm = () => {
                               value={formData.gender}
                               onChange={handleChange}
                               required
+                              disabled={enumsLoading || enumsError}
                             >
-                              <option value="">{t('register.selectGender', 'Sélectionnez le genre')}</option>
-                              <option value="Homme">{t('register.genderMale', 'Homme')}</option>
-                              <option value="Femme">{t('register.genderFemale', 'Femme')}</option>
-                              <option value="Autre">{t('register.genderOther', 'Autre')}</option>
+                              <option value="">Sélectionnez le genre</option>
+                              {enums && enums.gender.map((g) => (
+                                <option key={g.value} value={g.value}>{g.label}</option>
+                              ))}
                             </Form.Select>
+                            {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
                           </Form.Group>
                         </Col>
                       </Row>

@@ -4,15 +4,17 @@ import Select from "react-select";
 import { motion } from "framer-motion";
 import { FaPaw, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
-import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import MapLocation from "../map/MapLocation";
 import ImageUploader from "../common/ImageUploader";
 import { useTranslation } from 'react-i18next';
 import { useRegisterCat } from "../../hooks/useRegisterCat";
+import useEnums from '../../hooks/useEnums';
+
 
 function RegisterCat() {
   const { formatValue } = useCatSearch();
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
   const { t } = useTranslation();
   const {
     formData,
@@ -67,14 +69,16 @@ function RegisterCat() {
                           value={formData.statusCat}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectStatus', '-- Sélectionnez le statut --')}</option>
-                          {statusCatOptions.map(option => (
+                          {enums && enums.statusCat.map(option => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des statuts</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -92,14 +96,21 @@ function RegisterCat() {
                         <Form.Label>{t('cat.breed', 'Race')}</Form.Label>
                         <Select
                           name="breed"
-                          value={formData.breed ? { value: formData.breed, label: formatValue(formData.breed) } : null}
+                          value={formData.breed ? enums && enums.breed.find(opt => opt.value === formData.breed) : null}
                           onChange={(selectedOption) => handleSelectChange(selectedOption, { name: 'breed' })}
-                          options={breedOptions.map(option => ({ value: option, label: formatValue(option) }))}
+                          options={enums ? enums.breed : []}
                           placeholder={t('cat.selectBreed', 'Sélectionnez la race')}
                           isClearable
                           className="basic-select"
                           classNamePrefix="select"
+                          isDisabled={enumsLoading || enumsError}
+                          menuPlacement="auto"
+                          menuPortalTarget={document.body} // <-- Ajoute ceci
+                          styles={{
+                            menuPortal: base => ({ ...base, zIndex: 9999 }) // <-- Pour être sûr que le menu est au-dessus de tout
+                          }}
                         />
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des races</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -109,14 +120,16 @@ function RegisterCat() {
                           value={formData.gender}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectGender', '-- Sélectionnez le genre --')}</option>
-                          {genderOptions.map(option => (
-                            <option key={option} value={option}>
-                              {option}
+                          {enums && enums.catGender.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
                       </Form.Group>
                     </Card.Body>
                   </Card>
@@ -187,14 +200,16 @@ function RegisterCat() {
                           value={formData.color}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectColor', '-- Sélectionnez la couleur --')}</option>
-                          {colorOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
+                          {enums && enums.catColor.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des couleurs</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -204,14 +219,16 @@ function RegisterCat() {
                           value={formData.eyeColor}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectEyeColor', '-- Sélectionnez la couleur des yeux --')}</option>
-                          {eyeColorOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
+                          {enums && enums.eyeColor.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des couleurs d'yeux</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -220,14 +237,16 @@ function RegisterCat() {
                           name="furType"
                           value={formData.furType}
                           onChange={handleChange}
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectFurType', '-- Sélectionnez le type de fourrure --')}</option>
-                          {furTypeOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
+                          {enums && enums.furType.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des types de fourrure</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">

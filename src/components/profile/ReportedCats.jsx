@@ -9,13 +9,14 @@ import CatDetails from './CatDetails';
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
-import { getStatusLabel } from "../../utils/enumOptions";
 import { convertToEnum } from "../../utils/enumUtils";
 import { useTranslation } from 'react-i18next';
 import ImageUploader from "../common/ImageUploader";
+import useEnums from '../../hooks/useEnums';
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { t } = useTranslation();
+  const { enums, loading: enumsLoading, error: enumsError, getEnumLabel } = useEnums();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge, findPotentialFoundCats, findPotentialLostCats } = useCatSearch();
   const { fetchCats } = useCatsContext();
@@ -326,8 +327,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                       )}
                     </Card.Text>
                     <Card.Text className="text-muted small">
-                      {t('reportedCats.status', 'Statut')}: {getStatusLabel(catStatus.statusCat) || t('reportedCats.notSpecified', 'Non spécifié')}
-                    </Card.Text>
+                    {t('reportedCats.status', 'Statut')}: {getEnumLabel(enums?.statusCat, catStatus.statusCat) || t('reportedCats.notSpecified', 'Non spécifié')}                    </Card.Text>
                     <Card.Text className="text-muted small">
                       {t('reportedCats.reportedOn', 'Signalé le')}: {new Date(catStatus.reportDate).toLocaleDateString()}
                     </Card.Text>
@@ -450,12 +450,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     name="statusCat"
                     value={editForm.statusCat}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option key="empty" value="">{t('reportedCats.selectStatus', 'Sélectionner un statut')}</option>
-                    <option key="lost" value="LOST">{t('reportedCats.lost', 'Perdu')}</option>
-                    <option key="found" value="FOUND">{t('reportedCats.found', 'Trouvé')}</option>
-                    <option key="own" value="OWN">{t('reportedCats.own', 'Propriétaire')}</option>
+                    {enums && enums.statusCat.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
+                  {enumsError && <div className="text-danger">Erreur lors du chargement des statuts</div>}
                 </Form.Group>
               </Col>
             </Row>
@@ -468,25 +472,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     name="breed"
                     value={editForm.breed}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">Sélectionner une race</option>
-                    <option value="SIAMESE">{t('reportedCats.siamese', 'Siamois')}</option>
-                    <option value="PERSIAN">{t('reportedCats.persian', 'Persan')}</option>
-                    <option value="MAINE_COON">{t('reportedCats.mainecoon', 'Maine Coon')}</option>
-                    <option value="BRITISH_SHORTHAIR">{t('reportedCats.britishshorthair', 'British Shorthair')}</option>
-                    <option value="RAGDOLL">{t('reportedCats.ragdoll', 'Ragdoll')}</option>
-                    <option value="BENGAL">{t('reportedCats.bengal', 'Bengal')}</option>
-                    <option value="SPHYNX">{t('reportedCats.sphynx', 'Sphynx')}</option>
-                    <option value="RUSSIAN_BLUE">{t('reportedCats.russianblue', 'Bleu Russe')}</option>
-                    <option value="ABYSSINIAN">{t('reportedCats.abyssinian', 'Abyssin')}</option>
-                    <option value="SCOTTISH_FOLD">{t('reportedCats.scottishfold', 'Scottish Fold')}</option>
-                    <option value="BIRMAN">{t('reportedCats.birman', 'Birman')}</option>
-                    <option value="AMERICAN_SHORTHAIR">{t('reportedCats.americanshorthair', 'Américain à poil court')}</option>
-                    <option value="NORWEGIAN_FOREST_CAT">{t('reportedCats.norwegianforestcat', 'Chat des forêts norvégiennes')}</option>
-                    <option value="EXOTIC_SHORTHAIR">{t('reportedCats.exoticshorthair', 'Exotic Shorthair')}</option>
-                    <option value="EUROPEAN_SHORTHAIR">{t('reportedCats.europeanshorthair', 'Européen à poil court')}</option>
-                    <option value="OTHER">{t('reportedCats.other', 'Autre')}</option>
+                    {enums && enums.breed.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
+                  {enumsError && <div className="text-danger">Erreur lors du chargement des races</div>}
                 </Form.Group>
               </Col>
               <Col md={6}>
@@ -496,15 +491,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     name="color"
                     value={editForm.color}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">Sélectionner une couleur</option>
-                    <option value="NOIR">{t('reportedCats.black', 'Noir')}</option>
-                    <option value="BLANC">{t('reportedCats.white', 'Blanc')}</option>
-                    <option value="GRIS">{t('reportedCats.grey', 'Gris')}</option>
-                    <option value="ROUX">{t('reportedCats.red', 'Roux')}</option>
-                    <option value="MIXTE">{t('reportedCats.mixed', 'Mixte')}</option>
-                    <option value="AUTRE">{t('reportedCats.other', 'Autre')}</option>
+                    {enums && enums.catColor.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
+                  {enumsError && <div className="text-danger">Erreur lors du chargement des couleurs</div>}
                 </Form.Group>
               </Col>
             </Row>
@@ -529,12 +525,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     name="gender"
                     value={editForm.gender}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">Sélectionner un genre</option>
-                    <option value="Mâle">Mâle</option>
-                    <option value="Femelle">Femelle</option>
-                    <option value="Inconnu">Inconnu</option>
+                    {enums && enums.catGender.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
+                  {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
                 </Form.Group>
               </Col>
             </Row>
@@ -559,13 +559,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     name="furType"
                     value={editForm.furType}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">Sélectionner un type de pelage</option>
-                    <option value="COURTE">Courte</option>
-                    <option value="MOYENNE">Moyenne</option>
-                    <option value="LONGUE">Longue</option>
-                    <option value="SANS_POILS">Sans poils</option>
+                    {enums && enums.furType.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
+                  {enumsError && <div className="text-danger">Erreur lors du chargement des types de pelage</div>}
                 </Form.Group>
               </Col>
             </Row>
@@ -578,17 +581,16 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     name="eyeColor"
                     value={editForm.eyeColor}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">Sélectionner une couleur d'yeux</option>
-                    <option value="BLEU">Bleu</option>
-                    <option value="MARRON">Marron</option>
-                    <option value="VERT">Vert</option>
-                    <option value="GRIS">Gris</option>
-                    <option value="NOISETTE">Noisette</option>
-                    <option value="JAUNE">Jaune</option>
-                    <option value="ORANGE">Orange</option>
-                    <option value="AUTRE">Autre</option>
+                    {enums && enums.eyeColor.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
+                  {enumsError && <div className="text-danger">Erreur lors du chargement des couleurs d'yeux</div>}
                 </Form.Group>
               </Col>
               <Col md={6}>

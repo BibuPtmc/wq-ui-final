@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { breedOptions, colorOptions, eyeColorOptions } from '../utils/enumOptions';
+import useEnums from './useEnums';
 
 export const useCatFilters = (formatValue) => {
   const { t } = useTranslation();
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
   const [filters, setFilters] = useState({
     breed: '',
     color: '',
@@ -22,25 +23,25 @@ export const useCatFilters = (formatValue) => {
   // Options pour les filtres avec valeur vide pour "Toutes les options"
   const colorSelectOptions = [
     { value: "", label: t('foundCats.allColors', 'Toutes les couleurs') },
-    ...colorOptions.map(value => ({ 
-      value, 
-      label: formatValue(value) 
+    ...(enums?.catColor || []).map(opt => ({
+      value: opt.value,
+      label: opt.label
     }))
   ];
 
   const eyeColorSelectOptions = [
     { value: "", label: t('foundCats.allEyeColors', "Toutes les couleurs d'yeux") },
-    ...eyeColorOptions.map(value => ({ 
-      value, 
-      label: formatValue(value) 
+    ...(enums?.eyeColor || []).map(opt => ({
+      value: opt.value,
+      label: opt.label
     }))
   ];
 
   const breedSelectOptions = [
     { value: "", label: t('foundCats.allBreeds', "Toutes les races") },
-    ...breedOptions.map(breed => ({
-      value: breed,
-      label: formatValue(breed)
+    ...(enums?.breed || []).map(opt => ({
+      value: opt.value,
+      label: opt.label
     }))
   ];
 
@@ -173,6 +174,8 @@ export const useCatFilters = (formatValue) => {
     useCurrentLocation,
     clearCurrentLocation,
     resetFilters,
-    applyFilters
+    applyFilters,
+    enumsLoading,
+    enumsError
   };
 }; 
