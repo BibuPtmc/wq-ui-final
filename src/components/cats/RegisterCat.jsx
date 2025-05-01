@@ -155,12 +155,16 @@ function RegisterCat() {
                               onChange={handleChange}
                               max={todayForInput}
                               isInvalid={!!validationErrors.dateOfBirth}
+                              placeholder={t('cat.selectBirthDate', 'Sélectionnez la date de naissance')}
                             />
                             {validationErrors.dateOfBirth && (
                               <Form.Control.Feedback type="invalid">
                                 {validationErrors.dateOfBirth}
                               </Form.Control.Feedback>
                             )}
+                            <Form.Text className="text-muted">
+                              {t('cat.birthDateHelp', 'Format: JJ/MM/AAAA')}
+                            </Form.Text>
                           </Form.Group>
                         </Col>
                         <Col sm={6}>

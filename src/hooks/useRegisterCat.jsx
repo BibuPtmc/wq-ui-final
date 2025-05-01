@@ -206,12 +206,15 @@ export const useRegisterCat = () => {
       postalCode: formData.location.postalCode
     };
 
+    // Formater la date de naissance au format ISO si elle existe
+    const formattedDateOfBirth = formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : null;
+
     const catStatus = {
       cat: {
         name: name,
         breed: convertToEnum(formData.breed, 'UNKNOWN'),
         color: convertToEnum(formData.color, 'AUTRE'),
-        dateOfBirth: formData.dateOfBirth,
+        dateOfBirth: formattedDateOfBirth,
         imageUrls: formData.imageUrls,
         gender: formData.gender,
         chipNumber: formData.chipNumber,
