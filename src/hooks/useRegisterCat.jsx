@@ -9,7 +9,7 @@ import { reverseGeocode } from '../utils/geocodingService';
 import { convertToEnum } from '../utils/enumUtils';
 
 export const useRegisterCat = () => {
-  const { formatValue } = useCatSearch();
+  const { formatValue, refreshCatLists } = useCatSearch();
   const axios = useAxios();
   const { fetchCats, userAddress } = useCatsContext();
   const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
@@ -233,57 +233,25 @@ export const useRegisterCat = () => {
       type: 'application/json'
     }));
 
-    try { 
-      await axios.post("/cat/register", formDataWithPayload, {
+    try {
+      setIsUploading(true);
+      const response = await axios.post('/cat/register', formDataWithPayload, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      setShowSuccessMessage(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      try {
+      if (response) {
+        setShowSuccessMessage(true);
+        setUploaderKey(Date.now());
         await fetchCats();
-      } catch (fetchError) {
-        console.warn("Erreur lors de la récupération des chats après enregistrement:", fetchError);
+        await refreshCatLists();
+        navigate('/profile');
       }
-      
-      setFormData({
-        ...formData,
-        name: t('cat.defaultName', 'Mittens'),
-        breed: "SIAMESE",
-        color: "BLANC",
-        dateOfBirth: "",
-        imageUrls: [],
-        gender: "Femelle",
-        chipNumber: "123456789",
-        furType: "COURTE",
-        eyeColor: "BLEU",
-        comment: t('cat.defaultComment', 'Chat très amical et joueur.'),
-        statusCat: "LOST",
-        reportDate: todayForInput,
-        location: userAddress ? {
-          latitude: userAddress.latitude || "",
-          longitude: userAddress.longitude || "",
-          address: userAddress.address || "",
-          city: userAddress.city || "",
-          postalCode: userAddress.postalCode || ""
-        } : {
-          latitude: "",
-          longitude: "",
-          address: "",
-          city: "",
-          postalCode: ""
-        }
-      });
-      setUploaderKey(Date.now());
-
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 5000);
     } catch (error) {
-      console.error("Error registering cat:", error);
+      console.error('Erreur lors de l\'enregistrement du chat:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 

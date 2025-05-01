@@ -469,6 +469,21 @@ export const CatSearchProvider = ({ children }) => {
     }
   }, [axios]);
 
+  // Fonction pour rafraîchir toutes les listes
+  const refreshCatLists = useCallback(async () => {
+    try {
+      // Rafraîchir les chats trouvés et perdus
+      await fetchFoundCats();
+      await fetchLostCats();
+      
+      // Rafraîchir les compteurs de correspondances
+      await fetchFoundMatchCounts();
+      await fetchLostMatchCounts();
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement des listes:", error);
+    }
+  }, [fetchFoundCats, fetchLostCats, fetchFoundMatchCounts, fetchLostMatchCounts]);
+
   return (
     <CatSearchContext.Provider value={{
       foundCats,
@@ -495,7 +510,8 @@ export const CatSearchProvider = ({ children }) => {
       calculateAge,
       formatValue,
       findPotentialLostCats,
-      findPotentialFoundCats
+      findPotentialFoundCats,
+      refreshCatLists
     }}>
       {children}
     </CatSearchContext.Provider>
