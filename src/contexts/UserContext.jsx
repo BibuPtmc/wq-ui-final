@@ -159,7 +159,7 @@ export const UserProvider = ({ children }) => {
         matchingPassword: passwordFormData.matchingPassword
       };
       
-      await axios.put("users/update", passwordData);
+      await axios.put("users/update-password", passwordData);
       
       // Réinitialiser le formulaire
       setPasswordForm({
@@ -170,10 +170,12 @@ export const UserProvider = ({ children }) => {
       
       setUpdateSuccess(true);
       
-      // Réinitialiser le message de succès après 3 secondes
+      // Déconnecter l'utilisateur après 2 secondes
       setTimeout(() => {
-        setUpdateSuccess(false);
-      }, 3000);
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userData");
+        window.location.href = "/login";
+      }, 2000);
       
       return true;
     } catch (error) {

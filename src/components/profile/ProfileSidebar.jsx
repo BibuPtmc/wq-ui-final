@@ -33,11 +33,11 @@ const ProfileSidebar = ({
           onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
           onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
         >
-          {connectedUser.firstName.charAt(0)}
-          {connectedUser.lastName.charAt(0)}
+          {connectedUser?.firstName?.charAt(0) || ''}
+          {connectedUser?.lastName?.charAt(0) || ''}
         </div>
         <Card.Title className="mb-3">
-          {connectedUser.firstName} {connectedUser.lastName}
+          {connectedUser?.firstName || ''} {connectedUser?.lastName || ''}
         </Card.Title>
         <Card.Text className="text-muted mb-4">{t('profileSidebar.role', 'Particulier')}</Card.Text>
         
