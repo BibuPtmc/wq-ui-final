@@ -136,13 +136,16 @@ const RegistrationForm = () => {
         const selectedDate = new Date(value);
         const currentDate = new Date();
         
-        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
         currentDate.setHours(0, 0, 0, 0);
         
         if (selectedDate > currentDate) {
           setBirthDayError("La date de naissance ne peut pas être dans le futur");
         } else {
           setBirthDayError("");
+          // Formatage de la date au format YYYY-MM-DD
+          const formattedDate = value.split('T')[0];
+          setFormData(prev => ({ ...prev, birthDay: formattedDate }));
+          return; // Important : sortir de la fonction ici
         }
       } else {
         setBirthDayError("");

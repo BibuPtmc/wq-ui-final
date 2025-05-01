@@ -19,7 +19,6 @@ const PersonalInfo = ({
   const [phoneError, setPhoneError] = useState("");
   const { enums, loading: enumsLoading, error: enumsError } = useEnums();
 
-
   // Format today's date as YYYY-MM-DD for the date input max attribute
   const today = new Date().toISOString().split('T')[0];
   
@@ -39,6 +38,13 @@ const PersonalInfo = ({
     // Validation de la date de naissance
     else if (name === 'birthDay') {
       if (value) {
+        // Vérifier que la date est au format ISO (YYYY-MM-DD)
+        const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!isoDateRegex.test(value)) {
+          setBirthDayError("Format de date invalide");
+          return;
+        }
+
         const selectedDate = new Date(value);
         const currentDate = new Date();
         
@@ -198,13 +204,8 @@ const PersonalInfo = ({
               value={formData.birthDay}
               onChange={handleChange}
               max={today}
-              isInvalid={!!birthDayError}
             />
-            {birthDayError && (
-              <Form.Control.Feedback type="invalid">
-                {birthDayError}
-              </Form.Control.Feedback>
-            )}
+            {birthDayError && <div className="text-danger">{birthDayError}</div>}
           </Form.Group>
         </Col>
         <Col md={4}>
@@ -216,25 +217,18 @@ const PersonalInfo = ({
             <Form.Control
               type="tel"
               name="phone"
-              value={formData.phone || ""}
+              value={formData.phone}
               onChange={handleChange}
-              placeholder={t('personalInfo.phonePlaceholder', 'Ex: 0493 96 33 75')}
-              isInvalid={!!phoneError}
+              placeholder={t('personalInfo.phonePlaceholder', 'Votre numéro de téléphone')}
             />
-            {phoneError && (
-              <Form.Control.Feedback type="invalid">
-                {phoneError}
-              </Form.Control.Feedback>
-            )}
+            {phoneError && <div className="text-danger">{phoneError}</div>}
           </Form.Group>
         </Col>
       </Row>
 
-      <div className="d-grid gap-2">
-        <Button variant="primary" type="submit" className="mt-3">
-          {t('personalInfo.updateButton', 'Mettre à jour mes informations')}
-        </Button>
-      </div>
+      <Button variant="primary" type="submit" className="mt-3">
+        {t('personalInfo.save', 'Enregistrer les modifications')}
+      </Button>
     </Form>
   );
 };
