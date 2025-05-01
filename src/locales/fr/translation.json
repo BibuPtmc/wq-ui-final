@@ -1,0 +1,121 @@
+{
+    "admin": {
+        "dashboard": {
+            "title": "Tableau de bord administrateur"
+        },
+        "stats": {
+            "users": "Utilisateurs",
+            "cats": "Chats",
+            "orders": "Commandes",
+            "details": "Détails des statistiques",
+            "newUsers": "Nouveaux utilisateurs ce mois",
+            "activeUsers": "Utilisateurs actifs",
+            "lostCats": "Chats perdus",
+            "foundCats": "Chats trouvés",
+            "matches": "Correspondances réussies",
+            "revenue": "Revenu total",
+            "ordersThisMonth": "Commandes ce mois"
+        },
+        "users": {
+            "title": "Gestion des utilisateurs",
+            "search": "Rechercher un utilisateur",
+            "name": "Nom",
+            "email": "Email",
+            "role": "Rôle",
+            "actions": "Actions",
+            "setUser": "Définir comme utilisateur",
+            "setAdmin": "Définir comme administrateur"
+        },
+        "cats": {
+            "title": "Gestion des chats",
+            "reported": "Chats signalés",
+            "moderate": "Modérer"
+        },
+        "orders": {
+            "title": "Gestion des commandes",
+            "total": "Total des commandes",
+            "revenue": "Revenu total",
+            "pending": "En attente",
+            "completed": "Complétées"
+        },
+        "catManagement": {
+            "title": "Gestion des Chats",
+            "name": "Nom",
+            "breed": "Race",
+            "status": "Statut",
+            "reports": "Signalements",
+            "actions": "Actions",
+            "markAsLost": "Marquer comme Perdu",
+            "markAsFound": "Marquer comme Trouvé",
+            "markAsMatched": "Marquer comme Apparié",
+            "minReports": "Signalements minimum",
+            "dateFrom": "Date de début",
+            "dateTo": "Date de fin"
+        },
+        "orderManagement": {
+            "title": "Gestion des Commandes",
+            "orderId": "N° Commande",
+            "customer": "Client",
+            "date": "Date",
+            "amount": "Montant",
+            "status": "Statut",
+            "actions": "Actions",
+            "searchPlaceholder": "Rechercher par ID ou nom du client",
+            "markAsPending": "Marquer comme En Attente",
+            "markAsCompleted": "Marquer comme Terminée",
+            "markAsCancelled": "Marquer comme Annulée"
+        },
+        "charts": {
+            "monthlyTrends": "Tendances mensuelles",
+            "catStatus": "Statut des chats",
+            "orderStatus": "Statut des commandes"
+        },
+        "logs": {
+            "title": "Journal d'activité",
+            "username": "Utilisateur",
+            "action": "Action",
+            "details": "Détails",
+            "timestamp": "Date et heure",
+            "dateFrom": "Date de début",
+            "dateTo": "Date de fin",
+            "actions": {
+                "userRoleChange": "Modification du rôle utilisateur",
+                "catStatusChange": "Modification du statut du chat",
+                "orderStatusChange": "Modification du statut de la commande"
+            }
+        }
+    },
+    "cat": {
+        "status": {
+            "lost": "Perdu",
+            "found": "Trouvé",
+            "matched": "Apparié"
+        }
+    },
+    "order": {
+        "status": {
+            "pending": "En Attente",
+            "completed": "Terminée",
+            "cancelled": "Annulée"
+        }
+    },
+    "common": {
+        "filters": "Filtres",
+        "resetFilters": "Réinitialiser les filtres",
+        "all": "Tous"
+    },
+    "months": {
+        "jan": "Jan",
+        "feb": "Fév",
+        "mar": "Mar",
+        "apr": "Avr",
+        "may": "Mai",
+        "jun": "Juin",
+        "jul": "Juil",
+        "aug": "Août",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Déc"
+    }
+} 
