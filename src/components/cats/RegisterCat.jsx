@@ -32,7 +32,8 @@ function RegisterCat() {
     handleRequestCurrentLocation,
     updateLocationFromCoordinates,
     setGeoError,
-    setIsUploading
+    setIsUploading,
+    setFormData
   } = useRegisterCat();
 
   return (
@@ -331,13 +332,13 @@ function RegisterCat() {
                             location={formData.location}
                             onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
                             onAddressChange={(addressData) => {
-                              setFormData({
-                                ...formData,
+                              setFormData(prev => ({
+                                ...prev,
                                 location: {
-                                  ...formData.location,
+                                  ...prev.location,
                                   ...addressData
                                 }
-                              });
+                              }));
                             }}
                             isLocating={isLocating}
                             geoError={geoError}

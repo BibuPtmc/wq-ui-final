@@ -110,6 +110,7 @@ const MapLocation = ({
     }
   }, [onLocationChange, disableMapClick, mapRef]);
 
+
   useEffect(() => {
     // Si nous avons des coordonnées valides, initialiser la carte
     if (location.longitude && location.latitude) {
@@ -136,21 +137,19 @@ const MapLocation = ({
         map.current = null;
       }
     };
-  }, [initializeMap, location?.longitude, location?.latitude]);
+  }, []);
 
   // Mettre à jour le marqueur si les coordonnées changent en externe
   useEffect(() => {
-    if (map.current && marker.current && location?.longitude && location?.latitude) {
-      marker.current.setLngLat([location.longitude, location.latitude]);
-      
-      if (!markers.length) {
-        map.current.flyTo({
-          center: [location.longitude, location.latitude],
-          essential: true
-        });
+    if (map.current && location?.longitude && location?.latitude) {
+      // Toujours centrer la carte sur la nouvelle position
+      map.current.setCenter([location.longitude, location.latitude]);
+      // Déplacer le marqueur principal s'il existe
+      if (marker.current) {
+        marker.current.setLngLat([location.longitude, location.latitude]);
       }
     }
-  }, [location?.longitude, location?.latitude, markers]);
+  }, [location?.longitude, location?.latitude]);
 
   // Mettre à jour l'adresse affichée lorsqu'elle change
   useEffect(() => {

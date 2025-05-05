@@ -110,7 +110,8 @@ export const useRegisterCat = () => {
     const { name, value } = e.target;
     
     const newValidationErrors = { ...validationErrors };
-    const updatedFormData = { ...formData, [name]: value };
+    //const updatedFormData = { ...formData, [name]: value };
+    const tempFormData = { ...formData, [name]: value };
     
     if (name === "dateOfBirth") {
       if (value) {
@@ -124,8 +125,8 @@ export const useRegisterCat = () => {
           newValidationErrors.dateOfBirth = "";
         }
         
-        if (updatedFormData.reportDate) {
-          const reportDate = new Date(updatedFormData.reportDate);
+        if (tempFormData.reportDate) {
+          const reportDate = new Date(tempFormData.reportDate);
           if (selectedDate > reportDate) {
             newValidationErrors.dateComparison = t('cat.errorDateComparison', 'La date de signalement ne peut pas être antérieure à la date de naissance');
           } else {
@@ -150,8 +151,8 @@ export const useRegisterCat = () => {
           newValidationErrors.reportDate = "";
         }
         
-        if (updatedFormData.dateOfBirth) {
-          const birthDate = new Date(updatedFormData.dateOfBirth);
+        if (tempFormData.dateOfBirth) {
+          const birthDate = new Date(tempFormData.dateOfBirth);
           if (birthDate > selectedDate) {
             newValidationErrors.dateComparison = t('cat.errorDateComparison', 'La date de signalement ne peut pas être antérieure à la date de naissance');
           } else {
@@ -164,14 +165,17 @@ export const useRegisterCat = () => {
     }
     
     setValidationErrors(newValidationErrors);
-    setFormData(updatedFormData);
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSelectChange = (selectedOption, action) => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [action.name]: selectedOption ? selectedOption.value : "",
-    });
+    }));
   };
 
   const handleImageUploaded = (imageData) => {
@@ -196,8 +200,10 @@ export const useRegisterCat = () => {
     }
     
     const name = formData.name.trim() === "" ? t('cat.unknown', 'Inconnu') : formData.name;
-    setFormData({ ...formData, name: name });
-
+    setFormData(prev => ({
+      ...prev,
+      name: name
+    }));
     const localisation = {
       latitude: formData.location.latitude,
       longitude: formData.location.longitude,
@@ -271,6 +277,7 @@ export const useRegisterCat = () => {
     handleRequestCurrentLocation,
     updateLocationFromCoordinates,
     setGeoError,
-    setIsUploading
+    setIsUploading,
+    setFormData
   };
 }; 
