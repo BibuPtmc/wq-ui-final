@@ -639,6 +639,7 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
         selectedCatStatus={selectedCat}
         show={showDetailsModal}
         handleClose={handleCloseDetails}
+        hideContactInfo={true}
       />
 
       <MatchingResults

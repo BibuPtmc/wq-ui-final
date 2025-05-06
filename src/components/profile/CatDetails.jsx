@@ -4,12 +4,14 @@ import { FaPaw, FaBirthdayCake, FaCalendarAlt, FaInfoCircle, FaComments, FaMapMa
 import { useCatSearch } from '../../contexts/CatSearchContext';
 import { useCatsContext } from '../../contexts/CatsContext';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/authProvider';
 
-function CatDetails({ selectedCatStatus, handleClose, show }) {
+function CatDetails({ selectedCatStatus, handleClose, show, hideContactInfo=false }) {
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { userAddress, reportedCats, ownedCats } = useCatsContext();
   const { t, i18n } = useTranslation();
+  const { isLoggedIn } = useAuth();
   
   // État local pour stocker les données du chat sélectionné
   const [currentCatStatus, setCurrentCatStatus] = useState(selectedCatStatus);
@@ -54,6 +56,10 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
   
   // Déterminer les informations de contact en fonction du type de chat
   const getUserContactInfo = () => {
+    if (!isLoggedIn) {
+      return null;
+    }
+    
     // Pour les chats trouvés, l'info utilisateur est dans currentCatStatus.user
     if (isFoundCat && currentCatStatus.user) {
       return {
@@ -79,6 +85,10 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
 
   // Fonction pour ouvrir le client email par défaut
   const handleEmailContact = () => {
+    if (!isLoggedIn) {
+      return;
+    }
+    
     const subject = isFoundCat 
       ? t('cat.emailSubjectFound', { name: cat.name || t('cat.noName', 'Sans nom') }, 'À propos de votre chat trouvé: {{name}}')
       : t('cat.emailSubjectLost', { name: cat.name || t('cat.noName', 'Sans nom') }, 'À propos de votre chat perdu: {{name}}');
@@ -315,55 +325,71 @@ function CatDetails({ selectedCatStatus, handleClose, show }) {
             </Card>
           )}
 
-          {(isFoundCat || isLostCat) && (
+          {(isFoundCat || isLostCat) && !hideContactInfo && (
             <Card className="shadow-sm mb-4">
               <Card.Body>
                 <h5 className="mb-3">
                   <FaInfoCircle className="me-2" style={{ color: '#8B4513' }} />
                   {t('cat.contact')}
                 </h5>
-                <p className="mb-3">
-                  {isFoundCat 
-                    ? t('cat.contactFoundMessage')
-                    : t('cat.contactLostMessage')}
-                </p>
-                
-                <Row className="g-3 mb-3">
-                  {/* Afficher le numéro de téléphone */}
-                  <Col xs={12} md={6}>
-                    <div className="d-flex align-items-center">
-                      <FaPhone className="me-2" style={{ color: '#8B4513' }} />
-                      <div>
-                        <div className="text-muted small">{t('cat.phone')}</div>
-                        <div className="fw-semibold">
-                          {contactInfo.phone}
+                {isLoggedIn ? (
+                  <>
+                    <p className="mb-3">
+                      {isFoundCat 
+                        ? t('cat.contactFoundMessage')
+                        : t('cat.contactLostMessage')}
+                    </p>
+                    
+                    <Row className="g-3 mb-3">
+                      {/* Afficher le numéro de téléphone */}
+                      <Col xs={12} md={6}>
+                        <div className="d-flex align-items-center">
+                          <FaPhone className="me-2" style={{ color: '#8B4513' }} />
+                          <div>
+                            <div className="text-muted small">{t('cat.phone')}</div>
+                            <div className="fw-semibold">
+                              {contactInfo.phone}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </Col>
-                  
-                  {/* Afficher l'email avec un bouton pour envoyer un message */}
-                  <Col xs={12} md={6}>
-                    <div className="d-flex align-items-center">
-                      <FaEnvelope className="me-2" style={{ color: '#8B4513' }} />
-                      <div>
-                        <div className="text-muted small">{t('cat.email')}</div>
-                        <div className="fw-semibold">
-                          {contactInfo.email}
+                      </Col>
+                      
+                      {/* Afficher l'email avec un bouton pour envoyer un message */}
+                      <Col xs={12} md={6}>
+                        <div className="d-flex align-items-center">
+                          <FaEnvelope className="me-2" style={{ color: '#8B4513' }} />
+                          <div>
+                            <div className="text-muted small">{t('cat.email')}</div>
+                            <div className="fw-semibold">
+                              {contactInfo.email}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-                
-                <Button 
-                  variant="primary" 
-                  className="w-100"
-                  onClick={handleEmailContact}
-                >
-                  <FaEnvelope className="me-2" />
-                  {t('cat.sendEmail')}
-                </Button>
+                      </Col>
+                    </Row>
+                    
+                    <Button 
+                      variant="primary" 
+                      className="w-100"
+                      onClick={handleEmailContact}
+                    >
+                      <FaEnvelope className="me-2" />
+                      {t('cat.sendEmail')}
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <p className="mb-3">
+                      {t('cat.loginRequired', 'Veuillez vous connecter pour voir les informations de contact.')}
+                    </p>
+                    <Button 
+                      variant="primary" 
+                      onClick={() => window.location.href = '/login'}
+                    >
+                      {t('common.login', 'Se connecter')}
+                    </Button>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           )}
