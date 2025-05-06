@@ -214,7 +214,7 @@ function CatDetails({ selectedCatStatus, handleClose, show, hideContactInfo=fals
                 <Card.Body>
                   <h5 className="mb-3">
                     <FaInfoCircle className="me-2" style={{ color: '#8B4513' }} />
-                    {t('cat.generalInfo')}
+                    {t('cat.generalInfo', 'Informations générales')}
                   </h5>
                   <Row className="g-3">
                     <Col xs={12}>
@@ -258,6 +258,36 @@ function CatDetails({ selectedCatStatus, handleClose, show, hideContactInfo=fals
                           <div className="text-muted small">{t('cat.furType')}</div>
                           <div className="fw-semibold">
                             {formatValue(cat.furType) || t('common.unknown')}
+                          </div>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col xs={6}>
+                      <div className="d-flex align-items-center">
+                        <FaPaw className="me-2" style={{ color: '#8B4513' }} />
+                        <div>
+                          <div className="text-muted small">Vacciné</div>
+                          <div className="fw-semibold">
+                            {currentCatStatus.cat.vaccinated === true
+                              ? 'Oui'
+                              : currentCatStatus.cat.vaccinated === false
+                                ? 'Non'
+                                : 'Non spécifié'}
+                          </div>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col xs={6}>
+                      <div className="d-flex align-items-center">
+                        <FaPaw className="me-2" style={{ color: '#8B4513' }} />
+                        <div>
+                          <div className="text-muted small">Stérilisé</div>
+                          <div className="fw-semibold">
+                            {currentCatStatus.cat.sterilized === true
+                              ? 'Oui'
+                              : currentCatStatus.cat.sterilized === false
+                                ? 'Non'
+                                : 'Non spécifié'}
                           </div>
                         </div>
                       </div>

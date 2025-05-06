@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 
 /**
  * Affiche une notification d'erreur API standardisée.
@@ -9,7 +16,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 function notifyApiError(showNotification, contextMsg, error) {
   showNotification(
     `Erreur ${contextMsg} : ` +
-    (error?.response?.data?.message || error?.message || "Erreur inconnue"),
+      (error?.response?.data?.message || error?.message || "Erreur inconnue"),
     "error"
   );
 }
@@ -31,8 +38,15 @@ function buildCatDTO(catData, convertToEnum) {
     gender: catData.gender,
     chipNumber: catData.chipNumber,
     furType: convertToEnum(catData.furType, ""),
-    eyeColor: convertToEnum(catData.eyeColor, "")
+    eyeColor: convertToEnum(catData.eyeColor, ""),
   };
+}
+
+function toNullableBoolean(value) {
+  if (value === "" || value === undefined || value === null) return null;
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return null;
 }
 
 /**
@@ -55,15 +69,22 @@ function buildUpdatedCatDTO(updatedData, currentCat, convertToEnum) {
     chipNumber: updatedData.chipNumber || currentCat.chipNumber,
     furType: convertToEnum(updatedData.furType, currentCat.furType),
     imageUrls: updatedData.imageUrls || currentCat.imageUrls,
-    comment: updatedData.hasOwnProperty('comment') ? updatedData.comment : currentCat.comment
+    comment: updatedData.hasOwnProperty("comment")
+      ? updatedData.comment
+      : currentCat.comment,
+    vaccinated: updatedData.hasOwnProperty("vaccinated")
+      ? toNullableBoolean(updatedData.vaccinated)
+      : currentCat.vaccinated,
+    sterilized: updatedData.hasOwnProperty("sterilized")
+      ? toNullableBoolean(updatedData.sterilized)
+      : currentCat.sterilized,
   };
 }
 
-
-import { useAxios } from '../hooks/useAxios';
-import { formatDateForJava, convertToEnum } from '../utils/enumUtils';
-import { useAuth } from '../contexts/authProvider';
-import { useNotification } from './NotificationContext';
+import { useAxios } from "../hooks/useAxios";
+import { formatDateForJava, convertToEnum } from "../utils/enumUtils";
+import { useAuth } from "../contexts/authProvider";
+import { useNotification } from "./NotificationContext";
 
 // Création du contexte
 const CatsContext = createContext();
@@ -87,18 +108,24 @@ export const CatsProvider = ({ children }) => {
   const fetchUserAddress = useCallback(async () => {
     try {
       const response = await axios.get("users/me");
-      
+
       if (response && response.address) {
         setUserAddress({
           address: response.address.address || "",
           city: response.address.city || "",
           postalCode: response.address.postalCode || "",
           latitude: response.address.latitude || null,
-          longitude: response.address.longitude || null
+          longitude: response.address.longitude || null,
         });
       }
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification(
+        "Erreur lors de la récupération de l'adresse utilisateur : " +
+          (error?.response?.data?.message ||
+            error?.message ||
+            "Erreur inconnue"),
+        "error"
+      );
     }
   }, [axios]);
 
@@ -111,14 +138,14 @@ export const CatsProvider = ({ children }) => {
     try {
       // Vérifier si l'utilisateur est connecté
       if (!isLoggedIn) return;
-      
+
       // Indiquer que le chargement est en cours
       setLoading(true);
-      
+
       // Fetch reported cats
       try {
         const reportedResponse = await axios.get("cat/reportedCats");
-        setReportedCats(reportedResponse || []); 
+        setReportedCats(reportedResponse || []);
       } catch (error) {
         setReportedCats([]);
       }
@@ -133,11 +160,15 @@ export const CatsProvider = ({ children }) => {
 
       // Fetch user address
       await fetchUserAddress();
-      
+
       setLoading(false);
       initialFetchDone.current = true;
     } catch (error) {
-      notifyApiError(showNotification, "lors de la récupération des chats", error);
+      notifyApiError(
+        showNotification,
+        "lors de la récupération des chats",
+        error
+      );
       setLoading(false);
     }
   }, [axios, isLoggedIn, fetchUserAddress]);
@@ -161,16 +192,26 @@ export const CatsProvider = ({ children }) => {
   const handleDeleteReportedCat = async (catStatusId) => {
     try {
       // Trouver le chat signalé correspondant
-      const catToDelete = reportedCats.find(cat => cat.catStatusId === catStatusId);
+      const catToDelete = reportedCats.find(
+        (cat) => cat.catStatusId === catStatusId
+      );
       if (!catToDelete) throw new Error("Chat signalé introuvable");
       const catId = catToDelete.cat.catId;
       // Utiliser le même endpoint que pour les chats possédés
       await axios.delete(`/cat/delete?id=${catId}`);
-      setReportedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-      showNotification('Le chat a été supprimé avec succès !', 'success');
+      setReportedCats((prevCats) =>
+        prevCats.filter((cat) => cat.cat.catId !== catId)
+      );
+      showNotification("Le chat a été supprimé avec succès !", "success");
       return true;
     } catch (error) {
-      showNotification("Erreur lors de la suppression du chat signalé : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification(
+        "Erreur lors de la suppression du chat signalé : " +
+          (error?.response?.data?.message ||
+            error?.message ||
+            "Erreur inconnue"),
+        "error"
+      );
       return false;
     }
   };
@@ -181,18 +222,24 @@ export const CatsProvider = ({ children }) => {
    */
   const handleEditReportedCat = async (catStatusId, updatedData) => {
     try {
-      const currentCat = reportedCats.find(cat => cat.catStatusId === catStatusId);
+      const currentCat = reportedCats.find(
+        (cat) => cat.catStatusId === catStatusId
+      );
       if (!currentCat) {
         throw new Error("Chat non trouvé");
       }
 
       // Utilisation de la fonction convertToEnum centralisée
-      const catDTO = buildUpdatedCatDTO(updatedData, currentCat.cat, convertToEnum);
-
+      const catDTO = buildUpdatedCatDTO(
+        updatedData,
+        currentCat.cat,
+        convertToEnum
+      );
 
       // Vérifier si nous changeons le statut du chat (par exemple, de trouvé à possédé)
       const newStatus = updatedData.statusCat || currentCat.statusCat;
-      const isChangingToOwned = newStatus === "OWN" && currentCat.statusCat !== "OWN";
+      const isChangingToOwned =
+        newStatus === "OWN" && currentCat.statusCat !== "OWN";
 
       // Si nous changeons le statut à "possédé", utiliser l'adresse de l'utilisateur
       let location;
@@ -200,11 +247,15 @@ export const CatsProvider = ({ children }) => {
         location = { ...userAddress };
       } else {
         location = {
-          latitude: updatedData.location?.latitude || currentCat.location?.latitude,
-          longitude: updatedData.location?.longitude || currentCat.location?.longitude,
-          address: updatedData.location?.address || currentCat.location?.address,
+          latitude:
+            updatedData.location?.latitude || currentCat.location?.latitude,
+          longitude:
+            updatedData.location?.longitude || currentCat.location?.longitude,
+          address:
+            updatedData.location?.address || currentCat.location?.address,
           city: updatedData.location?.city || currentCat.location?.city,
-          postalCode: updatedData.location?.postalCode || currentCat.location?.postalCode
+          postalCode:
+            updatedData.location?.postalCode || currentCat.location?.postalCode,
         };
       }
 
@@ -219,12 +270,13 @@ export const CatsProvider = ({ children }) => {
         reportDate: formattedDate,
         location: location,
         cat: {
-          catId: currentCat.cat.catId
-        }
+          catId: currentCat.cat.catId,
+        },
       };
 
       // Vérifier si le statut du chat a changé
-      const statusHasChanged = updatedData.statusCat && updatedData.statusCat !== currentCat.statusCat;
+      const statusHasChanged =
+        updatedData.statusCat && updatedData.statusCat !== currentCat.statusCat;
 
       // Mettre à jour les informations du chat
       await axios.put(`/cat/update`, catDTO);
@@ -238,36 +290,44 @@ export const CatsProvider = ({ children }) => {
       // Mettre à jour l'état local
       if (isChangingToOwned) {
         // Supprimer de la liste des chats signalés
-        setReportedCats(prevCats => prevCats.filter(cat => cat.catStatusId !== catStatusId));
-        
+        setReportedCats((prevCats) =>
+          prevCats.filter((cat) => cat.catStatusId !== catStatusId)
+        );
+
         // Ajouter à la liste des chats possédés
         const updatedOwnedCat = {
           catStatusId: (response && response.catStatusId) || catStatusId,
           statusCat: "OWN",
           reportDate: formattedDate,
           location: location,
-          cat: catDTO
+          cat: catDTO,
         };
-        setOwnedCats(prevCats => [...prevCats, updatedOwnedCat]);
+        setOwnedCats((prevCats) => [...prevCats, updatedOwnedCat]);
       } else {
         // Mettre à jour dans la liste des chats signalés
-        setReportedCats(prevCats => prevCats.map(cat => 
-          cat.catStatusId === catStatusId 
-            ? {
-                ...cat,
-                statusCat: newStatus,
-                reportDate: formattedDate,
-                location: location,
-                cat: catDTO
-              }
-            : cat
-        ));
+        setReportedCats((prevCats) =>
+          prevCats.map((cat) =>
+            cat.catStatusId === catStatusId
+              ? {
+                  ...cat,
+                  statusCat: newStatus,
+                  reportDate: formattedDate,
+                  location: location,
+                  cat: catDTO,
+                }
+              : cat
+          )
+        );
       }
-      
-      showNotification('Le chat a été mis à jour avec succès !', 'success');
+
+      showNotification("Le chat a été mis à jour avec succès !", "success");
       return true;
     } catch (error) {
-      notifyApiError(showNotification, "lors de la mise à jour du chat signalé", error);
+      notifyApiError(
+        showNotification,
+        "lors de la mise à jour du chat signalé",
+        error
+      );
       return false;
     }
   };
@@ -278,20 +338,28 @@ export const CatsProvider = ({ children }) => {
    */
   const handleEditOwnedCat = async (catId, updatedData) => {
     try {
-      const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
+      const currentCatStatus = ownedCats.find(
+        (catStatus) => catStatus.cat.catId === catId
+      );
       if (!currentCatStatus) {
         throw new Error("Chat non trouvé");
       }
 
       // Utilisation de la fonction convertToEnum centralisée
-      const catDTO = buildUpdatedCatDTO(updatedData, currentCatStatus.cat, convertToEnum);
+      const catDTO = buildUpdatedCatDTO(
+        updatedData,
+        currentCatStatus.cat,
+        convertToEnum
+      );
 
       // Formater la date actuelle pour Java LocalDateTime
       const now = new Date();
       const formattedDate = formatDateForJava(now.toISOString());
 
       // Vérifier si le statut du chat a changé
-      const statusHasChanged = updatedData.statusCat && updatedData.statusCat !== currentCatStatus.statusCat;
+      const statusHasChanged =
+        updatedData.statusCat &&
+        updatedData.statusCat !== currentCatStatus.statusCat;
 
       // Créer l'objet pour la mise à jour du statut
       const catStatus = {
@@ -299,39 +367,48 @@ export const CatsProvider = ({ children }) => {
         statusCat: updatedData.statusCat || currentCatStatus.statusCat,
         reportDate: formattedDate,
         location: {
-          latitude: userAddress?.latitude || currentCatStatus.location?.latitude,
-          longitude: userAddress?.longitude || currentCatStatus.location?.longitude,
+          latitude:
+            userAddress?.latitude || currentCatStatus.location?.latitude,
+          longitude:
+            userAddress?.longitude || currentCatStatus.location?.longitude,
           address: userAddress?.address || currentCatStatus.location?.address,
           city: userAddress?.city || currentCatStatus.location?.city,
-          postalCode: userAddress?.postalCode || currentCatStatus.location?.postalCode
+          postalCode:
+            userAddress?.postalCode || currentCatStatus.location?.postalCode,
         },
         cat: {
-          catId: catId
-        }
+          catId: catId,
+        },
       };
 
       // Mettre à jour les informations du chat
       await axios.put(`/cat/update`, catDTO);
-      
+
       // Mettre à jour le statut du chat uniquement si le statut a changé
       if (statusHasChanged) {
         await axios.put(`/cat/updateStatus`, catStatus);
       }
-      
+
       // Mettre à jour l'état local
-      setOwnedCats(prevCats => prevCats.map(cat => 
-        cat.cat.catId === catId 
-          ? {
-              ...cat,
-              statusCat: updatedData.statusCat || cat.statusCat,
-              reportDate: formattedDate,
-              cat: catDTO
-            }
-          : cat
-      ));
+      setOwnedCats((prevCats) =>
+        prevCats.map((cat) =>
+          cat.cat.catId === catId
+            ? {
+                ...cat,
+                statusCat: updatedData.statusCat || cat.statusCat,
+                reportDate: formattedDate,
+                cat: catDTO,
+              }
+            : cat
+        )
+      );
       return true;
     } catch (error) {
-      notifyApiError(showNotification, "lors de la mise à jour du chat possédé", error);
+      notifyApiError(
+        showNotification,
+        "lors de la mise à jour du chat possédé",
+        error
+      );
       return false;
     }
   };
@@ -339,15 +416,20 @@ export const CatsProvider = ({ children }) => {
   const handleDeleteOwnedCat = async (catId) => {
     try {
       await axios.delete(`/cat/delete?id=${catId}`);
-      setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-      showNotification('Le chat a été supprimé avec succès !', 'success'); 
+      setOwnedCats((prevCats) =>
+        prevCats.filter((cat) => cat.cat.catId !== catId)
+      );
+      showNotification("Le chat a été supprimé avec succès !", "success");
       return true;
     } catch (error) {
-      notifyApiError(showNotification, "lors de la suppression du chat possédé", error);
+      notifyApiError(
+        showNotification,
+        "lors de la suppression du chat possédé",
+        error
+      );
       return false;
     }
   };
-
 
   // Fonction pour déclarer un chat possédé comme perdu avec une localisation personnalisée
   /**
@@ -357,11 +439,13 @@ export const CatsProvider = ({ children }) => {
    */
   const handleReportCatAsLost = async (catId, lostData) => {
     try {
-      const currentCatStatus = ownedCats.find(catStatus => catStatus.cat.catId === catId);
+      const currentCatStatus = ownedCats.find(
+        (catStatus) => catStatus.cat.catId === catId
+      );
       if (!currentCatStatus) {
         throw new Error("Chat non trouvé");
       }
-      
+
       // Utilisation de la fonction convertToEnum centralisée
 
       // Formater la date actuelle pour Java LocalDateTime
@@ -370,15 +454,21 @@ export const CatsProvider = ({ children }) => {
 
       // Utiliser l'adresse de l'utilisateur si aucune localisation personnalisée n'est fournie
       // Toujours exiger une localisation personnalisée pour le passage d'un chat possédé à perdu
-      if (!lostData.location || !lostData.location.latitude || !lostData.location.longitude) {
-        throw new Error("Veuillez sélectionner une localisation précise où le chat a été perdu.");
+      if (
+        !lostData.location ||
+        !lostData.location.latitude ||
+        !lostData.location.longitude
+      ) {
+        throw new Error(
+          "Veuillez sélectionner une localisation précise où le chat a été perdu."
+        );
       }
       const location = {
         latitude: lostData.location.latitude,
         longitude: lostData.location.longitude,
         address: lostData.location.address,
         city: lostData.location.city,
-        postalCode: lostData.location.postalCode
+        postalCode: lostData.location.postalCode,
       };
 
       // Créer l'objet catStatus pour déclarer le chat comme perdu (structure similaire à RegisterCat)
@@ -387,15 +477,17 @@ export const CatsProvider = ({ children }) => {
         comment: lostData.comment || "Chat perdu",
         statusCat: "LOST", // Statut perdu
         reportDate: formattedDate,
-        location: location
+        location: location,
       };
 
       // Mettre à jour le statut du chat
       const response = await axios.post(`/cat/register`, catStatus);
-      
+
       // Mettre à jour l'état local
-      setOwnedCats(prevCats => prevCats.filter(cat => cat.cat.catId !== catId));
-      
+      setOwnedCats((prevCats) =>
+        prevCats.filter((cat) => cat.cat.catId !== catId)
+      );
+
       // Ajouter le chat à la liste des chats signalés
       const updatedCat = {
         catStatusId: response.catStatusId,
@@ -403,15 +495,24 @@ export const CatsProvider = ({ children }) => {
         comment: lostData.comment || "Chat perdu",
         reportDate: formattedDate,
         location: location,
-        cat: currentCatStatus.cat
+        cat: currentCatStatus.cat,
       };
-      
-      setReportedCats(prevCats => [...prevCats, updatedCat]);
-      
-      showNotification('Votre chat a été déclaré comme perdu avec succès !', 'success');
+
+      setReportedCats((prevCats) => [...prevCats, updatedCat]);
+
+      showNotification(
+        "Votre chat a été déclaré comme perdu avec succès !",
+        "success"
+      );
       return true;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification(
+        "Erreur lors de la récupération de l'adresse utilisateur : " +
+          (error?.response?.data?.message ||
+            error?.message ||
+            "Erreur inconnue"),
+        "error"
+      );
       return false;
     }
   };
@@ -425,7 +526,13 @@ export const CatsProvider = ({ children }) => {
       const response = await axios.get(`/cat/potentialFoundCats/${catId}`);
       return response;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification(
+        "Erreur lors de la récupération de l'adresse utilisateur : " +
+          (error?.response?.data?.message ||
+            error?.message ||
+            "Erreur inconnue"),
+        "error"
+      );
       return [];
     }
   };
@@ -439,7 +546,13 @@ export const CatsProvider = ({ children }) => {
       const response = await axios.get(`/cat/potentialLostCats/${catId}`);
       return response;
     } catch (error) {
-      showNotification("Erreur lors de la récupération de l'adresse utilisateur : " + (error?.response?.data?.message || error?.message || "Erreur inconnue"), "error");
+      showNotification(
+        "Erreur lors de la récupération de l'adresse utilisateur : " +
+          (error?.response?.data?.message ||
+            error?.message ||
+            "Erreur inconnue"),
+        "error"
+      );
       return [];
     }
   };
@@ -462,7 +575,7 @@ export const CatsProvider = ({ children }) => {
             postalCode: newAddress.postalCode,
             latitude: newAddress.latitude,
             longitude: newAddress.longitude,
-          }
+          },
         };
         await axios.put(`/cat/update`, catDTO);
         return {
@@ -471,13 +584,16 @@ export const CatsProvider = ({ children }) => {
           cat: {
             ...catStatus.cat,
             location: catDTO.location,
-          }
+          },
         };
       });
       // Met à jour localement l'état après toutes les requêtes
       const updatedCats = await Promise.all(updatePromises);
       setOwnedCats(updatedCats);
-      showNotification('L\'adresse de tous vos chats a été mise à jour !', 'success');
+      showNotification(
+        "L'adresse de tous vos chats a été mise à jour !",
+        "success"
+      );
       return true;
     } catch (error) {
       // Log réduit pour les performances
@@ -486,22 +602,24 @@ export const CatsProvider = ({ children }) => {
   };
 
   return (
-    <CatsContext.Provider value={{
-      reportedCats,
-      ownedCats,
-      loading,
-      userAddress,
-      handleDeleteReportedCat,
-      handleEditReportedCat,
-      handleEditOwnedCat,
-      handleDeleteOwnedCat,
-      handleReportCatAsLost,
-      findPotentialFoundCats,
-      findPotentialLostCats,
-      fetchCats,
-      fetchUserAddress,
-      updateAllOwnedCatsAddress
-    }}>
+    <CatsContext.Provider
+      value={{
+        reportedCats,
+        ownedCats,
+        loading,
+        userAddress,
+        handleDeleteReportedCat,
+        handleEditReportedCat,
+        handleEditOwnedCat,
+        handleDeleteOwnedCat,
+        handleReportCatAsLost,
+        findPotentialFoundCats,
+        findPotentialLostCats,
+        fetchCats,
+        fetchUserAddress,
+        updateAllOwnedCatsAddress,
+      }}
+    >
       {children}
     </CatsContext.Provider>
   );
@@ -510,7 +628,7 @@ export const CatsProvider = ({ children }) => {
 export const useCatsContext = () => {
   const context = useContext(CatsContext);
   if (!context) {
-    throw new Error('useCatsContext must be used within a CatsProvider');
+    throw new Error("useCatsContext must be used within a CatsProvider");
   }
   return context;
 };

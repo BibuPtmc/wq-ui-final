@@ -264,6 +264,41 @@ function RegisterCat() {
                           placeholder={t('cat.enterChipNumber', 'Entrez le numéro de puce')}
                         />
                       </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t('cat.vaccinated', 'Vacciné')}</Form.Label>
+                        <Form.Select
+                          name="vaccinated"
+                          value={formData.vaccinated === null ? '' : formData.vaccinated ? 'true' : 'false'}
+                          onChange={e => handleChange({
+                            target: {
+                              name: 'vaccinated',
+                              value: e.target.value === '' ? null : e.target.value === 'true'
+                            }
+                          })}
+                        >
+                          <option value="">{t('cat.notSpecified', 'Non spécifié')}</option>
+                          <option value="true">{t('cat.yes', 'Oui')}</option>
+                          <option value="false">{t('cat.no', 'Non')}</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t('cat.sterilized', 'Stérilisé')}</Form.Label>
+                        <Form.Select
+                          name="sterilized"
+                          value={formData.sterilized === null ? '' : formData.sterilized ? 'true' : 'false'}
+                          onChange={e => handleChange({
+                            target: {
+                              name: 'sterilized',
+                              value: e.target.value === '' ? null : e.target.value === 'true'
+                            }
+                          })}
+                        >
+                          <option value="">{t('cat.notSpecified', 'Non spécifié')}</option>
+                          <option value="true">{t('cat.yes', 'Oui')}</option>
+                          <option value="false">{t('cat.no', 'Non')}</option>
+                        </Form.Select>
+                      </Form.Group>
                     </Card.Body>
                   </Card>
 

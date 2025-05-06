@@ -35,7 +35,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     chipNumber: '',
     furType: '',
     comment: '',
-    images: [] // Toujours initialisé à []
+    images: [],
+    vaccinated: null,
+    sterilized: null,
   });
   const [lostForm, setLostForm] = useState({
     comment: '',
@@ -71,7 +73,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
       chipNumber: catStatus.cat.chipNumber || '',
       furType: convertToEnum(catStatus.cat.furType, 'COURTE'),
       comment: catStatus.cat.comment || '',
-      images: Array.isArray(images) ? images : []
+      images: Array.isArray(images) ? images : [],
+      vaccinated: catStatus.cat.vaccinated ?? null,
+      sterilized: catStatus.cat.sterilized ?? null,
     };
     setEditForm(newFormData);
     setShowModal(true);
@@ -98,7 +102,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
         comment: selectedCat.cat.comment || '',
-        images: Array.isArray(images) ? images : []
+        images: Array.isArray(images) ? images : [],
+        vaccinated: selectedCat.cat.vaccinated ?? null,
+        sterilized: selectedCat.cat.sterilized ?? null,
       };
       setEditForm(newFormData);
     }
@@ -118,7 +124,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || '',
         comment: selectedCat.cat.comment || '',
-        images: selectedCat.cat.imageUrls || []
+        images: selectedCat.cat.imageUrls || [],
+        vaccinated: selectedCat.cat.vaccinated ?? null,
+        sterilized: selectedCat.cat.sterilized ?? null,
       }));
 
       // Pour le modal de signalement de perte
@@ -439,6 +447,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     ))}
                   </Form.Select>
                 </Form.Group>
+                
               </Col>
               <Col md={6}>
                 <Form.Group>
@@ -452,6 +461,43 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                 </Form.Group>
               </Col>
             </Row>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{t('ownedCats.vaccinated', 'Vacciné')}</Form.Label>
+                  <Form.Select
+                    name="vaccinated"
+                    value={editForm.vaccinated === null ? '' : editForm.vaccinated ? 'true' : 'false'}
+                    onChange={e => setEditForm(prev => ({
+                      ...prev,
+                      vaccinated: e.target.value === '' ? null : e.target.value === 'true'
+                    }))}
+                  >
+                    <option value="">{t('ownedCats.notSpecified', 'Non spécifié')}</option>
+                    <option value="true">{t('ownedCats.yes', 'Oui')}</option>
+                    <option value="false">{t('ownedCats.no', 'Non')}</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{t('ownedCats.sterilized', 'Stérilisé')}</Form.Label>
+                  <Form.Select
+                    name="sterilized"
+                    value={editForm.sterilized === null ? '' : editForm.sterilized ? 'true' : 'false'}
+                    onChange={e => setEditForm(prev => ({
+                      ...prev,
+                      sterilized: e.target.value === '' ? null : e.target.value === 'true'
+                    }))}
+                  >
+                    <option value="">{t('ownedCats.notSpecified', 'Non spécifié')}</option>
+                    <option value="true">{t('ownedCats.yes', 'Oui')}</option>
+                    <option value="false">{t('ownedCats.no', 'Non')}</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+            
             
             <Form.Group className="mb-3">
               <Form.Label>{t('ownedCats.chipNumber', 'Numéro de puce')}</Form.Label>

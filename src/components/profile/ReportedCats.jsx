@@ -40,7 +40,9 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     chipNumber: '',
     furType: '',
     eyeColor: '',
-    images: []
+    images: [],
+    vaccinated: null,
+    sterilized: null,
   });
   const [isImageUploading, setIsImageUploading] = useState(false);
 
@@ -139,6 +141,8 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
       furType: convertToEnum(catStatus.cat.furType, '') || '',
       eyeColor: convertToEnum(catStatus.cat.eyeColor, '') || '',
       images: catStatus.cat.imageUrls || [],
+      vaccinated: catStatus.cat.vaccinated ?? null,
+      sterilized: catStatus.cat.sterilized ?? null,
     });
     setShowModal(true);
   };
@@ -167,7 +171,9 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
     const payload = {
       ...editForm,
       imageUrls: editForm.images,
-      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null
+      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null,
+      vaccinated: editForm.vaccinated,
+      sterilized: editForm.sterilized,
     };
     const success = await onEdit(selectedCat.catStatusId, payload);
     setShowModal(false);
@@ -535,6 +541,34 @@ const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
                     ))}
                   </Form.Select>
                   {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Vacciné</Form.Label>
+                  <Form.Select
+                    name="vaccinated"
+                    value={editForm.vaccinated === null ? '' : editForm.vaccinated ? 'true' : 'false'}
+                    onChange={e => setEditForm({ ...editForm, vaccinated: e.target.value === '' ? null : e.target.value === 'true' })}
+                  >
+                    <option value="">Non spécifié</option>
+                    <option value="true">Oui</option>
+                    <option value="false">Non</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Stérilisé</Form.Label>
+                  <Form.Select
+                    name="sterilized"
+                    value={editForm.sterilized === null ? '' : editForm.sterilized ? 'true' : 'false'}
+                    onChange={e => setEditForm({ ...editForm, sterilized: e.target.value === '' ? null : e.target.value === 'true' })}
+                  >
+                    <option value="">Non spécifié</option>
+                    <option value="true">Oui</option>
+                    <option value="false">Non</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>

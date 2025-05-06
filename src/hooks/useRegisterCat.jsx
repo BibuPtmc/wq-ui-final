@@ -40,6 +40,8 @@ export const useRegisterCat = () => {
     furType: "COURTE",
     eyeColor: "BLEU",
     comment: t('cat.defaultComment', 'Chat très amical et joueur.'),
+    vaccinated: false,
+    sterilized: false,
     statusCat: "LOST",
     reportDate: todayForInput,
     location: {
@@ -226,6 +228,8 @@ export const useRegisterCat = () => {
         chipNumber: formData.chipNumber,
         furType: convertToEnum(formData.furType, 'COURTE'),
         eyeColor: convertToEnum(formData.eyeColor, 'AUTRE'),
+        vaccinated: formData.vaccinated,
+        sterilized: formData.sterilized,
         comment: formData.comment
       },
       statusCat: convertToEnum(formData.statusCat, ''),
