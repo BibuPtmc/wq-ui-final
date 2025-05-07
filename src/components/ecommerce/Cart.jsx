@@ -3,7 +3,7 @@ import { Modal, Button, ListGroup, Form, Badge } from 'react-bootstrap';
 import { useCartContext } from '../../contexts/CartContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAxios } from '../../hooks/useAxios';
-import { useAuth } from '../../hooks/authProvider';
+import { useAuth } from '../../contexts/authProvider';
 import { BsCart3 } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';

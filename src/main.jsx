@@ -10,6 +10,8 @@ import FoundCats from "./components/cats/FoundCats";
 import HomePage from "./pages/home/HomePage";
 import { ContactUs } from "./pages/contact/ContactPage";
 import LoginPage from "./pages/auth/LoginPage";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import './i18n';
 import ProfilePage from "./pages/profile/ProfilePage";
 import GpsCollars from './pages/shop/GpsCollars';
@@ -18,10 +20,10 @@ import { CartProvider } from './contexts/CartContext';
 import "bootstrap/dist/css/bootstrap.css";
 import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./styles/global.css";
-import { useAuth } from "./hooks/authProvider";
+import { useAuth } from "./contexts/authProvider";
 import { AppProviders } from "./contexts/AppProviders";
 import AxiosLogoutHandler from "./contexts/AxiosLogoutHandler";
-import NotificationBar from "./components/NotificationBar";
+import NotificationBar from "./components/common/NotificationBar";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -54,6 +56,8 @@ const App = () => {
             <Route path="/register" element={<RegistrationForm />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route 
               path="/registerCat" 
               element={

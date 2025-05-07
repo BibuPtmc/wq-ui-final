@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Form, ListGroup } from 'react-bootstrap';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import mapboxgl from 'mapbox-gl';
+import { geocode } from '../../utils/geocodingService';
 
 
 // Utiliser la variable d'environnement
@@ -66,6 +67,21 @@ const AddressAutofill = ({
       console.error('Erreur lors de la récupération des suggestions:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputBlur = async (e) => {
+    const value = e.target.value;
+    // Si l'utilisateur n'a pas cliqué sur une suggestion mais a tapé une adresse complète
+    if (value && (!suggestions.length || !suggestions.some(s => s.place_name === value))) {
+      try {
+        const result = await geocode(value);
+        if (result && onLocationSelect) {
+          onLocationSelect(result);
+        }
+      } catch (error) {
+        // Optionnel : afficher une erreur à l'utilisateur
+      }
     }
   };
 
@@ -134,6 +150,7 @@ const AddressAutofill = ({
           onChange={handleInputChange}
           placeholder={effectivePlaceholder}
           onFocus={() => value && suggestions.length > 0 && setShowSuggestions(true)}
+          onBlur={handleInputBlur}
           autoComplete="off"
         />
       </div>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAxios } from '../hooks/useAxios';
-import { useAuth } from '../hooks/authProvider';
+import { useAuth } from '../contexts/authProvider';
 import { reverseGeocode } from '../utils/geocodingService';
 import { useCatsContext } from './CatsContext';
 
@@ -52,8 +52,7 @@ export const UserProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get("users/me", { headers });
+      const response = await axios.get("users/me");
       
       setProfileData({
         firstName: response.firstName || "",
@@ -95,7 +94,6 @@ export const UserProvider = ({ children }) => {
       setUpdateError("");
       setUpdateSuccess(false);
       
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       
       // Préparer les données pour l'API
       const updatedUserData = {
@@ -111,7 +109,7 @@ export const UserProvider = ({ children }) => {
         longitude: profileFormData.longitude
       };
       
-      await axios.put("users/update", updatedUserData, { headers });
+      await axios.put("users/update", updatedUserData);
       
       // Mettre à jour l'état local
       setProfileData(profileFormData);
@@ -153,7 +151,6 @@ export const UserProvider = ({ children }) => {
         return false;
       }
       
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
       
       // Préparer les données pour l'API
       const passwordData = {
@@ -162,7 +159,7 @@ export const UserProvider = ({ children }) => {
         matchingPassword: passwordFormData.matchingPassword
       };
       
-      await axios.put("users/update", passwordData, { headers });
+      await axios.put("users/update-password", passwordData);
       
       // Réinitialiser le formulaire
       setPasswordForm({
@@ -173,10 +170,12 @@ export const UserProvider = ({ children }) => {
       
       setUpdateSuccess(true);
       
-      // Réinitialiser le message de succès après 3 secondes
+      // Déconnecter l'utilisateur après 2 secondes
       setTimeout(() => {
-        setUpdateSuccess(false);
-      }, 3000);
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userData");
+        window.location.href = "/login";
+      }, 2000);
       
       return true;
     } catch (error) {
@@ -189,12 +188,10 @@ export const UserProvider = ({ children }) => {
   // Fonction pour supprimer le compte
   const deleteAccount = useCallback(async () => {
     if (!isLoggedIn) return false;
-    
-    const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-    
+        
     try {
       // Tenter de supprimer le compte
-      await axios.delete(`users/delete?id=${userData.id}`, { headers });
+      await axios.delete(`users/delete?id=${userData.id}`);
       
       // Si la suppression réussit, déconnecter l'utilisateur
       sessionStorage.removeItem("token");
@@ -237,8 +234,7 @@ export const UserProvider = ({ children }) => {
     
     try {
       setOrdersLoading(true);
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get('/ecommerce/orders', { headers });
+      const response = await axios.get('/ecommerce/orders');
       const userId = userData?.id;
       // Filtrage robuste : accepte userId ou user.id
       const myOrders = Array.isArray(response)

@@ -4,6 +4,8 @@ import { FaUser, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars, FaPhone } from 're
 import MapLocation from '../map/MapLocation';
 import { reverseGeocode } from '../../utils/geocodingService';
 import { useTranslation } from 'react-i18next';
+import { formatPhoneNumber, validatePhone } from '../../utils/validationUtils';
+import useEnums from '../../hooks/useEnums';
 
 const PersonalInfo = ({ 
   formData, 
@@ -15,55 +17,11 @@ const PersonalInfo = ({
   const { t } = useTranslation();
   const [birthDayError, setBirthDayError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
+
   // Format today's date as YYYY-MM-DD for the date input max attribute
   const today = new Date().toISOString().split('T')[0];
   
-  // Fonction pour formater le numéro de téléphone pendant la saisie
-  const formatPhoneNumber = (phoneNumber) => {
-    // Supprimer tous les caractères non numériques sauf le + au début
-    let cleaned = phoneNumber.replace(/[^\d+]/g, "");
-    
-    // Si le numéro commence par +, on le conserve
-    if (cleaned.startsWith("+")) {
-      // Format international: +32 493 96 33 75
-      if (cleaned.length > 3) {
-        let formatted = "+" + cleaned.substring(1, 3);
-        if (cleaned.length > 5) formatted += " " + cleaned.substring(3, 6);
-        if (cleaned.length > 7) formatted += " " + cleaned.substring(6, 8);
-        if (cleaned.length > 9) formatted += " " + cleaned.substring(8, 10);
-        if (cleaned.length > 10) formatted += " " + cleaned.substring(10);
-        return formatted;
-      }
-      return cleaned;
-    } else {
-      // Format belge: 0493 96 33 75
-      if (cleaned.length > 4) cleaned = cleaned.substring(0, 4) + " " + cleaned.substring(4);
-      if (cleaned.length > 7) cleaned = cleaned.substring(0, 7) + " " + cleaned.substring(7);
-      if (cleaned.length > 10) cleaned = cleaned.substring(0, 10) + " " + cleaned.substring(10);
-      return cleaned;
-    }
-  };
-  
-  // Fonction pour valider le format du numéro de téléphone
-  const validatePhone = (phone) => {
-    // Accepte les formats: 0123456789, 0493 96 33 75, 01-23-45-67-89, +32123456789, etc.
-    const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{1,4}$/;
-    
-    if (!phone) {
-      // Le téléphone n'est pas obligatoire
-      setPhoneError("");
-      return true;
-    }
-    
-    if (!phoneRegex.test(phone)) {
-      setPhoneError("Le format du numéro de téléphone n'est pas valide");
-      return false;
-    }
-    
-    setPhoneError("");
-    return true;
-  };
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -74,11 +32,19 @@ const PersonalInfo = ({
         ...prev,
         [name]: formattedPhone
       }));
-      validatePhone(formattedPhone);
+      const { isValid, errorMessage } = validatePhone(formattedPhone);
+      setPhoneError(errorMessage);
     } 
     // Validation de la date de naissance
     else if (name === 'birthDay') {
       if (value) {
+        // Vérifier que la date est au format ISO (YYYY-MM-DD)
+        const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!isoDateRegex.test(value)) {
+          setBirthDayError("Format de date invalide");
+          return;
+        }
+
         const selectedDate = new Date(value);
         const currentDate = new Date();
         
@@ -214,12 +180,16 @@ const PersonalInfo = ({
               name="gender"
               value={formData.gender}
               onChange={handleChange}
+              disabled={enumsLoading || enumsError}
             >
               <option value="">{t('personalInfo.genderSelect', 'Sélectionnez votre genre')}</option>
-              <option value="Homme">{t('personalInfo.genderMale', 'Homme')}</option>
-              <option value="Femme">{t('personalInfo.genderFemale', 'Femme')}</option>
-              <option value="Autre">{t('personalInfo.genderOther', 'Autre')}</option>
+              {enums && enums.gender.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </Form.Select>
+            {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
           </Form.Group>
         </Col>
         <Col md={4}>
@@ -234,13 +204,8 @@ const PersonalInfo = ({
               value={formData.birthDay}
               onChange={handleChange}
               max={today}
-              isInvalid={!!birthDayError}
             />
-            {birthDayError && (
-              <Form.Control.Feedback type="invalid">
-                {birthDayError}
-              </Form.Control.Feedback>
-            )}
+            {birthDayError && <div className="text-danger">{birthDayError}</div>}
           </Form.Group>
         </Col>
         <Col md={4}>
@@ -252,25 +217,18 @@ const PersonalInfo = ({
             <Form.Control
               type="tel"
               name="phone"
-              value={formData.phone || ""}
+              value={formData.phone}
               onChange={handleChange}
-              placeholder={t('personalInfo.phonePlaceholder', 'Ex: 0493 96 33 75')}
-              isInvalid={!!phoneError}
+              placeholder={t('personalInfo.phonePlaceholder', 'Votre numéro de téléphone')}
             />
-            {phoneError && (
-              <Form.Control.Feedback type="invalid">
-                {phoneError}
-              </Form.Control.Feedback>
-            )}
+            {phoneError && <div className="text-danger">{phoneError}</div>}
           </Form.Group>
         </Col>
       </Row>
 
-      <div className="d-grid gap-2">
-        <Button variant="primary" type="submit" className="mt-3">
-          {t('personalInfo.updateButton', 'Mettre à jour mes informations')}
-        </Button>
-      </div>
+      <Button variant="primary" type="submit" className="mt-3">
+        {t('personalInfo.save', 'Enregistrer les modifications')}
+      </Button>
     </Form>
   );
 };

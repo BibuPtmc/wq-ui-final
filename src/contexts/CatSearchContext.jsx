@@ -365,8 +365,7 @@ export const CatSearchProvider = ({ children }) => {
       setLoadingMatches(prev => ({ ...prev, [catId]: true }));
       
       try {
-        const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-        const response = await axios.get(`/cat/potentialLostCats/${catId}`, { headers });
+        const response = await axios.get(`/cat/potentialLostCats/${catId}`);
         newMatchCounts[catId] = response ? response.length : 0;
       } catch (error) {
         console.error(`Erreur lors de la récupération des correspondances pour le chat ${catId}:`, error);
@@ -403,8 +402,7 @@ export const CatSearchProvider = ({ children }) => {
       setLoadingMatches(prev => ({ ...prev, [catId]: true }));
       
       try {
-        const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-        const response = await axios.get(`/cat/potentialFoundCats/${catId}`, { headers });
+        const response = await axios.get(`/cat/potentialFoundCats/${catId}`);
         newMatchCounts[catId] = response ? response.length : 0;
       } catch (error) {
         console.error(`Erreur lors de la récupération des correspondances pour le chat ${catId}:`, error);
@@ -452,8 +450,7 @@ export const CatSearchProvider = ({ children }) => {
   // Fonction pour trouver les chats perdus potentiellement correspondants à un chat trouvé
   const findPotentialLostCats = useCallback(async (catId) => {
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get(`/cat/potentialLostCats/${catId}`, { headers });
+      const response = await axios.get(`/cat/potentialLostCats/${catId}`);
       return response || [];
     } catch (error) {
       console.error("Erreur lors de la recherche des correspondances:", error);
@@ -464,14 +461,28 @@ export const CatSearchProvider = ({ children }) => {
   // Fonction pour trouver les chats trouvés potentiellement correspondants à un chat perdu
   const findPotentialFoundCats = useCallback(async (catId) => {
     try {
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
-      const response = await axios.get(`/cat/potentialFoundCats/${catId}`, { headers });
+      const response = await axios.get(`/cat/potentialFoundCats/${catId}`);
       return response || [];
     } catch (error) {
       console.error("Erreur lors de la recherche des chats trouvés correspondants:", error);
       return [];
     }
   }, [axios]);
+
+  // Fonction pour rafraîchir toutes les listes
+  const refreshCatLists = useCallback(async () => {
+    try {
+      // Rafraîchir les chats trouvés et perdus
+      await fetchFoundCats();
+      await fetchLostCats();
+      
+      // Rafraîchir les compteurs de correspondances
+      await fetchFoundMatchCounts();
+      await fetchLostMatchCounts();
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement des listes:", error);
+    }
+  }, [fetchFoundCats, fetchLostCats, fetchFoundMatchCounts, fetchLostMatchCounts]);
 
   return (
     <CatSearchContext.Provider value={{
@@ -499,7 +510,8 @@ export const CatSearchProvider = ({ children }) => {
       calculateAge,
       formatValue,
       findPotentialLostCats,
-      findPotentialFoundCats
+      findPotentialFoundCats,
+      refreshCatLists
     }}>
       {children}
     </CatSearchContext.Provider>

@@ -10,10 +10,12 @@ import { reverseGeocode } from "../../utils/geocodingService.jsx";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
-import { breedOptions, colorOptions, eyeColorOptions, genderOptions, furTypeOptions } from "../../utils/enumOptions";
+import { convertToEnum } from "../../utils/enumUtils";
+import useEnums from '../../hooks/useEnums';
 
 const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onReportAsLost, successMessage }) => {
   const { t } = useTranslation();
+  const { enums, loading: enumsLoading, error: enumsError, getEnumLabel } = useEnums();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
   const { fetchCats } = useCatsContext();
@@ -33,7 +35,9 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
     chipNumber: '',
     furType: '',
     comment: '',
-    images: [] // Ajout pour les images
+    images: [],
+    vaccinated: null,
+    sterilized: null,
   });
   const [lostForm, setLostForm] = useState({
     comment: '',
@@ -50,49 +54,44 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   // Options et fonctions de formatage importées depuis les utilitaires centralisés
 
   const handleEdit = (catStatus) => {
-    // Log supprimé pour améliorer les performances
     setSelectedCat(catStatus);
-    
     // Formatage de la date pour l'input date
     let formattedDate = '';
     if (catStatus.cat.dateOfBirth) {
       const date = new Date(catStatus.cat.dateOfBirth);
       formattedDate = date.toISOString().split('T')[0];
     }
-    
+    // Toujours garantir images: []
+    const images = catStatus.cat.imageUrls || [];
     const newFormData = {
       name: catStatus.cat.name || '',
-      breed: catStatus.cat.breed || 'UNKNOWN',
-      color: catStatus.cat.color || 'AUTRE',
-      eyeColor: catStatus.cat.eyeColor || 'AUTRE',
+      breed: convertToEnum(catStatus.cat.breed, 'UNKNOWN'),
+      color: convertToEnum(catStatus.cat.color, 'AUTRE'),
+      eyeColor: convertToEnum(catStatus.cat.eyeColor, 'AUTRE'),
       gender: catStatus.cat.gender || 'Inconnu',
       dateOfBirth: formattedDate,
       chipNumber: catStatus.cat.chipNumber || '',
-      furType: catStatus.cat.furType || 'COURTE',
+      furType: convertToEnum(catStatus.cat.furType, 'COURTE'),
       comment: catStatus.cat.comment || '',
-      images: catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0
-  ? catStatus.cat.imageUrls
-  : (catStatus.cat.imageUrl ? [catStatus.cat.imageUrl] : [])
+      images: Array.isArray(images) ? images : [],
+      vaccinated: catStatus.cat.vaccinated ?? null,
+      sterilized: catStatus.cat.sterilized ?? null,
     };
-    
-    // Log supprimé pour améliorer les performances
     setEditForm(newFormData);
-    
     setShowModal(true);
   };
 
   // Effet pour surveiller les changements de selectedCat et mettre à jour le formulaire
   useEffect(() => {
     if (selectedCat && selectedCat.cat) {
-      // Log supprimé pour améliorer les performances
-      
       // Formatage de la date pour l'input date
       let formattedDate = '';
       if (selectedCat.cat.dateOfBirth) {
         const date = new Date(selectedCat.cat.dateOfBirth);
         formattedDate = date.toISOString().split('T')[0];
       }
-      
+      // Toujours garantir images: []
+      const images = selectedCat.cat.imageUrls || [];
       const newFormData = {
         name: selectedCat.cat.name || '',
         breed: selectedCat.cat.breed || 'UNKNOWN',
@@ -103,11 +102,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || 'Courte',
         comment: selectedCat.cat.comment || '',
-        images: selectedCat.cat.imageUrls && selectedCat.cat.imageUrls.length > 0
-        ? selectedCat.cat.imageUrls
-        : (selectedCat.cat.imageUrl ? [selectedCat.cat.imageUrl] : [])      };
-      
-      // Log supprimé pour améliorer les performances
+        images: Array.isArray(images) ? images : [],
+        vaccinated: selectedCat.cat.vaccinated ?? null,
+        sterilized: selectedCat.cat.sterilized ?? null,
+      };
       setEditForm(newFormData);
     }
   }, [selectedCat]);
@@ -116,7 +114,7 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
   useEffect(() => {
     if (selectedCat) {
       // Pour le modal d'édition
-      setEditForm({
+      setEditForm(prev => ({
         name: selectedCat.cat.name || '',
         breed: selectedCat.cat.breed || '',
         color: selectedCat.cat.color || '',
@@ -125,8 +123,11 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
         dateOfBirth: selectedCat.cat.dateOfBirth ? selectedCat.cat.dateOfBirth.substring(0, 10) : '',
         chipNumber: selectedCat.cat.chipNumber || '',
         furType: selectedCat.cat.furType || '',
-        comment: selectedCat.cat.comment || ''
-      });
+        comment: selectedCat.cat.comment || '',
+        images: selectedCat.cat.imageUrls || [],
+        vaccinated: selectedCat.cat.vaccinated ?? null,
+        sterilized: selectedCat.cat.sterilized ?? null,
+      }));
 
       // Pour le modal de signalement de perte
       if (showLostModal) {
@@ -147,16 +148,23 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("editForm", editForm);
+    console.log("selectedCat", selectedCat);
+    // Nettoyage du payload : on retire 'images' avant l'envoi
+    const { images, ...rest } = editForm;
     const payload = {
-      ...editForm,
-      imageUrls: editForm.images,
-      imageUrl: editForm.images.length > 0 ? editForm.images[0] : null
-        };
+      ...rest,
+      imageUrls: images,
+      imageUrl: images.length > 0 ? images[0] : null
+    };
+    console.log("payload", payload);
     const success = await onEditCat(selectedCat.cat.catId, payload);
+    console.log("edit success", success);
     setShowModal(false);
     if (success) {
       // Rafraîchir les données après l'édition
       await fetchCats();
+      console.log("Cats fetched");
     }
   };
 
@@ -241,9 +249,10 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                 <Card className="cat-card shadow-sm h-100">
                   <Card.Img
                     variant="top"
-                    src={cat.imageUrl || 
-                      (cat.imageUrls && cat.imageUrls.length > 0 ? cat.imageUrls[0] : 
-                      "/noImageCat.png")
+                    src={
+                      (cat.imageUrls && Array.isArray(cat.imageUrls) && cat.imageUrls.length > 0)
+                        ? cat.imageUrls[0]
+                        : "/noImageCat.png"
                     }
                     alt={cat.name}
                     onError={(e) => {
@@ -257,14 +266,14 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <Card.Title className="mb-0">{cat.name || t('ownedCats.noName', 'Chat sans nom')}</Card.Title>
                       <Badge
-                        bg={cat.gender === "Mâle" ? "primary" : "danger"}
+                        bg={getEnumLabel(enums?.catGender, cat.gender) === "Mâle" ? "primary" : "danger"}
                         className="ms-2"
                       >
-                        {cat.gender || t('ownedCats.unknownGender', 'Inconnu')}
+                        {getEnumLabel(enums?.catGender, cat.gender) || t('ownedCats.unknownGender', 'Inconnu')}
                       </Badge>
                     </div>
                     <Card.Text className="text-muted small">
-                      {t('ownedCats.breed', 'Race')}: {formatValue(cat.breed) || t('ownedCats.unknownBreed', 'Inconnue')}
+                      {t('ownedCats.breed', 'Race')}: {getEnumLabel(enums?.breed, cat.breed) || t('ownedCats.unknownBreed', 'Inconnue')}
                       {cat.dateOfBirth && (
                         <span className="ms-2">
                           {t('ownedCats.age', 'Âge')}: {calculateAge(cat.dateOfBirth)}
@@ -350,11 +359,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="breed"
                     value={editForm.breed}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectBreed', 'Sélectionner une race')}</option>
-                    {breedOptions.map(option => (
-                      <option key={option} value={option}>
-                        {formatValue(option)}
+                    {enums && enums.breed.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -367,11 +377,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="gender"
                     value={editForm.gender}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectGender', 'Sélectionner un genre')}</option>
-                    {genderOptions.map(option => (
-                      <option key={option} value={option}>
-                        {option}
+                    {enums && enums.catGender.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -387,11 +398,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="color"
                     value={editForm.color}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectColor', 'Sélectionner une couleur')}</option>
-                    {colorOptions.map(option => (
-                      <option key={option} value={option}>
-                        {option === 'AUTRE' ? t('ownedCats.otherColor', 'Autre') : formatValue(option)}
+                    {enums && enums.catColor.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -404,11 +416,12 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="eyeColor"
                     value={editForm.eyeColor}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectEyeColor', 'Sélectionner une couleur')}</option>
-                    {eyeColorOptions.map(option => (
-                      <option key={option} value={option}>
-                        {option === 'AUTRE' ? t('ownedCats.otherEyeColor', 'Autre') : formatValue(option)}
+                    {enums && enums.eyeColor.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
@@ -424,15 +437,17 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                     name="furType"
                     value={editForm.furType}
                     onChange={handleChange}
+                    disabled={enumsLoading || enumsError}
                   >
                     <option value="">{t('ownedCats.selectFurType', 'Sélectionner un type')}</option>
-                    {furTypeOptions.map(option => (
-                      <option key={option} value={option}>
-                        {formatValue(option)}
+                    {enums && enums.furType.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Form.Select>
                 </Form.Group>
+                
               </Col>
               <Col md={6}>
                 <Form.Group>
@@ -446,6 +461,43 @@ const OwnedCats = ({ ownedCats, onShowCatDetails, onDeleteCat, onEditCat, onRepo
                 </Form.Group>
               </Col>
             </Row>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{t('ownedCats.vaccinated', 'Vacciné')}</Form.Label>
+                  <Form.Select
+                    name="vaccinated"
+                    value={editForm.vaccinated === null ? '' : editForm.vaccinated ? 'true' : 'false'}
+                    onChange={e => setEditForm(prev => ({
+                      ...prev,
+                      vaccinated: e.target.value === '' ? null : e.target.value === 'true'
+                    }))}
+                  >
+                    <option value="">{t('ownedCats.notSpecified', 'Non spécifié')}</option>
+                    <option value="true">{t('ownedCats.yes', 'Oui')}</option>
+                    <option value="false">{t('ownedCats.no', 'Non')}</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{t('ownedCats.sterilized', 'Stérilisé')}</Form.Label>
+                  <Form.Select
+                    name="sterilized"
+                    value={editForm.sterilized === null ? '' : editForm.sterilized ? 'true' : 'false'}
+                    onChange={e => setEditForm(prev => ({
+                      ...prev,
+                      sterilized: e.target.value === '' ? null : e.target.value === 'true'
+                    }))}
+                  >
+                    <option value="">{t('ownedCats.notSpecified', 'Non spécifié')}</option>
+                    <option value="true">{t('ownedCats.yes', 'Oui')}</option>
+                    <option value="false">{t('ownedCats.no', 'Non')}</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+            
             
             <Form.Group className="mb-3">
               <Form.Label>{t('ownedCats.chipNumber', 'Numéro de puce')}</Form.Label>

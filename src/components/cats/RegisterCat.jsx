@@ -1,347 +1,40 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import { Form, Button, Container, Alert, Card, Row, Col } from "react-bootstrap";
 import Select from "react-select";
 import { motion } from "framer-motion";
 import { FaPaw, FaMapMarkerAlt } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
-import catBreeds from "../../CatBreeds";
-import { useAuth } from "../../hooks/authProvider";
-import mapboxgl from 'mapbox-gl';
-import "mapbox-gl/dist/mapbox-gl.css";
-import useGeolocation from "../../hooks/useGeolocation";
-import MapLocation from "../map/MapLocation";
-import { reverseGeocode } from "../../utils/geocodingService";
-import { colorOptions, eyeColorOptions, genderOptions, furTypeOptions, statusCatOptions } from "../../utils/enumOptions";
-// Utiliser les contextes centralisés au lieu des imports directs
 import { useCatSearch } from "../../contexts/CatSearchContext";
-import { useAxiosContext } from "../../contexts/AxiosContext";
-import { useCatsContext } from "../../contexts/CatsContext";
+import MapLocation from "../map/MapLocation";
 import ImageUploader from "../common/ImageUploader";
 import { useTranslation } from 'react-i18next';
+import { useRegisterCat } from "../../hooks/useRegisterCat";
+import useEnums from '../../hooks/useEnums';
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 function RegisterCat() {
-  // Utiliser les fonctions du contexte
   const { formatValue } = useCatSearch();
-  const { post } = useAxiosContext();
-  const { fetchCats, userAddress } = useCatsContext();
-// Pour la carte et la géolocalisation (LOST/FOUND)
-const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
+  const { enums, loading: enumsLoading, error: enumsError } = useEnums();
   const { t } = useTranslation();
-  const [uploaderKey, setUploaderKey] = useState(Date.now());
-
-  
-  
-  // Fonction pour mettre à jour la localisation à partir des coordonnées
-const updateLocationFromCoordinates = async (longitude, latitude) => {
-  try {
-    const addressInfo = await reverseGeocode(longitude, latitude);
-    setFormData(prev => ({
-      ...prev,
-      location: {
-        ...prev.location,
-        longitude,
-        latitude,
-        address: addressInfo?.address || "",
-        city: addressInfo?.city || "",
-        postalCode: addressInfo?.postalCode || ""
-      }
-    }));
-  } catch (error) {
-    // Optionnel : gestion d'erreur
-  }
-};
-
-  // Fonction pour gérer la demande de localisation actuelle
-  const handleRequestCurrentLocation = () => {
-    getCurrentPosition()
-      .then(position => {
-        updateLocationFromCoordinates(position.longitude, position.latitude);
-      })
-      .catch(() => {
-        // Optionnel : gérer les erreurs ici
-      });
-  };
-
-  // Format today's date as YYYY-MM-DD HH:MM:SS.SSS for the database
-  const now = new Date();
-  const formattedDate = now.getFullYear() + '-' + 
-                      String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                      String(now.getDate()).padStart(2, '0') + ' ' + 
-                      String(now.getHours()).padStart(2, '0') + ':' + 
-                      String(now.getMinutes()).padStart(2, '0') + ':' + 
-                      String(now.getSeconds()).padStart(2, '0') + '.' +
-                      String(now.getMilliseconds()).padStart(3, '0');
-  
-  // Format today's date as YYYY-MM-DD for the date input display
-  const todayForInput = now.toISOString().split('T')[0];
-
-  const [formData, setFormData] = useState({
-    name: t('cat.defaultName', 'Mittens'), // Nom par défaut
-    breed: "SIAMESE", // Race par défaut
-    color: "BLANC", // Couleur par défaut
-    dateOfBirth: "", // Laisser vide
-    imageUrl: "", // URL principale de l'image Cloudinary
-    imageUrls: [], // Tableau pour stocker plusieurs URLs d'images
-    gender: "Femelle", // Genre par défaut
-    chipNumber: "123456789", // Numéro de puce par défaut
-    furType: "COURTE", // Type de fourrure par défaut
-    eyeColor: "BLEU", // Couleur des yeux par défaut
-    comment: t('cat.defaultComment', 'Chat très amical et joueur.'), // Commentaire par défaut
-    statusCat: "LOST", // Statut par défaut
-    reportDate: todayForInput, // Date de signalement par défaut
-    location: {
-      latitude: "", 
-      longitude: "",
-      address: "",
-      city: "",
-      postalCode: ""
-    }
-  });
-  
-  // Préremplir la localisation avec userAddress dès que disponible
-  useEffect(() => {
-    if (userAddress) {
-      setFormData(prev => ({
-        ...prev,
-        location: {
-          latitude: userAddress.latitude || "",
-          longitude: userAddress.longitude || "",
-          address: userAddress.address || "",
-          city: userAddress.city || "",
-          postalCode: userAddress.postalCode || ""
-        }
-      }));
-    }
-  }, [userAddress]);
-
-  // État pour gérer les erreurs de validation
-  const [validationErrors, setValidationErrors] = useState({
-    dateOfBirth: "",
-    reportDate: "",
-    dateComparison: "" // Pour les erreurs de comparaison entre dates
-  });
-
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
-  // Nous gardons isLoggedIn pour les vérifications d'authentification
-  // mais nous pouvons supprimer showLoginAlert car il n'est pas utilisé
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Créer une copie des erreurs de validation actuelles
-    const newValidationErrors = { ...validationErrors };
-    
-    // Créer une copie des données du formulaire avec la nouvelle valeur
-    const updatedFormData = { ...formData, [name]: value };
-    
-    // Validation spécifique pour la date de naissance
-    if (name === "dateOfBirth") {
-      if (value) {
-        const selectedDate = new Date(value);
-        const today = new Date();
-        
-        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate > today) {
-          newValidationErrors.dateOfBirth = t('cat.errorFutureBirthDate', 'La date de naissance ne peut pas être dans le futur');
-        } else {
-          newValidationErrors.dateOfBirth = "";
-        }
-        
-        // Vérifier la cohérence avec la date de signalement
-        if (updatedFormData.reportDate) {
-          const reportDate = new Date(updatedFormData.reportDate);
-          if (selectedDate > reportDate) {
-            newValidationErrors.dateComparison = t('cat.errorDateComparison', 'La date de signalement ne peut pas être antérieure à la date de naissance');
-          } else {
-            newValidationErrors.dateComparison = "";
-          }
-        }
-      } else {
-        // Si la date de naissance est vide, on supprime l'erreur de comparaison
-        newValidationErrors.dateOfBirth = "";
-        newValidationErrors.dateComparison = "";
-      }
-    }
-    
-    // Validation spécifique pour la date de signalement
-    if (name === "reportDate") {
-      if (value) {
-        const selectedDate = new Date(value);
-        const today = new Date();
-        
-        // Réinitialiser les heures, minutes, secondes pour comparer uniquement les dates
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate > today) {
-          newValidationErrors.reportDate = t('cat.errorFutureReportDate', 'La date de signalement ne peut pas être dans le futur');
-        } else {
-          newValidationErrors.reportDate = "";
-        }
-        
-        // Vérifier la cohérence avec la date de naissance
-        if (updatedFormData.dateOfBirth) {
-          const birthDate = new Date(updatedFormData.dateOfBirth);
-          if (birthDate > selectedDate) {
-            newValidationErrors.dateComparison = t('cat.errorDateComparison', 'La date de signalement ne peut pas être antérieure à la date de naissance');
-          } else {
-            newValidationErrors.dateComparison = "";
-          }
-        }
-      } else {
-        newValidationErrors.reportDate = "";
-      }
-    }
-    
-    // Mettre à jour les erreurs de validation
-    setValidationErrors(newValidationErrors);
-    
-    // Mettre à jour les données du formulaire
-    setFormData(updatedFormData);
-  };
-  
-  const handleSelectChange = (selectedOption, action) => {
-    setFormData({
-      ...formData,
-      [action.name]: selectedOption ? selectedOption.value : "",
-    });
-  };
-  
-  // Gérer l'upload d'image avec Cloudinary
-  const handleImageUploaded = (imageData) => {
-    // Si imageData est un tableau, c'est un upload multiple
-    if (Array.isArray(imageData)) {
-      setFormData(prev => ({
-        ...prev,
-        imageUrl: imageData.length > 0 ? imageData[0] : "", // La première image comme principale
-        imageUrls: imageData // Toutes les images dans le tableau
-      }));
-    } else {
-      // Upload d'une seule image
-      setFormData(prev => ({
-        ...prev,
-        imageUrl: imageData,
-        imageUrls: imageData ? [imageData] : []
-      }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Vérifier s'il y a des erreurs de validation
-    if (validationErrors.dateOfBirth || validationErrors.reportDate || validationErrors.dateComparison) {
-      return; // Ne pas soumettre le formulaire s'il y a des erreurs
-    }
-    
-    // Vérifier si le nom du chat est vide
-    const name = formData.name.trim() === "" ? t('cat.unknown', 'Inconnu') : formData.name;
-    // Mettre à jour le nom du chat dans le formulaire
-    setFormData({ ...formData, name: name });
-
-    // Créer l'objet de localisation
-    const localisation = {
-      latitude: formData.location.latitude,
-      longitude: formData.location.longitude,
-      address: formData.location.address,
-      city: formData.location.city,
-      postalCode: formData.location.postalCode
-    };
-    
-    const catStatus = {
-      cat: {
-        name: formData.name,
-        breed: formData.breed,
-        color: formData.color,
-        dateOfBirth: formData.dateOfBirth,
-        imageUrl: formData.imageUrl,
-        imageUrls: formData.imageUrls, // Ajouter le tableau d'URLs d'images
-        gender: formData.gender,
-        chipNumber: formData.chipNumber,
-        furType: formData.furType,
-        eyeColor: formData.eyeColor,
-        comment: formData.comment,
-      },
-      comment: formData.comment,
-      statusCat: formData.statusCat,
-      reportDate: formattedDate,
-      location: localisation // Ajout de la localisation
-    };
-    
-    try {
-      // Créer un objet FormData pour envoyer les données au format multipart/form-data
-      const formData = new FormData();
-      
-      // Convertir l'objet catStatus en JSON et l'ajouter comme partie "catData"
-      formData.append('catData', new Blob([JSON.stringify(catStatus)], {
-        type: 'application/json'
-      }));
-      
-      // Ajouter les images si disponibles
-      // Note: Dans cette implémentation, nous n'envoyons pas les fichiers car ils ont déjà été uploadés
-      // individuellement par le composant ImageUploader. Le backend utilisera les URLs stockées dans catStatus.
-      
-      // Envoyer la requête avec le bon Content-Type
-      await post("/cat/register", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      setShowSuccessMessage(true);
-      // Faire défiler la page vers le haut pour voir le message de succès
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Rafraîchir les données des chats dans le contexte
-      try {
-        await fetchCats();
-      } catch (fetchError) {
-        console.warn("Erreur lors de la récupération des chats après enregistrement:", fetchError);
-        // Continuer même si la récupération des chats échoue
-      }
-      
-      // Réinitialiser le formulaire quoi qu'il arrive
-      setFormData({
-        ...formData,
-        name: "",
-        breed: "",
-        color: "",
-        dateOfBirth: "",
-        imageUrl: "",
-        imageUrls: [],
-        gender: "",
-        chipNumber: "",
-        furType: "",
-        eyeColor: "",
-        comment: "",
-        statusCat: "",
-        reportDate: todayForInput,
-        location: {
-          latitude: "",
-          longitude: "",
-          address: "",
-          city: "",
-          postalCode: ""
-        }
-      });
-      setUploaderKey(Date.now());
-
-
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 5000);
-    } catch (error) {
-      console.error("Error registering cat:", error);
-    }
-  };
+  const {
+    formData,
+    validationErrors,
+    showSuccessMessage,
+    isUploading,
+    uploaderKey,
+    isLocating,
+    geoError,
+    todayForInput,
+    handleChange,
+    handleSelectChange,
+    handleImageUploaded,
+    handleSubmit,
+    handleRequestCurrentLocation,
+    updateLocationFromCoordinates,
+    setGeoError,
+    setIsUploading,
+    setFormData
+  } = useRegisterCat();
 
   return (
     <Container className="py-4">
@@ -377,14 +70,16 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                           value={formData.statusCat}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectStatus', '-- Sélectionnez le statut --')}</option>
-                          {statusCatOptions.map(option => (
+                          {enums && enums.statusCat.map(option => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des statuts</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -402,14 +97,21 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                         <Form.Label>{t('cat.breed', 'Race')}</Form.Label>
                         <Select
                           name="breed"
-                          value={catBreeds.find((option) => option.value === formData.breed)}
+                          value={formData.breed ? enums && enums.breed.find(opt => opt.value === formData.breed) : null}
                           onChange={(selectedOption) => handleSelectChange(selectedOption, { name: 'breed' })}
-                          options={catBreeds}
+                          options={enums ? enums.breed : []}
                           placeholder={t('cat.selectBreed', 'Sélectionnez la race')}
                           isClearable
                           className="basic-select"
                           classNamePrefix="select"
+                          isDisabled={enumsLoading || enumsError}
+                          menuPlacement="auto"
+                          menuPortalTarget={document.body} // <-- Ajoute ceci
+                          styles={{
+                            menuPortal: base => ({ ...base, zIndex: 9999 }) // <-- Pour être sûr que le menu est au-dessus de tout
+                          }}
                         />
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des races</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -419,14 +121,16 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                           value={formData.gender}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectGender', '-- Sélectionnez le genre --')}</option>
-                          {genderOptions.map(option => (
-                            <option key={option} value={option}>
-                              {option}
+                          {enums && enums.catGender.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
                       </Form.Group>
                     </Card.Body>
                   </Card>
@@ -450,14 +154,18 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                               name="dateOfBirth"
                               value={formData.dateOfBirth}
                               onChange={handleChange}
-                              max={todayForInput} // Empêche la sélection de dates futures dans le calendrier
+                              max={todayForInput}
                               isInvalid={!!validationErrors.dateOfBirth}
+                              placeholder={t('cat.selectBirthDate', 'Sélectionnez la date de naissance')}
                             />
                             {validationErrors.dateOfBirth && (
                               <Form.Control.Feedback type="invalid">
                                 {validationErrors.dateOfBirth}
                               </Form.Control.Feedback>
                             )}
+                            <Form.Text className="text-muted">
+                              {t('cat.birthDateHelp', 'Format: JJ/MM/AAAA')}
+                            </Form.Text>
                           </Form.Group>
                         </Col>
                         <Col sm={6}>
@@ -468,7 +176,7 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                               name="reportDate"
                               value={formData.reportDate}
                               onChange={handleChange}
-                              max={todayForInput} // Empêche la sélection de dates futures dans le calendrier
+                              max={todayForInput}
                               isInvalid={!!validationErrors.reportDate}
                               required
                             />
@@ -497,14 +205,16 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                           value={formData.color}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectColor', '-- Sélectionnez la couleur --')}</option>
-                          {colorOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
+                          {enums && enums.catColor.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des couleurs</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -514,14 +224,16 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                           value={formData.eyeColor}
                           onChange={handleChange}
                           required
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectEyeColor', '-- Sélectionnez la couleur des yeux --')}</option>
-                          {eyeColorOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
+                          {enums && enums.eyeColor.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des couleurs d'yeux</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -530,14 +242,16 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                           name="furType"
                           value={formData.furType}
                           onChange={handleChange}
+                          disabled={enumsLoading || enumsError}
                         >
                           <option value="">{t('cat.selectFurType', '-- Sélectionnez le type de fourrure --')}</option>
-                          {furTypeOptions.map(option => (
-                            <option key={option} value={option}>
-                              {formatValue(option)}
+                          {enums && enums.furType.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </Form.Select>
+                        {enumsError && <div className="text-danger">Erreur lors du chargement des types de fourrure</div>}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
@@ -550,6 +264,41 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                           placeholder={t('cat.enterChipNumber', 'Entrez le numéro de puce')}
                         />
                       </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t('cat.vaccinated', 'Vacciné')}</Form.Label>
+                        <Form.Select
+                          name="vaccinated"
+                          value={formData.vaccinated === null ? '' : formData.vaccinated ? 'true' : 'false'}
+                          onChange={e => handleChange({
+                            target: {
+                              name: 'vaccinated',
+                              value: e.target.value === '' ? null : e.target.value === 'true'
+                            }
+                          })}
+                        >
+                          <option value="">{t('cat.notSpecified', 'Non spécifié')}</option>
+                          <option value="true">{t('cat.yes', 'Oui')}</option>
+                          <option value="false">{t('cat.no', 'Non')}</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t('cat.sterilized', 'Stérilisé')}</Form.Label>
+                        <Form.Select
+                          name="sterilized"
+                          value={formData.sterilized === null ? '' : formData.sterilized ? 'true' : 'false'}
+                          onChange={e => handleChange({
+                            target: {
+                              name: 'sterilized',
+                              value: e.target.value === '' ? null : e.target.value === 'true'
+                            }
+                          })}
+                        >
+                          <option value="">{t('cat.notSpecified', 'Non spécifié')}</option>
+                          <option value="true">{t('cat.yes', 'Oui')}</option>
+                          <option value="false">{t('cat.no', 'Non')}</option>
+                        </Form.Select>
+                      </Form.Group>
                     </Card.Body>
                   </Card>
 
@@ -560,11 +309,10 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                     <Card.Body>
                       <p className="text-muted">{t('cat.imageHint', 'Ajoutez une photo du chat pour faciliter son identification.')}</p>
                       <Form.Group className="mb-3">
-                        <ImageUploader 
+                        <ImageUploader
                           key={uploaderKey}
-                          onImageUploaded={handleImageUploaded} 
-                          multiple={true} 
-                          maxImages={5} 
+                          onImageUploaded={handleImageUploaded}
+                          initialImage={formData.imageUrls}
                           onUploadStatusChange={setIsUploading}
                         />
                         {isUploading && (
@@ -593,7 +341,6 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                 </Col>
               </Row>
 
-              {/* Section Localisation dynamique selon le statut */}
               <Card className="mb-4">
                 <Card.Header className="bg-light d-flex align-items-center">
                   <FaMapMarkerAlt className="me-2" />
@@ -620,13 +367,13 @@ const updateLocationFromCoordinates = async (longitude, latitude) => {
                             location={formData.location}
                             onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
                             onAddressChange={(addressData) => {
-                              setFormData({
-                                ...formData,
+                              setFormData(prev => ({
+                                ...prev,
                                 location: {
-                                  ...formData.location,
+                                  ...prev.location,
                                   ...addressData
                                 }
-                              });
+                              }));
                             }}
                             isLocating={isLocating}
                             geoError={geoError}

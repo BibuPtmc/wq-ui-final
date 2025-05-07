@@ -8,13 +8,13 @@ import useGeolocation from '../../hooks/useGeolocation';
 import { reverseGeocode } from "../../utils/geocodingService"; // Import ES6 pour Vite
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
-import { useAxiosContext } from "../../contexts/AxiosContext";
+import { useAxios } from "../../hooks/useAxios";
 
 const LostCatsMap = ({ noLostCatsMessage }) => {
   const { t } = useTranslation();
   // Utiliser les fonctions du contexte
   const { formatValue, calculateAge } = useCatSearch();
-  const { get } = useAxiosContext();
+  const axios = useAxios();
   
   const [lostCats, setLostCats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
     const fetchLostCats = async () => {
       try {
         // Utiliser la méthode get du contexte AxiosContext
-        const response = await get('/cat/findLostCat');
+        const response = await axios.get('/cat/findLostCat');
         setLostCats(response);
         setLoading(false);
       } catch (err) {
@@ -86,7 +86,7 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
     };
 
     fetchLostCats();
-  }, [get]);
+  }, [axios]);
 
   // Utilisation de la fonction formatValue du contexte pour le formatage des valeurs d'énumération
 
@@ -109,9 +109,9 @@ const LostCatsMap = ({ noLostCatsMessage }) => {
     // Utiliser la fonction calculateAge du contexte pour afficher l'âge du chat
     
     // Utiliser l'image du chat depuis les données Cloudinary
-    const catImage = catStatus.cat.imageUrl || 
-      (catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0 ? catStatus.cat.imageUrls[0] : 
-      "/noImageCat.png");
+    const catImage = catStatus.cat.imageUrls && catStatus.cat.imageUrls.length > 0 
+      ? catStatus.cat.imageUrls[0] 
+      : "/noImageCat.png";
 
     // Construction du HTML pour le popup sans inclure les styles inline
     return {

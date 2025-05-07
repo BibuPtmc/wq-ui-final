@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Form, Button, Container, Row, Col, Card, Alert } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../hooks/authProvider";
+import { useAuth } from "../../contexts/authProvider";
 import { useAxios } from "../../hooks/useAxios";
 import { motion } from "framer-motion";
 import { FaUser, FaLock, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
@@ -146,6 +146,11 @@ function LoginPage() {
                       >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </Button>
+                    </div>
+                    <div className="text-end mt-2">
+                      <Link to="/forgot-password" className="text-decoration-none">
+                        Mot de passe oublié ?
+                      </Link>
                     </div>
                   </Form.Group>
 
