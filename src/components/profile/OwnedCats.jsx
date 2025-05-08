@@ -343,27 +343,24 @@ const OwnedCats = ({
                       {t("ownedCats.breed", "Race")}:{" "}
                       {getEnumLabel(enums?.breed, cat.breed) ||
                         t("ownedCats.unknownBreed", "Inconnue")}
-                      {cat.dateOfBirth && (
-                        <span className="ms-2">
-                          {t("ownedCats.age", "Âge")}:{" "}
-                          {calculateAge(cat.dateOfBirth)}
-                        </span>
-                      )}
                     </Card.Text>
-                    <div className="d-flex gap-2 mt-2">
+                    <div className="d-grid mb-2">
                       <Button
                         variant="outline-primary"
                         size="sm"
-                        className="flex-grow-1"
                         onClick={() => onShowCatDetails(catStatus)}
+                        className="w-100 cat-details-btn"
                       >
                         {t("ownedCats.details", "Voir les détails")}
                       </Button>
+                    </div>
+                    <div className="d-flex justify-content-center gap-2 cat-actions-row">
                       <Button
                         variant="outline-success"
                         size="sm"
                         onClick={() => handleEdit(catStatus)}
                         title={t("ownedCats.edit", "Modifier")}
+                        className="cat-action-btn"
                       >
                         <FaEdit />
                       </Button>
@@ -375,6 +372,7 @@ const OwnedCats = ({
                           onDeleteCat(cat.catId);
                         }}
                         title={t("ownedCats.delete", "Supprimer")}
+                        className="cat-action-btn"
                       >
                         <FaTrash />
                       </Button>
@@ -387,6 +385,7 @@ const OwnedCats = ({
                           setSelectedCat(catStatus);
                         }}
                         title={t("ownedCats.reportLost", "Signaler perdu")}
+                        className="cat-action-btn"
                       >
                         <FaSearch />
                       </Button>
@@ -395,6 +394,7 @@ const OwnedCats = ({
                         size="sm"
                         onClick={() => handleShowHistory(cat.catId)}
                         title={t("ownedCats.history", "Historique")}
+                        className="cat-action-btn"
                       >
                         <FaHistory />
                       </Button>
