@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useAuth } from '../contexts/authProvider';
-import { useAxiosContext } from './AxiosContext';
+import { useEffect } from "react";
+import { useAuth } from "../contexts/AuthProvider";
+import { useAxiosContext } from "./AxiosContext";
 
 /**
  * Ce composant s'abonne à l'instance Axios pour détecter les erreurs 401 globalement
@@ -14,10 +14,13 @@ export default function AxiosLogoutHandler() {
   useEffect(() => {
     // Ajoute un intercepteur qui déclenche le logout sur 401
     const interceptor = axiosInstance.interceptors.response.use(
-      response => response,
-      error => {
+      (response) => response,
+      (error) => {
         // Déclenche le logout sur 401 (Unauthorized) ou 403 (Forbidden)
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout({ sessionExpired: true });
         }
         return Promise.reject(error);

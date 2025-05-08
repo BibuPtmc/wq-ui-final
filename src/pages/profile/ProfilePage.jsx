@@ -1,23 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Spinner, Alert, Tab } from "react-bootstrap";
-import { useAuth } from "../../contexts/authProvider";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Spinner,
+  Alert,
+  Tab,
+} from "react-bootstrap";
+import { useAuth } from "../../contexts/AuthProvider";
 import { useUserContext } from "../../contexts/UserContext";
-import { useCatsContext } from '../../contexts/CatsContext';
-import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from 'react-icons/fa';
-import ReportedCats from '../../components/profile/ReportedCats';
-import OwnedCats from '../../components/profile/OwnedCats';
-import CatDetails from '../../components/profile/CatDetails';
-import PersonalInfo from '../../components/profile/PersonalInfo';
-import SecuritySettings from '../../components/profile/SecuritySettings';
-import OrderHistory from '../../components/profile/OrderHistory';
-import ProfileSidebar from '../../components/profile/ProfileSidebar';
-import PendingLinkRequests from '../../components/profile/PendingLinkRequests';
+import { useCatsContext } from "../../contexts/CatsContext";
+import { FaUser, FaPaw, FaLock, FaHistory, FaLink } from "react-icons/fa";
+import ReportedCats from "../../components/profile/ReportedCats";
+import OwnedCats from "../../components/profile/OwnedCats";
+import CatDetails from "../../components/profile/CatDetails";
+import PersonalInfo from "../../components/profile/PersonalInfo";
+import SecuritySettings from "../../components/profile/SecuritySettings";
+import OrderHistory from "../../components/profile/OrderHistory";
+import ProfileSidebar from "../../components/profile/ProfileSidebar";
+import PendingLinkRequests from "../../components/profile/PendingLinkRequests";
 
 const ProfilePage = () => {
   const { loading: authLoading, userData: connectedUser } = useAuth();
-  const { 
-    reportedCats, 
-    ownedCats, 
+  const {
+    reportedCats,
+    ownedCats,
     loading: catsLoading,
     handleDeleteReportedCat,
     handleEditReportedCat,
@@ -25,9 +33,9 @@ const ProfilePage = () => {
     handleDeleteOwnedCat,
     handleReportCatAsLost,
     successMessage,
-    fetchCats
+    fetchCats,
   } = useCatsContext();
-  
+
   // Utiliser le UserContext pour la gestion du profil
   const {
     profileData,
@@ -42,9 +50,9 @@ const ProfilePage = () => {
     updateProfile,
     updatePassword,
     deleteAccount,
-    fetchOrders
+    fetchOrders,
   } = useUserContext();
-  
+
   const [activeTab, setActiveTab] = useState("profile");
   const [showCatDetails, setShowCatDetails] = useState(false);
   const [selectedCatStatus, setSelectedCatStatus] = useState(null);
@@ -57,9 +65,9 @@ const ProfilePage = () => {
 
   // Charger les données appropriées lorsque l'onglet change
   useEffect(() => {
-    if (activeTab === 'orders') {
+    if (activeTab === "orders") {
       fetchOrders();
-    } else if (activeTab === 'reported' || activeTab === 'ownedCats') {
+    } else if (activeTab === "reported" || activeTab === "ownedCats") {
       // Rafraîchir les données des chats lorsque l'utilisateur accède aux onglets de chats
       fetchCats();
     }
@@ -68,17 +76,21 @@ const ProfilePage = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     await updateProfile(profileData);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     await updatePassword(passwordForm);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
+    if (
+      window.confirm(
+        "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
+      )
+    ) {
       const success = await deleteAccount();
       if (success) {
         window.location.href = "/login";
@@ -95,7 +107,10 @@ const ProfilePage = () => {
 
   if (authLoading || loading || catsLoading) {
     return (
-      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+      <Container
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: "50vh" }}
+      >
         <Spinner animation="border" role="status" variant="primary">
           <span className="visually-hidden">Chargement...</span>
         </Spinner>
@@ -120,12 +135,22 @@ const ProfilePage = () => {
           <Spinner animation="border" />
         </div>
       ) : !connectedUser ? (
-        <Alert variant="warning">Veuillez vous connecter pour accéder à votre profil.</Alert>
+        <Alert variant="warning">
+          Veuillez vous connecter pour accéder à votre profil.
+        </Alert>
       ) : (
         <>
-          {updateError && <Alert variant={updateSuccess ? "success" : "danger"}>{updateError}</Alert>}
-          
-          <Tab.Container id="profile-tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+          {updateError && (
+            <Alert variant={updateSuccess ? "success" : "danger"}>
+              {updateError}
+            </Alert>
+          )}
+
+          <Tab.Container
+            id="profile-tabs"
+            activeKey={activeTab}
+            onSelect={(k) => setActiveTab(k)}
+          >
             <Row className="justify-content-center">
               <Col md={4} lg={3} className="mb-4">
                 <ProfileSidebar
@@ -145,7 +170,7 @@ const ProfilePage = () => {
                           <FaUser className="me-2" />
                           Informations personnelles
                         </Card.Title>
-                        <PersonalInfo 
+                        <PersonalInfo
                           formData={profileData}
                           setFormData={setProfileData}
                           handleSubmit={handleUpdateProfile}
@@ -181,7 +206,7 @@ const ProfilePage = () => {
                           <FaHistory className="me-2" />
                           Historique des commandes
                         </Card.Title>
-                        <OrderHistory 
+                        <OrderHistory
                           orders={orders}
                           ordersLoading={ordersLoading}
                         />
@@ -196,7 +221,7 @@ const ProfilePage = () => {
                           <FaPaw className="me-2" />
                           Chats Signalés
                         </Card.Title>
-                        <ReportedCats 
+                        <ReportedCats
                           reportedCats={reportedCats}
                           onCatClick={(cat) => {
                             setSelectedCatStatus(cat);
@@ -213,7 +238,7 @@ const ProfilePage = () => {
                   <Tab.Pane active={activeTab === "ownedCats"}>
                     <Card className="shadow-sm mb-4">
                       <Card.Body>
-                        <OwnedCats 
+                        <OwnedCats
                           ownedCats={ownedCats}
                           onShowCatDetails={handleShowCatDetails}
                           onDeleteCat={handleDeleteOwnedCat}
@@ -224,7 +249,7 @@ const ProfilePage = () => {
                       </Card.Body>
                     </Card>
                   </Tab.Pane>
-                  
+
                   <Tab.Pane active={activeTab === "pendingLinks"}>
                     <Card className="shadow-sm mb-4">
                       <Card.Body>

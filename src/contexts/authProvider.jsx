@@ -1,7 +1,14 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { useAxios } from '../hooks/useAxios';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
+import { useAxios } from "../hooks/useAxios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "./NotificationContext";
 
 const AuthContext = createContext();
 
@@ -9,7 +16,9 @@ export const AuthProvider = ({ children }) => {
   const location = useLocation();
   const { showNotification } = useNotification();
   const axios = useAxios();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!sessionStorage.getItem("token")
+  );
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const initialLoadDone = useRef(false);
@@ -49,7 +58,10 @@ export const AuthProvider = ({ children }) => {
         initialLoadDone.current = true;
         return;
       } catch (error) {
-        console.error("Erreur lors de la récupération des données utilisateur du sessionStorage:", error);
+        console.error(
+          "Erreur lors de la récupération des données utilisateur du sessionStorage:",
+          error
+        );
         // Continuer pour essayer de récupérer les données depuis l'API
       }
     }
@@ -90,40 +102,55 @@ export const AuthProvider = ({ children }) => {
    * @param {Object} [options]
    * @param {boolean} [options.sessionExpired]
    */
-  const logout = useCallback((options = {}) => {
-    setIsLoggedIn(false);
-    setUserDataWithStorage(null);
-    sessionStorage.removeItem("token");
-    setTimeout(() => {
-      const token = sessionStorage.getItem("token");
-      if (!token) {
-        console.info('%cVous êtes déconnecté(e). Le token est maintenant vide.', 'color: green; font-weight: bold;');
+  const logout = useCallback(
+    (options = {}) => {
+      setIsLoggedIn(false);
+      setUserDataWithStorage(null);
+      sessionStorage.removeItem("token");
+      setTimeout(() => {
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+          console.info(
+            "%cVous êtes déconnecté(e). Le token est maintenant vide.",
+            "color: green; font-weight: bold;"
+          );
+        } else {
+          console.warn(
+            "%cDéconnexion attendue, mais le token existe encore :",
+            "color: orange; font-weight: bold;",
+            token
+          );
+        }
+      }, 100);
+      initialLoadDone.current = false;
+      navigate("/login", { replace: true });
+      if (options.sessionExpired) {
+        showNotification(
+          "Votre session a expiré, veuillez vous reconnecter.",
+          "error"
+        );
       } else {
-        console.warn('%cDéconnexion attendue, mais le token existe encore :', 'color: orange; font-weight: bold;', token);
+        showNotification("Vous avez été déconnecté.", "info");
       }
-    }, 100);
-    initialLoadDone.current = false;
-    navigate('/login', { replace: true });
-    if (options.sessionExpired) {
-      showNotification("Votre session a expiré, veuillez vous reconnecter.", "error");
-    } else {
-      showNotification("Vous avez été déconnecté.", "info");
-    }
-  }, [setUserDataWithStorage, navigate, showNotification]);
+    },
+    [setUserDataWithStorage, navigate, showNotification]
+  );
 
   if (loading) {
     return null; // Or a loading spinner
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      isLoggedIn, 
-      setIsLoggedIn, 
-      userData, 
-      setUserData: setUserDataWithStorage, 
-      fetchUserData,
-      logout 
-    }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        setIsLoggedIn,
+        userData,
+        setUserData: setUserDataWithStorage,
+        fetchUserData,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

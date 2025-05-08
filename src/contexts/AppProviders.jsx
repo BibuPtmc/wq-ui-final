@@ -1,12 +1,12 @@
-import React from 'react';
-import { AxiosProvider } from './AxiosContext';
-import { AuthProvider } from './authProvider';
-import { UserProvider } from './UserContext';
-import { CatsProvider } from './CatsContext';
-import { CatSearchProvider } from './CatSearchContext';
-import { ProductProvider } from './ProductContext';
-import { LanguageProvider } from './LanguageContext';
-import { NotificationProvider } from './NotificationContext';
+import React from "react";
+import { AxiosProvider } from "./AxiosContext";
+import { AuthProvider } from "./AuthProvider";
+import { UserProvider } from "./UserContext";
+import { CatsProvider } from "./CatsContext";
+import { CatSearchProvider } from "./CatSearchContext";
+import { ProductProvider } from "./ProductContext";
+import { LanguageProvider } from "./LanguageContext";
+import { NotificationProvider } from "./NotificationContext";
 
 export const AppProviders = ({ children }) => {
   return (
@@ -17,9 +17,7 @@ export const AppProviders = ({ children }) => {
             <CatsProvider>
               <UserProvider>
                 <CatSearchProvider>
-                  <ProductProvider>
-                    {children}
-                  </ProductProvider>
+                  <ProductProvider>{children}</ProductProvider>
                 </CatSearchProvider>
               </UserProvider>
             </CatsProvider>
