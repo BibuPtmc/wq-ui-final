@@ -9,11 +9,14 @@ import { LanguageProvider } from "./LanguageContext";
 import { NotificationProvider } from "./NotificationContext";
 
 export const AppProviders = ({ children }) => {
+  // Créer une référence pour stocker la fonction de déconnexion
+  const logoutRef = React.useRef(null);
+
   return (
     <NotificationProvider>
       <LanguageProvider>
-        <AxiosProvider>
-          <AuthProvider>
+        <AxiosProvider onLogout={() => logoutRef.current?.()}>
+          <AuthProvider onLogoutRef={logoutRef}>
             <CatsProvider>
               <UserProvider>
                 <CatSearchProvider>

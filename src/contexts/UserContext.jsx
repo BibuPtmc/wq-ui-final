@@ -207,7 +207,7 @@ export const UserProvider = ({ children }) => {
 
     try {
       // Tenter de supprimer le compte
-      await axios.delete(`users/delete?id=${userData.id}`);
+      await axios.delete(`users/delete?id=${userData.userId}`);
 
       // Si la suppression réussit, déconnecter l'utilisateur
       sessionStorage.removeItem("token");
