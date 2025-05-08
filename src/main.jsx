@@ -22,7 +22,6 @@ import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./styles/global.css";
 import { useAuth } from "./contexts/AuthProvider";
 import { AppProviders } from "./contexts/AppProviders";
-import AxiosLogoutHandler from "./contexts/AxiosLogoutHandler";
 import NotificationBar from "./components/common/NotificationBar";
 
 const container = document.getElementById("root");
@@ -90,7 +89,6 @@ root.render(
   <BrowserRouter>
     <AppProviders>
       <>
-        <AxiosLogoutHandler />
         <NotificationBar />
         <App />
       </>

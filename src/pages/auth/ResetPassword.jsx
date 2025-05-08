@@ -39,7 +39,7 @@ const ResetPassword = () => {
         newPassword,
         matchingPassword,
       });
-      setMessage(response.data);
+      setMessage(response);
       setError("");
 
       // Déconnecter l'utilisateur
