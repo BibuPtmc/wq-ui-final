@@ -358,6 +358,15 @@
   "ownedCats.color": "Couleur",
   "ownedCats.furType": "Type de fourrure",
   "ownedCats.lostCommentPlaceholder": "Informations supplémentaires sur la disparition de votre chat",
+  "ownedCats.history": "Historique",
+  "ownedCats.historyTitle": "Historique des localisations",
+  "ownedCats.noHistory": "Aucun historique disponible",
+  "ownedCats.status": "Statut",
+  "ownedCats.address": "Adresse",
+  "ownedCats.city": "Ville",
+  "ownedCats.postalCode": "Code postal",
+  "ownedCats.noDate": "Date non disponible",
+  "ownedCats.owned": "Possédé",
 
   "paymentSuccess.backHome": "Retour à l'accueil",
   "paymentSuccess.processing": "Votre commande est en cours de traitement et sera bientôt expédiée.",
@@ -504,4 +513,3 @@
   "upload.uploadFailed": "Échec du téléchargement de l'image. Veuillez réessayer.",
   "upload.uploading": "Téléchargement en cours... {{progress}}%"
 }
-
