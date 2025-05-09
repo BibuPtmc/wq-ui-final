@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAxios } from '../hooks/useAxios';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { useAxios } from "../hooks/useAxios";
 
 // Création du contexte
 export const ProductContext = createContext();
@@ -15,12 +21,12 @@ export const ProductProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await axios.get('/ecommerce/products');
+
+      const response = await axios.get("/ecommerce/products");
       setProducts(response?.data || response || []);
     } catch (error) {
       // Log réduit pour améliorer les performances
-      setError('Erreur lors de la récupération des produits');
+      setError("Erreur lors de la récupération des produits");
     } finally {
       setLoading(false);
     }
@@ -32,9 +38,12 @@ export const ProductProvider = ({ children }) => {
   }, [fetchProducts]);
 
   // Fonction pour récupérer un produit par son ID
-  const getProductById = useCallback((productId) => {
-    return products.find(product => product.id === productId) || null;
-  }, [products]);
+  const getProductById = useCallback(
+    (productId) => {
+      return products.find((product) => product.id === productId) || null;
+    },
+    [products]
+  );
 
   // Valeur du contexte
   const value = {
@@ -42,13 +51,10 @@ export const ProductProvider = ({ children }) => {
     loading,
     error,
     fetchProducts,
-    getProductById
+    getProductById,
   };
 
   return (
-    <ProductContext.Provider value={value}>
-      {children}
-    </ProductContext.Provider>
+    <ProductContext.Provider value={value}>{children}</ProductContext.Provider>
   );
 };
-

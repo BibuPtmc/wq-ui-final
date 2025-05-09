@@ -13,7 +13,7 @@ import { useCatsContext } from "./CatsContext";
 // Création du contexte
 const UserContext = createContext();
 
-export const UserProvider = ({ children }) => {
+const UserProvider = ({ children }) => {
   const axios = useAxios();
   const { isLoggedIn, userData, setUserData } = useAuth();
   const { updateAllOwnedCatsAddress } = useCatsContext();
@@ -348,11 +348,14 @@ export const UserProvider = ({ children }) => {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
-// Hook personnalisé pour utiliser le contexte
-export const useUserContext = () => {
+// Modifier l'export du hook comme ceci :
+const useUserContext = () => {
   const context = useContext(UserContext);
   if (!context) {
     throw new Error("useUserContext must be used within a UserProvider");
   }
   return context;
 };
+
+// Exporter uniquement le hook
+export { useUserContext, UserProvider };

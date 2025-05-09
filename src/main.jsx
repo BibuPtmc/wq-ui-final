@@ -18,7 +18,6 @@ import GpsCollars from "./pages/shop/GpsCollars";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import { CartProvider } from "./contexts/CartContext";
 import "bootstrap/dist/css/bootstrap.css";
-import "./../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./styles/global.css";
 import { useAuth } from "./contexts/AuthProvider";
 import { AppProviders } from "./contexts/AppProviders";
