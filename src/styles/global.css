@@ -338,3 +338,13 @@ a:hover {
     max-width: 36px;
   }
 }
+
+.cat-details-modal {
+  background: #f8f9fa;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.cat-carousel-wrapper {
+  border-radius: 16px 16px 0 0;
+  background: #e9ecef;
+}

@@ -19,11 +19,13 @@ import {
   FaPhone,
   FaChevronLeft,
   FaChevronRight,
+  FaEye,
 } from "react-icons/fa";
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthProvider";
+import { FaSyringe, FaLeaf, FaPalette } from "react-icons/fa";
 
 function CatDetails({
   selectedCatStatus,
@@ -162,379 +164,268 @@ function CatDetails({
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-0">
-        <div className="position-relative">
-          {/* Utiliser un carrousel pour afficher plusieurs images */}
-          <Carousel
-            interval={5000}
-            indicators={true}
-            prevIcon={<FaChevronLeft className="text-white fs-4" />}
-            nextIcon={<FaChevronRight className="text-white fs-4" />}
-          >
-            {/* Logique d'affichage des images */}
-            {(() => {
-              // Collecter toutes les images valides
-              const images = [];
-
-              // Ajouter l'image principale si elle existe
-              if (cat.imageUrl) {
-                images.push({
-                  url: cat.imageUrl,
-                  alt: cat.name || "Chat",
-                });
-              }
-
-              // Ajouter les images supplémentaires si elles existent
-              if (cat.imageUrls && cat.imageUrls.length > 0) {
-                cat.imageUrls.forEach((url, index) => {
-                  if (url) {
-                    images.push({
-                      url: url,
-                      alt: `${cat.name || "Chat"} #${index + 1}`,
-                    });
-                  }
-                });
-              }
-
-              // Si aucune image valide n'est trouvée, afficher l'image par défaut
-              if (images.length === 0) {
-                return (
-                  <Carousel.Item>
+        <div className="cat-details-modal">
+          {/* Carrousel d'images */}
+          <div className="cat-carousel-wrapper bg-light p-3 mb-3">
+            <Carousel
+              interval={5000}
+              indicators={true}
+              prevIcon={<FaChevronLeft className="text-dark fs-4" />}
+              nextIcon={<FaChevronRight className="text-dark fs-4" />}
+            >
+              {(() => {
+                const images = [];
+                if (cat.imageUrl)
+                  images.push({ url: cat.imageUrl, alt: cat.name || "Chat" });
+                if (cat.imageUrls && cat.imageUrls.length > 0) {
+                  cat.imageUrls.forEach((url, index) => {
+                    if (url)
+                      images.push({
+                        url,
+                        alt: `${cat.name || "Chat"} #${index + 1}`,
+                      });
+                  });
+                }
+                if (images.length === 0) {
+                  return (
+                    <Carousel.Item>
+                      <img
+                        className="d-block w-100 rounded"
+                        src="/noImageCat.png"
+                        alt="Aucune image"
+                        style={{
+                          maxHeight: 350,
+                          objectFit: "cover",
+                          margin: "0 auto",
+                        }}
+                      />
+                    </Carousel.Item>
+                  );
+                }
+                return images.map((img, idx) => (
+                  <Carousel.Item key={idx}>
                     <img
-                      src="/noImageCat.png"
-                      alt={t("cat.noImage", "Aucune donnée")}
-                      className="w-100"
-                      style={{ height: "300px", objectFit: "cover" }}
+                      className="d-block w-100 rounded"
+                      src={img.url}
+                      alt={img.alt}
+                      style={{
+                        maxHeight: 350,
+                        objectFit: "cover",
+                        margin: "0 auto",
+                      }}
                     />
                   </Carousel.Item>
-                );
-              }
-
-              // Sinon, afficher toutes les images valides
-              return images.map((image, index) => (
-                <Carousel.Item key={index}>
-                  <img
-                    src={image.url}
-                    alt={image.alt}
-                    className="w-100"
-                    style={{ height: "300px", objectFit: "cover" }}
-                    onError={(e) => {
-                      e.target.src = "/noImageCat.png";
-                      e.target.onerror = null;
-                    }}
-                  />
-                </Carousel.Item>
-              ));
-            })()}
-          </Carousel>
-
-          {/* Overlay avec les informations du chat */}
-          <div
-            className="position-absolute bottom-0 start-0 w-100 p-3"
-            style={{
-              background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
-              color: "white",
-              zIndex: 10, // S'assurer que l'overlay est au-dessus du carrousel
-            }}
-          >
-            <h3 className="mb-0">
-              {cat.name || t("cat.noName", "Chat sans nom")}
-            </h3>
-            <div className="d-flex align-items-center mt-1">
-              <Badge
-                bg={
-                  cat.gender === t("cat.male", { defaultValue: "Mâle" })
-                    ? "primary"
-                    : "danger"
-                }
-                className="me-2"
-              >
-                {formatValue(cat.gender) ||
-                  t("cat.unknownGender", "Genre inconnu")}
-              </Badge>
-              <small>
-                {t("cat.breed", "Race")}:{" "}
-                {formatValue(cat.breed) || t("common.unknown", "Inconnue")}
-              </small>
-            </div>
+                ));
+              })()}
+            </Carousel>
           </div>
-        </div>
 
-        <div className="p-4">
-          <Row className="mb-4">
-            <Col md={6}>
-              <Card className="shadow-sm h-100">
-                <Card.Body>
-                  <h5 className="mb-3">
+          {/* En-tête fiche d'identité */}
+          <div className="text-center mt-3 mb-4">
+            <h2 className="fw-bold mb-2">
+              {cat.name || t("cat.noName", "Sans nom")}
+            </h2>
+            <Badge
+              bg={isLostCat ? "danger" : isFoundCat ? "success" : "secondary"}
+              className="mx-1"
+            >
+              {isLostCat
+                ? t("cat.lost", "Perdu")
+                : isFoundCat
+                ? t("cat.found", "Trouvé")
+                : t("cat.owned", "Possédé")}
+            </Badge>
+            <Badge bg="accent" className="mx-1">
+              {cat.breed}
+            </Badge>
+            <Badge bg="primary" className="mx-1">
+              {cat.gender}
+            </Badge>
+          </div>
+
+          <Row className="g-4 px-4">
+            {/* Colonne gauche : Caractéristiques */}
+            <Col xs={12} md={6}>
+              <div className="mb-4">
+                <h5 className="mb-3 border-bottom pb-2 text-uppercase text-secondary">
+                  <FaInfoCircle
+                    className="me-2"
+                    style={{ color: "var(--primary-color)" }}
+                  />
+                  {t("cat.characteristics", "Caractéristiques")}
+                </h5>
+                <ul className="list-unstyled">
+                  <li className="mb-2">
+                    <FaBirthdayCake className="me-2 text-secondary" />
+                    <strong>
+                      {t("cat.birthDate", "Date de naissance")}:
+                    </strong>{" "}
+                    {cat.dateOfBirth
+                      ? formatDate(cat.dateOfBirth)
+                      : t("common.unknown", "Inconnue")}{" "}
+                    {cat.dateOfBirth &&
+                      `(${t("cat.age", "Âge")}: ${calculateAge(
+                        cat.dateOfBirth
+                      )})`}
+                  </li>
+                  <li className="mb-2">
+                    <FaPalette className="me-2 text-secondary" />
+                    <strong>{t("cat.color", "Couleur")}:</strong>{" "}
+                    {formatValue(cat.color) || t("common.unknown")}
+                  </li>
+                  <li className="mb-2">
+                    <FaEye className="me-2 text-secondary" />
+                    <strong>{t("cat.eyeColor", "Yeux")}:</strong>{" "}
+                    {formatValue(cat.eyeColor) || t("common.unknown")}
+                  </li>
+                  <li className="mb-2">
+                    <FaLeaf className="me-2 text-secondary" />
+                    <strong>{t("cat.furType", "Pelage")}:</strong>{" "}
+                    {formatValue(cat.furType) || t("common.unknown")}
+                  </li>
+                  <li className="mb-2">
+                    <FaSyringe className="me-2 text-secondary" />
+                    <strong>Vacciné :</strong>{" "}
+                    <Badge
+                      bg={
+                        cat.vaccinated === true
+                          ? "success"
+                          : cat.vaccinated === false
+                          ? "danger"
+                          : "secondary"
+                      }
+                    >
+                      {cat.vaccinated === true
+                        ? "Oui"
+                        : cat.vaccinated === false
+                        ? "Non"
+                        : "Non spécifié"}
+                    </Badge>
+                  </li>
+                  <li className="mb-2">
+                    <FaPaw className="me-2 text-secondary" />
+                    <strong>Stérilisé :</strong>{" "}
+                    <Badge
+                      bg={
+                        cat.sterilized === true
+                          ? "success"
+                          : cat.sterilized === false
+                          ? "danger"
+                          : "secondary"
+                      }
+                    >
+                      {cat.sterilized === true
+                        ? "Oui"
+                        : cat.sterilized === false
+                        ? "Non"
+                        : "Non spécifié"}
+                    </Badge>
+                  </li>
+                </ul>
+              </div>
+              <div className="mb-4">
+                <h5 className="mb-3 border-bottom pb-2 text-uppercase text-secondary">
+                  <FaMapMarkerAlt
+                    className="me-2"
+                    style={{ color: "var(--primary-color)" }}
+                  />
+                  {t("cat.location", "Lieu")}
+                </h5>
+                <ul className="list-unstyled">
+                  <li className="mb-2">
+                    <strong>{t("cat.address", "Adresse")}:</strong>{" "}
+                    {currentCatStatus.location?.address ||
+                      `${currentCatStatus.location?.city || ""} ${
+                        currentCatStatus.location?.postalCode || ""
+                      }` ||
+                      t("common.unknown", "Inconnu")}
+                  </li>
+                  <li className="mb-2">
+                    <FaCalendarAlt className="me-2 text-secondary" />
+                    <strong>
+                      {isFoundCat
+                        ? t("cat.foundOn", "Trouvé le")
+                        : isLostCat
+                        ? t("cat.lostOn", "Perdu le")
+                        : t("cat.statusDate", "Date")}
+                      :
+                    </strong>{" "}
+                    {formatDate(currentCatStatus.reportDate)}
+                  </li>
+                </ul>
+              </div>
+            </Col>
+
+            {/* Colonne droite : Description et Contact */}
+            <Col xs={12} md={6}>
+              {cat.comment && (
+                <div className="bg-light rounded p-3 mb-4 shadow-sm">
+                  <h5 className="mb-2 text-uppercase text-secondary">
                     <FaInfoCircle
                       className="me-2"
-                      style={{ color: "#8B4513" }}
+                      style={{ color: "var(--primary-color)" }}
                     />
-                    {t("cat.generalInfo", "Informations générales")}
+                    {t("cat.description", "Description")}
                   </h5>
-                  <Row className="g-3">
-                    <Col xs={12}>
-                      <div className="d-flex align-items-center">
-                        <FaBirthdayCake
-                          className="me-2"
-                          style={{ color: "#8B4513" }}
-                        />
-                        <div>
-                          <div className="text-muted small">
-                            {t("cat.birthDate", "Date de naissance")}
-                          </div>
-                          <div className="fw-semibold">
-                            {formatDate(cat.dateOfBirth)}
-                            {cat.dateOfBirth &&
-                              ` (${t("cat.age", "Âge")}: ${calculateAge(
-                                cat.dateOfBirth
-                              )})`}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={6}>
-                      <div className="d-flex align-items-center">
-                        <div
-                          className="me-2"
-                          style={{
-                            width: "16px",
-                            height: "16px",
-                            backgroundColor: cat.color || "#ccc",
-                            borderRadius: "50%",
-                          }}
-                        ></div>
-                        <div>
-                          <div className="text-muted small">
-                            {t("cat.color")}
-                          </div>
-                          <div className="fw-semibold">
-                            {formatValue(cat.color) || t("common.unknown")}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={6}>
-                      <div className="d-flex align-items-center">
-                        <div
-                          className="me-2"
-                          style={{
-                            width: "16px",
-                            height: "16px",
-                            backgroundColor: cat.eyeColor || "#ccc",
-                            borderRadius: "50%",
-                          }}
-                        ></div>
-                        <div>
-                          <div className="text-muted small">
-                            {t("cat.eyeColor")}
-                          </div>
-                          <div className="fw-semibold">
-                            {formatValue(cat.eyeColor) || t("common.unknown")}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={12}>
-                      <div className="d-flex align-items-center">
-                        <FaPaw className="me-2" style={{ color: "#8B4513" }} />
-                        <div>
-                          <div className="text-muted small">
-                            {t("cat.furType")}
-                          </div>
-                          <div className="fw-semibold">
-                            {formatValue(cat.furType) || t("common.unknown")}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={6}>
-                      <div className="d-flex align-items-center">
-                        <FaPaw className="me-2" style={{ color: "#8B4513" }} />
-                        <div>
-                          <div className="text-muted small">Vacciné</div>
-                          <div className="fw-semibold">
-                            {currentCatStatus.cat.vaccinated === true
-                              ? "Oui"
-                              : currentCatStatus.cat.vaccinated === false
-                              ? "Non"
-                              : "Non spécifié"}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={6}>
-                      <div className="d-flex align-items-center">
-                        <FaPaw className="me-2" style={{ color: "#8B4513" }} />
-                        <div>
-                          <div className="text-muted small">Stérilisé</div>
-                          <div className="fw-semibold">
-                            {currentCatStatus.cat.sterilized === true
-                              ? "Oui"
-                              : currentCatStatus.cat.sterilized === false
-                              ? "Non"
-                              : "Non spécifié"}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={6}>
-              <Card className="shadow-sm h-100">
-                <Card.Body>
-                  <h5 className="mb-3">
-                    <FaCalendarAlt
+                  <div className="mt-2">{cat.comment}</div>
+                </div>
+              )}
+
+              {(isFoundCat || isLostCat) && !hideContactInfo && (
+                <div className="bg-white border rounded p-3 shadow-sm">
+                  <h5 className="mb-2 text-uppercase text-secondary">
+                    <FaComments
                       className="me-2"
-                      style={{ color: "#8B4513" }}
+                      style={{ color: "var(--primary-color)" }}
                     />
-                    {t("cat.status")}
+                    {t("cat.contact", "Contact")}
                   </h5>
-                  <Row className="g-3">
-                    <Col xs={12}>
-                      <div className="d-flex align-items-center">
-                        <FaCalendarAlt
-                          className="me-2"
-                          style={{ color: "#8B4513" }}
-                        />
-                        <div>
-                          <div className="text-muted small">
-                            {isFoundCat ? t("cat.foundOn") : t("cat.lostOn")}
-                          </div>
-                          <div className="fw-semibold">
-                            {formatDate(currentCatStatus.reportDate)}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={12}>
-                      <div className="d-flex align-items-center">
-                        <FaMapMarkerAlt
-                          className="me-2"
-                          style={{ color: "#8B4513" }}
-                        />
-                        <div>
-                          <div className="text-muted small">
-                            {t("cat.location")}
-                          </div>
-                          <div className="fw-semibold">
-                            {isOwnedCat && userAddress
-                              ? // Si le chat est possédé, afficher l'adresse de l'utilisateur
-                                userAddress.address ||
-                                `${userAddress.city || ""} ${
-                                  userAddress.postalCode || ""
-                                }`
-                              : currentCatStatus.location
-                              ? // Sinon, afficher l'adresse du chat
-                                currentCatStatus.location.address ||
-                                `${currentCatStatus.location.city || ""} ${
-                                  currentCatStatus.location.postalCode || ""
-                                }`
-                              : t("cat.addressNotAvailable")}
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
+                  {isLoggedIn ? (
+                    <div className="mb-2">
+                      <Button
+                        variant="outline-primary"
+                        className="mx-2 mb-2"
+                        onClick={handleEmailContact}
+                      >
+                        <FaEnvelope className="me-1" /> {contactInfo.email}
+                      </Button>
+                      <Button
+                        variant="outline-success"
+                        className="mx-2 mb-2"
+                        href={`tel:${contactInfo.phone}`}
+                      >
+                        <FaPhone className="me-1" /> {contactInfo.phone}
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        className="mx-2 mb-2"
+                        onClick={() =>
+                          navigator.clipboard.writeText(contactInfo.email)
+                        }
+                      >
+                        Copier l'email
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <p className="mb-3">
+                        {t(
+                          "cat.loginRequired",
+                          "Veuillez vous connecter pour voir les informations de contact."
+                        )}
+                      </p>
+                      <Button
+                        variant="primary"
+                        onClick={() => (window.location.href = "/login")}
+                      >
+                        {t("common.login", "Se connecter")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </Col>
           </Row>
-
-          {currentCatStatus.cat.comment && (
-            <Card className="shadow-sm mb-4">
-              <Card.Body>
-                <h5 className="mb-3">
-                  <FaComments className="me-2" style={{ color: "#8B4513" }} />
-                  {t("cat.description")}
-                </h5>
-                <p className="mb-0">{currentCatStatus.cat.comment}</p>
-              </Card.Body>
-            </Card>
-          )}
-
-          {(isFoundCat || isLostCat) && !hideContactInfo && (
-            <Card className="shadow-sm mb-4">
-              <Card.Body>
-                <h5 className="mb-3">
-                  <FaInfoCircle className="me-2" style={{ color: "#8B4513" }} />
-                  {t("cat.contact")}
-                </h5>
-                {isLoggedIn ? (
-                  <>
-                    <p className="mb-3">
-                      {isFoundCat
-                        ? t("cat.contactFoundMessage")
-                        : t("cat.contactLostMessage")}
-                    </p>
-
-                    <Row className="g-3 mb-3">
-                      {/* Afficher le numéro de téléphone */}
-                      <Col xs={12} md={6}>
-                        <div className="d-flex align-items-center">
-                          <FaPhone
-                            className="me-2"
-                            style={{ color: "#8B4513" }}
-                          />
-                          <div>
-                            <div className="text-muted small">
-                              {t("cat.phone")}
-                            </div>
-                            <div className="fw-semibold">
-                              {contactInfo.phone}
-                            </div>
-                          </div>
-                        </div>
-                      </Col>
-
-                      {/* Afficher l'email avec un bouton pour envoyer un message */}
-                      <Col xs={12} md={6}>
-                        <div className="d-flex align-items-center">
-                          <FaEnvelope
-                            className="me-2"
-                            style={{ color: "#8B4513" }}
-                          />
-                          <div>
-                            <div className="text-muted small">
-                              {t("cat.email")}
-                            </div>
-                            <div className="fw-semibold">
-                              {contactInfo.email}
-                            </div>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Button
-                      variant="primary"
-                      className="w-100"
-                      onClick={handleEmailContact}
-                    >
-                      <FaEnvelope className="me-2" />
-                      {t("cat.sendEmail")}
-                    </Button>
-                  </>
-                ) : (
-                  <div className="text-center">
-                    <p className="mb-3">
-                      {t(
-                        "cat.loginRequired",
-                        "Veuillez vous connecter pour voir les informations de contact."
-                      )}
-                    </p>
-                    <Button
-                      variant="primary"
-                      onClick={() => (window.location.href = "/login")}
-                    >
-                      {t("common.login", "Se connecter")}
-                    </Button>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          )}
         </div>
       </Modal.Body>
       <Modal.Footer className="bg-light">
