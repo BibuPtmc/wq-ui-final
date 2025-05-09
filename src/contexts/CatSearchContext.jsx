@@ -338,8 +338,11 @@ export const CatSearchProvider = ({ children }) => {
     try {
       setLoadingFound(true);
       const response = await axios.get("cat/findFoundCat");
-      setFoundCats(response || []);
-      setFilteredFoundCats(response || []);
+      const sortedCats = (response || []).sort((a, b) => {
+        return new Date(b.reportDate) - new Date(a.reportDate);
+      });
+      setFoundCats(sortedCats);
+      setFilteredFoundCats(sortedCats);
       setLoadingFound(false);
     } catch (error) {
       console.error("Erreur lors de la récupération des chats trouvés:", error);
@@ -354,8 +357,12 @@ export const CatSearchProvider = ({ children }) => {
     try {
       setLoadingLost(true);
       const response = await axios.get("cat/findLostCat");
-      setLostCats(response || []);
-      setFilteredLostCats(response || []);
+      // Trier les chats perdus par date (les plus récents en premier)
+      const sortedCats = (response || []).sort((a, b) => {
+        return new Date(b.reportDate) - new Date(a.reportDate);
+      });
+      setLostCats(sortedCats);
+      setFilteredLostCats(sortedCats);
       setLoadingLost(false);
     } catch (error) {
       console.error("Erreur lors de la récupération des chats perdus:", error);
