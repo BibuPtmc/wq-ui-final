@@ -26,10 +26,10 @@ import {
 } from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
 import MapLocation from "../../components/map/MapLocation";
-import useGeolocation from "../../hooks/useGeolocation";
+import { useGeolocation } from "../../hooks/useGeolocation";
 import { reverseGeocode } from "../../utils/geocodingService";
 import { formatPhoneNumber, validatePhone } from "../../utils/validationUtils";
-import useEnums from "../../hooks/useEnums"; // tout en haut du fichier
+import { useEnums } from "../../hooks/useEnums"; // tout en haut du fichier
 
 const RegistrationForm = () => {
   const { t } = useTranslation();

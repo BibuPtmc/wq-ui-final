@@ -22,14 +22,14 @@ import {
   FaComment,
 } from "react-icons/fa";
 import MapLocation from "../map/MapLocation";
-import useGeolocation from "../../hooks/useGeolocation";
+import { useGeolocation } from "../../hooks/useGeolocation";
 import { reverseGeocode } from "../../utils/geocodingService.jsx";
 // Utiliser les contextes centralisés
 import { useCatSearch } from "../../contexts/CatSearchContext";
 import { useCatsContext } from "../../contexts/CatsContext";
 import ImageUploader from "../common/ImageUploader";
 import { convertToEnum } from "../../utils/enumUtils";
-import useEnums from "../../hooks/useEnums";
+import { useEnums } from "../../hooks/useEnums";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 

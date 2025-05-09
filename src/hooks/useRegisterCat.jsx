@@ -1,10 +1,11 @@
+// src/hooks/useRegisterCat.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCatSearch } from "../contexts/CatSearchContext";
 import { useAxios } from "./useAxios";
 import { useCatsContext } from "../contexts/CatsContext";
-import useGeolocation from "./useGeolocation";
+import { useGeolocation } from "./useGeolocation";
 import { reverseGeocode } from "../utils/geocodingService";
 import { convertToEnum } from "../utils/enumUtils";
 

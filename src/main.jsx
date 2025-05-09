@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-const App = () => {
+function App() {
   return (
     <CartProvider>
       <div
@@ -82,7 +82,7 @@ const App = () => {
       </div>
     </CartProvider>
   );
-};
+}
 
 root.render(
   <BrowserRouter
@@ -96,3 +96,5 @@ root.render(
     </AppProviders>
   </BrowserRouter>
 );
+
+export default App;

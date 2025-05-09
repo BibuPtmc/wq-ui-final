@@ -367,6 +367,20 @@
   "ownedCats.postalCode": "Code postal",
   "ownedCats.noDate": "Date non disponible",
   "ownedCats.owned": "Possédé",
+  "ownedCats.vaccinated": "Vacciné",
+  "ownedCats.notSpecified": "Non spécifié",
+  "ownedCats.yes": "Oui",
+  "ownedCats.no": "Non",
+  "ownedCats.sterilized": "Stérilisé",
+  "cat": {
+    "sterilized": "Stérilisé",
+    "notSpecified": "Non spécifié",
+    "yes": "Oui",
+    "no": "Non",
+    "vaccinated": "Vacciné",
+    "selectBirthDate": "Sélectionnez la date de naissance",
+    "birthDateHelp": "Format: JJ/MM/AAAA"
+  },
 
   "paymentSuccess.backHome": "Retour à l'accueil",
   "paymentSuccess.processing": "Votre commande est en cours de traitement et sera bientôt expédiée.",
@@ -410,6 +424,7 @@
   "personalInfo.phonePlaceholder": "Ex: 0493 96 33 75",
   "personalInfo.success": "Vos informations ont été mises à jour avec succès !",
   "personalInfo.updateButton": "Mettre à jour mes informations",
+  "personalInfo.save": "Enregistrer les modifications",
 
   "profile.cancel": "Annuler",
   "profile.edit": "Modifier",
@@ -485,6 +500,7 @@
   "reportedCats.grey": "Gris",
   "reportedCats.red": "Roux",
   "reportedCats.mixed": "Mixte",
+  "reportedCats.delete": "Supprimer",
 
   "shop.addToCart": "Ajouter au panier",
   "shop.checkout": "Paiement",
