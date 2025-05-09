@@ -1,33 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from "react";
+import { useAxios } from "./useAxios";
 
-export default function useEnums() {
+export const useEnums = () => {
+  const axios = useAxios();
+
   const [enums, setEnums] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fonction utilitaire centralisée
-  const getEnumLabel = (enumArray, value) => {
+  // Fonction utilitaire centralisée avec useCallback
+  const getEnumLabel = useCallback((enumArray, value) => {
     if (!enumArray || !value) return value;
-    const found = enumArray.find(option => option.value === value);
+    const found = enumArray.find((option) => option.value === value);
     return found ? found.label : value;
-  };
-
-  useEffect(() => {
-    setLoading(true);
-    fetch('http://localhost:8080/api/enums/all')
-      .then(res => {
-        if (!res.ok) throw new Error('Erreur lors du chargement des énumérations');
-        return res.json();
-      })
-      .then(data => {
-        setEnums(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
   }, []);
 
-  return { enums, loading, error, getEnumLabel };
-}
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        setLoading(true);
+        const data = await axios.get("enums/all");
+        setEnums(data);
+        setError(null);
+      } catch (err) {
+        setError(err.message || "Erreur lors du chargement des énumérations");
+        setEnums(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnums();
+  }, [axios]);
+
+  return {
+    enums,
+    loading,
+    error,
+    getEnumLabel,
+  };
+};

@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext();
 
 export const useCartContext = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCartContext must be used within a CartProvider');
+    throw new Error("useCartContext must be used within a CartProvider");
   }
   return context;
 };
@@ -16,7 +16,7 @@ export const useCart = useCartContext;
 export const CartProvider = ({ children }) => {
   // Utiliser la clé publique depuis les variables d'environnement
   const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-  
+
   // Vérifier si la clé est disponible
   useEffect(() => {
     if (!stripePublicKey) {
@@ -26,13 +26,13 @@ export const CartProvider = ({ children }) => {
 
   const [cartItems, setCartItems] = useState(() => {
     // Récupérer les articles du panier depuis le localStorage au chargement
-    const savedCart = localStorage.getItem('cart');
+    const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
   // Sauvegarder le panier dans le localStorage à chaque modification
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+    localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
   const addToCart = (product) => {
@@ -40,9 +40,11 @@ export const CartProvider = ({ children }) => {
       // Log réduit pour améliorer les performances
       return;
     }
-  
+
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.product.id === product.id);
+      const existingItem = prevItems.find(
+        (item) => item.product.id === product.id
+      );
       if (existingItem) {
         return prevItems.map((item) =>
           item.product.id === product.id
@@ -81,7 +83,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
-    localStorage.removeItem('cart');
+    localStorage.removeItem("cart");
   };
 
   const value = {
@@ -94,7 +96,5 @@ export const CartProvider = ({ children }) => {
     stripePublicKey,
   };
 
-  return (
-    <CartContext.Provider value={value}>{children}</CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

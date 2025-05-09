@@ -83,7 +83,7 @@ function buildUpdatedCatDTO(updatedData, currentCat, convertToEnum) {
 
 import { useAxios } from "../hooks/useAxios";
 import { formatDateForJava, convertToEnum } from "../utils/enumUtils";
-import { useAuth } from "../contexts/authProvider";
+import { useAuth } from "../contexts/AuthProvider";
 import { useNotification } from "./NotificationContext";
 
 // Création du contexte

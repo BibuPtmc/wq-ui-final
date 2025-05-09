@@ -21,7 +21,7 @@ import { useCatsContext } from "../../contexts/CatsContext";
 import { convertToEnum } from "../../utils/enumUtils";
 import { useTranslation } from "react-i18next";
 import ImageUploader from "../common/ImageUploader";
-import useEnums from "../../hooks/useEnums";
+import { useEnums } from "../../hooks/useEnums";
 
 const ReportedCats = ({ reportedCats, onDelete, onEdit, successMessage }) => {
   const { t } = useTranslation();
