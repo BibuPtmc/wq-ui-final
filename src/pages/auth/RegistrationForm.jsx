@@ -1,17 +1,35 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useTranslation } from 'react-i18next';
-import { Form, Button, Container, Row, Col, Card, Alert, InputGroup } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
+import {
+  Form,
+  Button,
+  Container,
+  Row,
+  Col,
+  Card,
+  Alert,
+  InputGroup,
+} from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
 import { useAxios } from "../../hooks/useAxios";
 import { motion } from "framer-motion";
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaCalendar, FaVenusMars, FaEye, FaEyeSlash, FaMapMarkerAlt } from "react-icons/fa";
+import {
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaPhone,
+  FaCalendar,
+  FaVenusMars,
+  FaEye,
+  FaEyeSlash,
+  FaMapMarkerAlt,
+} from "react-icons/fa";
 import { buttonStyles } from "../../styles/styles";
 import MapLocation from "../../components/map/MapLocation";
-import useGeolocation from "../../hooks/useGeolocation";
+import { useGeolocation } from "../../hooks/useGeolocation";
 import { reverseGeocode } from "../../utils/geocodingService";
-import { formatPhoneNumber, validatePhone } from '../../utils/validationUtils';
-import useEnums from '../../hooks/useEnums'; // tout en haut du fichier
-
+import { formatPhoneNumber, validatePhone } from "../../utils/validationUtils";
+import { useEnums } from "../../hooks/useEnums"; // tout en haut du fichier
 
 const RegistrationForm = () => {
   const { t } = useTranslation();
@@ -28,14 +46,14 @@ const RegistrationForm = () => {
     lastName: "Motquin",
     birthDay: "",
     phone: "0493 96 33 75",
-    gender: "Femme",
+    gender: "FEMME",
     location: {
       address: "",
       city: "",
       postalCode: "",
       latitude: null,
-      longitude: null
-    }
+      longitude: null,
+    },
   });
 
   const [passwordsMatch, setPasswordsMatch] = useState(true);
@@ -48,14 +66,13 @@ const RegistrationForm = () => {
   const [birthDayError, setBirthDayError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [mapError, setMapError] = useState(null);
-  
-  // Format today's date as YYYY-MM-DD for the date input max attribute
-  const today = new Date().toISOString().split('T')[0];
 
+  // Format today's date as YYYY-MM-DD for the date input max attribute
+  const today = new Date().toISOString().split("T")[0];
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    
+
     if (!email) {
       setEmailError("L'adresse email est requise");
       return false;
@@ -67,97 +84,101 @@ const RegistrationForm = () => {
     setEmailError("");
     return true;
   };
-  
+
   const handlePhoneChange = (e) => {
     const formattedPhone = formatPhoneNumber(e.target.value);
-    setFormData(prev => ({ ...prev, phone: formattedPhone }));
-    
+    setFormData((prev) => ({ ...prev, phone: formattedPhone }));
+
     const { isValid, errorMessage } = validatePhone(formattedPhone);
     setPhoneError(errorMessage);
   };
 
   // Utiliser le hook de géolocalisation
-  const { getCurrentPosition, isLocating, geoError, setGeoError } = useGeolocation();
+  const { getCurrentPosition, isLocating, geoError, setGeoError } =
+    useGeolocation();
 
-  const updateLocationFromCoordinates = useCallback(async (longitude, latitude) => {
-    try {
-      const addressInfo = await reverseGeocode(longitude, latitude);
-      
-      setFormData(prev => ({
-        ...prev,
-        longitude,
-        latitude,
-        address: addressInfo?.address || "",
-        city: addressInfo?.city || "",
-        postalCode: addressInfo?.postalCode || ""
-      }));
-    } catch (error) {
-      console.error("Erreur lors de la récupération de l'adresse:", error);
-      setMapError("Erreur lors de la récupération de l'adresse");
-    }
-  }, []);
+  const updateLocationFromCoordinates = useCallback(
+    async (longitude, latitude) => {
+      try {
+        const addressInfo = await reverseGeocode(longitude, latitude);
+
+        setFormData((prev) => ({
+          ...prev,
+          longitude,
+          latitude,
+          address: addressInfo?.address || "",
+          city: addressInfo?.city || "",
+          postalCode: addressInfo?.postalCode || "",
+        }));
+      } catch (error) {
+        console.error("Erreur lors de la récupération de l'adresse:", error);
+        setMapError("Erreur lors de la récupération de l'adresse");
+      }
+    },
+    []
+  );
 
   // Initialisation automatique de la géolocalisation au chargement
   useEffect(() => {
     getCurrentPosition()
-      .then(position => {
+      .then((position) => {
         updateLocationFromCoordinates(position.longitude, position.latitude);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("Utilisation de la position par défaut:", error.message);
       });
   }, [getCurrentPosition, updateLocationFromCoordinates]);
 
   const handleRequestCurrentLocation = () => {
-    getCurrentPosition()
-      .then(position => {
-        updateLocationFromCoordinates(position.longitude, position.latitude);
-      });
+    getCurrentPosition().then((position) => {
+      updateLocationFromCoordinates(position.longitude, position.latitude);
+    });
   };
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Traitement spécial pour le numéro de téléphone
-    if (name === 'phone') {
+    if (name === "phone") {
       handlePhoneChange(e);
     } else {
       setFormData({ ...formData, [name]: value });
     }
-    
+
     // Validation de l'email en temps réel
-    if (name === 'email') {
+    if (name === "email") {
       validateEmail(value);
     }
-    
+
     // Validation de la date de naissance en temps réel
-    if (name === 'birthDay') {
+    if (name === "birthDay") {
       if (value) {
         const selectedDate = new Date(value);
         const currentDate = new Date();
-        
+
         currentDate.setHours(0, 0, 0, 0);
-        
+
         if (selectedDate > currentDate) {
-          setBirthDayError("La date de naissance ne peut pas être dans le futur");
+          setBirthDayError(
+            "La date de naissance ne peut pas être dans le futur"
+          );
         } else {
           setBirthDayError("");
           // Formatage de la date au format YYYY-MM-DD
-          const formattedDate = value.split('T')[0];
-          setFormData(prev => ({ ...prev, birthDay: formattedDate }));
+          const formattedDate = value.split("T")[0];
+          setFormData((prev) => ({ ...prev, birthDay: formattedDate }));
           return; // Important : sortir de la fonction ici
         }
       } else {
         setBirthDayError("");
       }
     }
-    
+
     setPasswordsMatch(true);
     setRegistrationSuccess(false);
     setPasswordComplexityError(false);
     setError("");
   };
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -171,7 +192,7 @@ const RegistrationForm = () => {
     if (birthDayError) {
       return;
     }
-    
+
     // Validation du numéro de téléphone
     if (!validatePhone(formData.phone)) {
       return;
@@ -182,7 +203,8 @@ const RegistrationForm = () => {
       return;
     }
 
-    const passwordRegex = /(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+    const passwordRegex =
+      /(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
     if (!passwordRegex.test(formData.password)) {
       setPasswordComplexityError(true);
       return;
@@ -206,7 +228,7 @@ const RegistrationForm = () => {
       .catch((error) => {
         console.error("Erreur lors de l'inscription :", error);
         const errorMessage = error.response?.data?.message;
-        
+
         if (errorMessage === "Email already exists") {
           setError("Cette adresse email est déjà utilisée");
         } else if (errorMessage === "Username already exists") {
@@ -235,13 +257,20 @@ const RegistrationForm = () => {
               <Card.Body className="p-4">
                 <div className="text-center mb-4">
                   <h2>Inscription</h2>
-                  <p className="text-muted">Rejoignez la communauté WhiskerQuest</p>
+                  <p className="text-muted">
+                    Rejoignez la communauté WhiskerQuest
+                  </p>
                 </div>
 
-                {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+                {error && (
+                  <Alert variant="danger" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
                 {registrationSuccess && (
                   <Alert variant="success" className="mb-4">
-                    Inscription réussie ! Redirection vers la page de connexion...
+                    Inscription réussie ! Redirection vers la page de
+                    connexion...
                   </Alert>
                 )}
 
@@ -300,12 +329,19 @@ const RegistrationForm = () => {
                                 onChange={handleChange}
                                 placeholder="Créez votre mot de passe"
                                 required
-                                isInvalid={!passwordsMatch || passwordComplexityError}
+                                isInvalid={
+                                  !passwordsMatch || passwordComplexityError
+                                }
                               />
-                              <Button 
+                              <Button
                                 variant="outline-secondary"
                                 onClick={() => setShowPassword(!showPassword)}
-                                style={{ borderColor: (!passwordsMatch || passwordComplexityError) ? '#dc3545' : '' }}
+                                style={{
+                                  borderColor:
+                                    !passwordsMatch || passwordComplexityError
+                                      ? "#dc3545"
+                                      : "",
+                                }}
                               >
                                 {showPassword ? <FaEyeSlash /> : <FaEye />}
                               </Button>
@@ -332,12 +368,20 @@ const RegistrationForm = () => {
                                 required
                                 isInvalid={!passwordsMatch}
                               />
-                              <Button 
+                              <Button
                                 variant="outline-secondary"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                style={{ borderColor: !passwordsMatch ? '#dc3545' : '' }}
+                                onClick={() =>
+                                  setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                style={{
+                                  borderColor: !passwordsMatch ? "#dc3545" : "",
+                                }}
                               >
-                                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                {showConfirmPassword ? (
+                                  <FaEyeSlash />
+                                ) : (
+                                  <FaEye />
+                                )}
                               </Button>
                               {!passwordsMatch && (
                                 <Form.Control.Feedback type="invalid">
@@ -420,11 +464,18 @@ const RegistrationForm = () => {
                               disabled={enumsLoading || enumsError}
                             >
                               <option value="">Sélectionnez le genre</option>
-                              {enums && enums.gender.map((g) => (
-                                <option key={g.value} value={g.value}>{g.label}</option>
-                              ))}
+                              {enums &&
+                                enums.gender.map((g) => (
+                                  <option key={g.value} value={g.value}>
+                                    {g.label}
+                                  </option>
+                                ))}
                             </Form.Select>
-                            {enumsError && <div className="text-danger">Erreur lors du chargement des genres</div>}
+                            {enumsError && (
+                              <div className="text-danger">
+                                Erreur lors du chargement des genres
+                              </div>
+                            )}
                           </Form.Group>
                         </Col>
                       </Row>
@@ -432,19 +483,22 @@ const RegistrationForm = () => {
                       <Form.Group className="mb-3">
                         <Form.Label>
                           <FaPhone className="me-2" />
-                          {t('register.phoneLabel', 'Téléphone')}
+                          {t("register.phoneLabel", "Téléphone")}
                         </Form.Label>
                         <Form.Control
                           type="tel"
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder={t('register.phonePlaceholder', 'Votre numéro de téléphone (ex: 0493 96 33 75)')}
+                          placeholder={t(
+                            "register.phonePlaceholder",
+                            "Votre numéro de téléphone (ex: 0493 96 33 75)"
+                          )}
                           isInvalid={!!phoneError}
                         />
                         {phoneError && (
                           <Form.Control.Feedback type="invalid">
-                            {t('register.phoneInvalid', phoneError)}
+                            {t("register.phoneInvalid", phoneError)}
                           </Form.Control.Feedback>
                         )}
                       </Form.Group>
@@ -453,22 +507,26 @@ const RegistrationForm = () => {
 
                   <Card className="mb-4">
                     <Card.Body>
-                      <h5 className="mb-3">{t('register.addressTitle', 'Adresse')}</h5>
+                      <h5 className="mb-3">
+                        {t("register.addressTitle", "Adresse")}
+                      </h5>
                       <MapLocation
                         location={{
                           address: formData.address,
                           city: formData.city,
                           postalCode: formData.postalCode,
                           latitude: formData.latitude,
-                          longitude: formData.longitude
+                          longitude: formData.longitude,
                         }}
-                        onLocationChange={(longitude, latitude) => updateLocationFromCoordinates(longitude, latitude)}
+                        onLocationChange={(longitude, latitude) =>
+                          updateLocationFromCoordinates(longitude, latitude)
+                        }
                         onAddressChange={(addressData) => {
                           setFormData({
                             ...formData,
                             address: addressData.address,
                             city: addressData.city,
-                            postalCode: addressData.postalCode
+                            postalCode: addressData.postalCode,
                           });
                         }}
                         isLocating={isLocating}
@@ -483,8 +541,14 @@ const RegistrationForm = () => {
                   <Form.Group className="mb-4">
                     <Form.Check
                       required
-                      label={t('register.terms', "J'accepte les termes et conditions")}
-                      feedback={t('register.termsFeedback', 'Vous devez accepter avant de soumettre.')}
+                      label={t(
+                        "register.terms",
+                        "J'accepte les termes et conditions"
+                      )}
+                      feedback={t(
+                        "register.termsFeedback",
+                        "Vous devez accepter avant de soumettre."
+                      )}
                       feedbackType="invalid"
                     />
                   </Form.Group>
@@ -496,16 +560,16 @@ const RegistrationForm = () => {
                       size="lg"
                       style={buttonStyles}
                     >
-                      {t('register.submit', "S'inscrire")}
+                      {t("register.submit", "S'inscrire")}
                     </Button>
                   </div>
                 </Form>
 
                 <div className="text-center mt-4">
                   <p className="text-muted">
-                    {t('register.alreadyMember', 'Déjà membre ?')} {" "}
+                    {t("register.alreadyMember", "Déjà membre ?")}{" "}
                     <Link to="/login" className="text-primary">
-                      {t('register.login', 'Se connecter')}
+                      {t("register.login", "Se connecter")}
                     </Link>
                   </p>
                 </div>

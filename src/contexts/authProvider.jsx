@@ -1,15 +1,25 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { useAxios } from '../hooks/useAxios';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
+import { useAxios } from "../hooks/useAxios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "./NotificationContext";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const location = useLocation();
+export const AuthProvider = ({ children, onLogoutRef }) => {
   const { showNotification } = useNotification();
   const axios = useAxios();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
+
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!sessionStorage.getItem("token")
+  );
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const initialLoadDone = useRef(false);
@@ -31,10 +41,8 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    if (!sessionStorage.getItem("token")) {
+    if (!isLoggedIn) {
       setLoading(false);
-      setIsLoggedIn(false);
-      setUserDataWithStorage(null);
       return;
     }
 
@@ -44,36 +52,31 @@ export const AuthProvider = ({ children }) => {
       try {
         const parsedData = JSON.parse(storedUserData);
         setUserData(parsedData);
-        setIsLoggedIn(true);
         setLoading(false);
         initialLoadDone.current = true;
         return;
       } catch (error) {
-        console.error("Erreur lors de la récupération des données utilisateur du sessionStorage:", error);
-        // Continuer pour essayer de récupérer les données depuis l'API
+        console.error(
+          "Erreur lors de la récupération des données utilisateur du sessionStorage:",
+          error
+        );
       }
     }
 
-    // Si nous n'avons pas pu récupérer les données du sessionStorage, essayons l'API
+    // Si pas de données en sessionStorage, récupérer depuis l'API
     try {
       const response = await axios.get("users/me");
-      setIsLoggedIn(true);
       setUserDataWithStorage(response);
     } catch (error) {
       console.error("Error fetching user data:", error);
-      // Ne pas déconnecter l'utilisateur si l'API échoue mais que le token est présent
-      // Nous gardons l'utilisateur connecté avec les données minimales
-      if (sessionStorage.getItem("token")) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
+      if (!isLoggedIn) {
         setUserDataWithStorage(null);
       }
     } finally {
       setLoading(false);
       initialLoadDone.current = true;
     }
-  }, [setUserDataWithStorage, userData]);
+  }, [setUserDataWithStorage, userData, isLoggedIn, axios]);
 
   useEffect(() => {
     if (!initialLoadDone.current) {
@@ -90,43 +93,58 @@ export const AuthProvider = ({ children }) => {
    * @param {Object} [options]
    * @param {boolean} [options.sessionExpired]
    */
-  const logout = useCallback((options = {}) => {
-    setIsLoggedIn(false);
-    setUserDataWithStorage(null);
-    sessionStorage.removeItem("token");
-    setTimeout(() => {
-      const token = sessionStorage.getItem("token");
-      if (!token) {
-        console.info('%cVous êtes déconnecté(e). Le token est maintenant vide.', 'color: green; font-weight: bold;');
+  // Fonction de déconnexion
+  const logout = useCallback(
+    (options = {}) => {
+      setIsLoggedIn(false);
+      setUserDataWithStorage(null);
+      sessionStorage.removeItem("token");
+      initialLoadDone.current = false;
+      navigate("/login", { replace: true });
+
+      if (options.sessionExpired) {
+        showNotification(
+          "Votre session a expiré, veuillez vous reconnecter.",
+          "error"
+        );
       } else {
-        console.warn('%cDéconnexion attendue, mais le token existe encore :', 'color: orange; font-weight: bold;', token);
+        showNotification("Vous avez été déconnecté.", "info");
       }
-    }, 100);
-    initialLoadDone.current = false;
-    navigate('/login', { replace: true });
-    if (options.sessionExpired) {
-      showNotification("Votre session a expiré, veuillez vous reconnecter.", "error");
-    } else {
-      showNotification("Vous avez été déconnecté.", "info");
+    },
+    [setUserDataWithStorage, navigate, showNotification]
+  );
+
+  // Exposer la fonction de déconnexion via la ref
+  useEffect(() => {
+    if (onLogoutRef) {
+      onLogoutRef.current = logout;
     }
-  }, [setUserDataWithStorage, navigate, showNotification]);
+  }, [logout, onLogoutRef]);
 
   if (loading) {
-    return null; // Or a loading spinner
+    return <LoadingSpinner message="Chargement de l'authentification..." />;
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      isLoggedIn, 
-      setIsLoggedIn, 
-      userData, 
-      setUserData: setUserDataWithStorage, 
-      fetchUserData,
-      logout 
-    }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        setIsLoggedIn,
+        userData,
+        setUserData: setUserDataWithStorage,
+        fetchUserData,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

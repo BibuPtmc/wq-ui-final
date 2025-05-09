@@ -83,7 +83,7 @@ function buildUpdatedCatDTO(updatedData, currentCat, convertToEnum) {
 
 import { useAxios } from "../hooks/useAxios";
 import { formatDateForJava, convertToEnum } from "../utils/enumUtils";
-import { useAuth } from "../contexts/authProvider";
+import { useAuth } from "../contexts/AuthProvider";
 import { useNotification } from "./NotificationContext";
 
 // Création du contexte
@@ -537,6 +537,20 @@ export const CatsProvider = ({ children }) => {
     }
   };
 
+  const getCatLocationHistory = async (catId) => {
+    try {
+      const response = await axios.get(`cat/${catId}/location-history`);
+      return response;
+    } catch (error) {
+      notifyApiError(
+        showNotification,
+        "lors de la récupération de l'historique des localisations",
+        error
+      );
+      return [];
+    }
+  };
+
   /**
    * Recherche les chats perdus potentiellement correspondants à un chat trouvé donné (catId).
    * Retourne la liste depuis l'API ou [] en cas d'erreur, notifie l'utilisateur.
@@ -618,6 +632,7 @@ export const CatsProvider = ({ children }) => {
         fetchCats,
         fetchUserAddress,
         updateAllOwnedCatsAddress,
+        getCatLocationHistory,
       }}
     >
       {children}

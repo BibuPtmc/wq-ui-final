@@ -1,15 +1,15 @@
 :root {
   /* Palette de couleurs principale */
-  --primary-color: #6B4423;     /* Marron foncé - couleur principale */
-  --secondary-color: #D4A373;   /* Marron clair - couleur secondaire */
-  --accent-color: #E9B384;      /* Beige orangé - accent */
-  --light-accent: #FFECD6;      /* Beige clair - accent léger */
-  --dark-text: #2C1810;         /* Marron très foncé - texte principal */
-  --light-text: #F5F5F5;        /* Blanc cassé - texte clair */
-  --success-color: #4CAF50;     /* Vert - succès */
-  --danger-color: #F44336;      /* Rouge - erreur/danger */
-  --warning-color: #FFA726;     /* Orange - avertissement */
-  
+  --primary-color: #6b4423; /* Marron foncé - couleur principale */
+  --secondary-color: #d4a373; /* Marron clair - couleur secondaire */
+  --accent-color: #e9b384; /* Beige orangé - accent */
+  --light-accent: #ffecd6; /* Beige clair - accent léger */
+  --dark-text: #2c1810; /* Marron très foncé - texte principal */
+  --light-text: #f5f5f5; /* Blanc cassé - texte clair */
+  --success-color: #4caf50; /* Vert - succès */
+  --danger-color: #f44336; /* Rouge - erreur/danger */
+  --warning-color: #ffa726; /* Orange - avertissement */
+
   /* Variables pour l'espacement */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -34,7 +34,11 @@ body {
 
 /* Style pour les cartes */
 .cat-card {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  min-height: 370px;
+  max-width: 320px;
   transition: all 0.3s ease-in-out;
   background-color: #fff;
   border: 1px solid rgba(107, 68, 35, 0.1);
@@ -46,18 +50,48 @@ body {
   box-shadow: 0 4px 12px rgba(107, 68, 35, 0.15);
 }
 
-.cat-card img {
-  height: 200px;
-  object-fit: cover;
-  width: 100%;
+.cat-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+  background-color: #fff;
 }
 
 .cat-card .card-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
   color: var(--primary-color);
 }
 
-.cat-card .card-body {
-  background-color: #fff;
+.cat-card .d-flex.gap-2.mt-2 {
+  flex-wrap: wrap;
+  gap: 0.3rem !important;
+}
+
+.cat-card .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+  min-width: 32px;
+}
+
+.cat-card .badge {
+  font-size: 0.85rem;
+  padding: 0.3em 0.7em;
+}
+
+.cat-card .card-img-top {
+  object-fit: cover;
+  height: 200px;
+  width: 100%;
+}
+
+/* Pour éviter le débordement des boutons */
+.cat-card .d-flex.gap-2.mt-2 > * {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* Badges personnalisés */
@@ -73,12 +107,12 @@ body {
 
 /* Override Bootstrap badge colors */
 .badge.bg-primary {
-  background-color: var(--primary-color) !important;  /* Brun foncé pour mâle */
+  background-color: var(--primary-color) !important; /* Brun foncé pour mâle */
   color: var(--light-text) !important;
 }
 
 .badge.bg-danger {
-  background-color: #f0c8d0 !important;  /* Rose-brun clair pour femelle */
+  background-color: #f0c8d0 !important; /* Rose-brun clair pour femelle */
   color: var(--dark-text) !important;
 }
 
@@ -182,11 +216,11 @@ a:hover {
   body {
     padding-top: 62px;
   }
-  
+
   .main-container {
     padding-top: var(--spacing-md);
   }
-  
+
   .cat-card img {
     height: 150px;
   }
@@ -266,4 +300,41 @@ a:hover {
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Bouton détails pleine largeur */
+.cat-details-btn {
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.2rem;
+}
+
+/* Ligne des boutons d'action icônes */
+.cat-actions-row {
+  margin-bottom: 0.2rem;
+}
+
+.cat-action-btn {
+  min-width: 36px;
+  max-width: 40px;
+  padding: 0.25rem 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .cat-card {
+    max-width: 100%;
+  }
+  .cat-details-btn {
+    font-size: 0.95rem;
+  }
+  .cat-action-btn {
+    font-size: 1rem;
+    min-width: 32px;
+    max-width: 36px;
+  }
 }

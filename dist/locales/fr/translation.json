@@ -358,6 +358,29 @@
   "ownedCats.color": "Couleur",
   "ownedCats.furType": "Type de fourrure",
   "ownedCats.lostCommentPlaceholder": "Informations supplémentaires sur la disparition de votre chat",
+  "ownedCats.history": "Historique",
+  "ownedCats.historyTitle": "Historique des localisations",
+  "ownedCats.noHistory": "Aucun historique disponible",
+  "ownedCats.status": "Statut",
+  "ownedCats.address": "Adresse",
+  "ownedCats.city": "Ville",
+  "ownedCats.postalCode": "Code postal",
+  "ownedCats.noDate": "Date non disponible",
+  "ownedCats.owned": "Possédé",
+  "ownedCats.vaccinated": "Vacciné",
+  "ownedCats.notSpecified": "Non spécifié",
+  "ownedCats.yes": "Oui",
+  "ownedCats.no": "Non",
+  "ownedCats.sterilized": "Stérilisé",
+  "cat": {
+    "sterilized": "Stérilisé",
+    "notSpecified": "Non spécifié",
+    "yes": "Oui",
+    "no": "Non",
+    "vaccinated": "Vacciné",
+    "selectBirthDate": "Sélectionnez la date de naissance",
+    "birthDateHelp": "Format: JJ/MM/AAAA"
+  },
 
   "paymentSuccess.backHome": "Retour à l'accueil",
   "paymentSuccess.processing": "Votre commande est en cours de traitement et sera bientôt expédiée.",
@@ -401,6 +424,7 @@
   "personalInfo.phonePlaceholder": "Ex: 0493 96 33 75",
   "personalInfo.success": "Vos informations ont été mises à jour avec succès !",
   "personalInfo.updateButton": "Mettre à jour mes informations",
+  "personalInfo.save": "Enregistrer les modifications",
 
   "profile.cancel": "Annuler",
   "profile.edit": "Modifier",
@@ -476,6 +500,7 @@
   "reportedCats.grey": "Gris",
   "reportedCats.red": "Roux",
   "reportedCats.mixed": "Mixte",
+  "reportedCats.delete": "Supprimer",
 
   "shop.addToCart": "Ajouter au panier",
   "shop.checkout": "Paiement",
@@ -504,4 +529,3 @@
   "upload.uploadFailed": "Échec du téléchargement de l'image. Veuillez réessayer.",
   "upload.uploading": "Téléchargement en cours... {{progress}}%"
 }
-
