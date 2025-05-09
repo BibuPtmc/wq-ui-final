@@ -9,6 +9,7 @@ import {
 import { useAxios } from "../hooks/useAxios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "./NotificationContext";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const AuthContext = createContext();
 
@@ -121,7 +122,7 @@ export const AuthProvider = ({ children, onLogoutRef }) => {
   }, [logout, onLogoutRef]);
 
   if (loading) {
-    return null; // Ou un composant de chargement
+    return <LoadingSpinner message="Chargement de l'authentification..." />;
   }
 
   return (
