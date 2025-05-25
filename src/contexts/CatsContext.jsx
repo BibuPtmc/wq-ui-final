@@ -580,9 +580,15 @@ export const CatsProvider = ({ children }) => {
     try {
       // Pour chaque chat possédé, on met à jour la localisation
       const updatePromises = ownedCats.map(async (catStatus) => {
-        const catDTO = {
-          ...catStatus.cat,
-          // On conserve toutes les infos du chat, mais on met à jour la localisation
+        // Créer un CatStatusDTO pour la mise à jour du statut
+        const now = new Date();
+        const formattedDate = formatDateForJava(now.toISOString());
+
+        const catStatusDTO = {
+          cat: {
+            catId: catStatus.cat.catId,
+          },
+          statusCat: "OWN", // On garde le statut OWN
           location: {
             address: newAddress.address,
             city: newAddress.city,
@@ -590,27 +596,51 @@ export const CatsProvider = ({ children }) => {
             latitude: newAddress.latitude,
             longitude: newAddress.longitude,
           },
+          user: {
+            userId: catStatus.user.userId,
+          },
+          comment: catStatus.comment || "Adresse mise à jour",
+          reportDate: formattedDate,
         };
-        await axios.put(`/cat/update`, catDTO);
+
+        // Utiliser l'endpoint updateStatus pour mettre à jour le statut et la localisation
+        const updatedStatus = await axios.put(
+          `/cat/updateStatus`,
+          catStatusDTO
+        );
+
+        // Retourner le chat mis à jour avec la nouvelle localisation
         return {
           ...catStatus,
-          location: catDTO.location,
+          location: catStatusDTO.location,
           cat: {
             ...catStatus.cat,
-            location: catDTO.location,
+            location: catStatusDTO.location,
           },
         };
       });
-      // Met à jour localement l'état après toutes les requêtes
+
+      // Attendre que toutes les mises à jour soient terminées
       const updatedCats = await Promise.all(updatePromises);
+
+      // Mettre à jour l'état local
       setOwnedCats(updatedCats);
+
+      // Afficher une notification de succès
       showNotification(
         "L'adresse de tous vos chats a été mise à jour !",
         "success"
       );
+
       return true;
     } catch (error) {
-      // Log réduit pour les performances
+      showNotification(
+        "Erreur lors de la mise à jour des adresses des chats : " +
+          (error?.response?.data?.message ||
+            error?.message ||
+            "Erreur inconnue"),
+        "error"
+      );
       return false;
     }
   };

@@ -128,6 +128,9 @@ const UserProvider = ({ children }) => {
           });
         }
 
+        // Mettre à jour l'adresse de tous les chats possédés
+        await updateAllOwnedCatsAddress(updatedUserData);
+
         setUpdateSuccess(true);
 
         // Réinitialiser le message de succès après 3 secondes
@@ -144,7 +147,7 @@ const UserProvider = ({ children }) => {
         return false;
       }
     },
-    [axios, isLoggedIn, userData, setUserData]
+    [axios, isLoggedIn, userData, setUserData, updateAllOwnedCatsAddress]
   );
 
   // Fonction pour mettre à jour le mot de passe

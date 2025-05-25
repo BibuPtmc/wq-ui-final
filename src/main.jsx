@@ -22,6 +22,10 @@ import "./styles/global.css";
 import { useAuth } from "./contexts/AuthProvider";
 import { AppProviders } from "./contexts/AppProviders";
 import NotificationBar from "./components/common/NotificationBar";
+import AdminLayout from "./components/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import UsersManagement from "./pages/admin/UsersManagement";
+import CatsManagement from "./pages/admin/CatsManagement";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -76,6 +80,36 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={["ADMIN"]}>
+                  <AdminLayout>
+                    <Routes>
+                      <Route index element={<Dashboard />} />
+                      <Route path="users" element={<UsersManagement />} />
+                      <Route path="cats" element={<CatsManagement />} />
+                      <Route
+                        path="orders"
+                        element={
+                          <div>Gestion des commandes (à implémenter)</div>
+                        }
+                      />
+                      <Route
+                        path="products"
+                        element={
+                          <div>Gestion des produits (à implémenter)</div>
+                        }
+                      />
+                      <Route
+                        path="reports"
+                        element={<div>Rapports (à implémenter)</div>}
+                      />
+                    </Routes>
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
         <Footer />
@@ -83,7 +117,7 @@ function App() {
     </CartProvider>
   );
 }
-
+//TODO:devenir app.jsx et voir avec le provider ce que je peux retirer
 root.render(
   <BrowserRouter
     future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
