@@ -1,5 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Alert,
+  Spinner,
+  Table,
+} from "react-bootstrap";
 import {
   LineChart,
   Line,
@@ -12,74 +22,192 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
 } from "recharts";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
+import { useNotification } from "../../contexts/NotificationContext";
 import { FiDownload } from "react-icons/fi";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
+/**
+ * Affiche une notification d'erreur API standardisée.
+ */
+function notifyApiError(showNotification, contextMsg, error) {
+  showNotification(
+    `Erreur ${contextMsg} : ` +
+      (error?.response?.data?.message || error?.message || "Erreur inconnue"),
+    "error"
+  );
+}
+
 const Reports = () => {
   const { t } = useTranslation();
-  const { token } = useAuth();
-  const { api } = useAxios();
-  const [period, setPeriod] = useState("month");
+  const axios = useAxios();
+  const { showNotification } = useNotification();
+  const [loading, setLoading] = useState(true);
   const [salesData, setSalesData] = useState([]);
   const [userStats, setUserStats] = useState([]);
   const [catStats, setCatStats] = useState([]);
   const [productStats, setProductStats] = useState([]);
-  const [reportType, setReportType] = useState("sales");
-  const [reportPeriod, setReportPeriod] = useState("week");
-  const [reportData, setReportData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchReportData();
-  }, [period]);
+  const fetchAllStats = useCallback(async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      setLoading(false);
+      return;
+    }
 
-  const fetchReportData = async () => {
     try {
-      const [sales, users, cats, products] = await Promise.all([
-        api.get(`/admin/reports/sales?period=${period}`),
-        api.get(`/admin/reports/users?period=${period}`),
-        api.get(`/admin/reports/cats?period=${period}`),
-        api.get(`/admin/reports/products?period=${period}`),
+      setLoading(true);
+      const [orders, users, cats, products] = await Promise.all([
+        axios.get("/ecommerce/orders"),
+        axios.get("/users/"),
+        axios.get("/cat/admin/all-current"),
+        axios.get("/ecommerce/products"),
       ]);
 
-      setSalesData(sales.data);
-      setUserStats(users.data);
-      setCatStats(cats.data);
-      setProductStats(products.data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des rapports:", error);
-    }
-  };
+      // Traitement des données de ventes
+      const salesData =
+        orders
+          ?.reduce((acc, order) => {
+            const date = new Date(order.orderDate).toLocaleDateString("fr-FR");
+            const existingEntry = acc.find((entry) => entry.date === date);
 
-  const handlePeriodChange = (event) => {
-    setPeriod(event.target.value);
-  };
+            if (existingEntry) {
+              existingEntry.amount += order.totalAmount || 0;
+              existingEntry.orders += 1;
+            } else {
+              acc.push({
+                date,
+                amount: order.totalAmount || 0,
+                orders: 1,
+              });
+            }
+            return acc;
+          }, [])
+          .sort((a, b) => new Date(a.date) - new Date(b.date)) || [];
+
+      // Traitement des statistiques utilisateurs
+      const userStats =
+        users?.reduce((acc, user) => {
+          const gender = user.gender || "OTHER";
+          const existingEntry = acc.find((entry) => entry.gender === gender);
+
+          if (existingEntry) {
+            existingEntry.count += 1;
+          } else {
+            acc.push({
+              gender: t(`common.gender.${gender.toLowerCase()}`, gender),
+              count: 1,
+            });
+          }
+          return acc;
+        }, []) || [];
+
+      // Traitement des statistiques chats
+      const catStats =
+        cats?.reduce((acc, catStatus) => {
+          const status = catStatus.statusCat;
+          const existingEntry = acc.find((entry) => entry.name === status);
+
+          if (existingEntry) {
+            existingEntry.value += 1;
+          } else {
+            acc.push({
+              name: t(`common.${status.toLowerCase()}`, status),
+              value: 1,
+            });
+          }
+          return acc;
+        }, []) || [];
+
+      // Traitement des statistiques produits
+      const productStats =
+        products?.reduce((acc, product) => {
+          const stockStatus =
+            product.stockQuantity > 0 ? "IN_STOCK" : "OUT_OF_STOCK";
+          const existingEntry = acc.find((entry) => entry.name === stockStatus);
+
+          if (existingEntry) {
+            existingEntry.value += 1;
+          } else {
+            acc.push({
+              name: t(
+                `admin.products.status.${stockStatus.toLowerCase()}`,
+                stockStatus
+              ),
+              value: 1,
+            });
+          }
+          return acc;
+        }, []) || [];
+
+      setSalesData(salesData);
+      setUserStats(userStats);
+      setCatStats(catStats);
+      setProductStats(productStats);
+    } catch (error) {
+      notifyApiError(
+        showNotification,
+        "lors de la récupération des statistiques",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [axios, showNotification, t]);
+
+  useEffect(() => {
+    fetchAllStats();
+  }, [fetchAllStats]);
 
   const handleExport = async (type) => {
     try {
-      const response = await api.get(
-        `/admin/reports/export/${type}?period=${period}`,
-        {
-          responseType: "blob",
-        }
-      );
+      let dataToExport = [];
+      let filename = "";
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      switch (type) {
+        case "sales":
+          dataToExport = salesData;
+          filename = "ventes";
+          break;
+        case "users":
+          dataToExport = userStats;
+          filename = "utilisateurs";
+          break;
+        case "cats":
+          dataToExport = catStats;
+          filename = "chats";
+          break;
+        case "products":
+          dataToExport = productStats;
+          filename = "produits";
+          break;
+        default:
+          throw new Error("Type de rapport non supporté");
+      }
+
+      const headers = Object.keys(dataToExport[0] || {}).join(",");
+      const rows = dataToExport.map((row) => Object.values(row).join(","));
+      const csv = [headers, ...rows].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `${type}-report-${period}.xlsx`);
+      link.setAttribute("download", `rapport-${filename}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+
+      showNotification("Le rapport a été exporté avec succès !", "success");
     } catch (error) {
-      console.error("Erreur lors de l'export:", error);
+      notifyApiError(showNotification, "lors de l'export du rapport", error);
     }
   };
 
@@ -87,221 +215,160 @@ const Reports = () => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: "EUR",
-    }).format(value);
+    }).format(value || 0);
   };
 
-  const fetchReport = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(
-        `/admin/reports/${reportType}?period=${reportPeriod}`
-      );
-      setReportData(response.data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération du rapport:", error);
-      setReportData(null); // Clear data on error
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReport();
-  }, [reportType, reportPeriod]); // Re-fetch when type or period changes
-
-  const handleDownload = async () => {
-    try {
-      const response = await api.get(
-        `/admin/reports/${reportType}/export?period=${reportPeriod}`,
-        {
-          responseType: "blob", // Important for handling binary data like files
-        }
-      );
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      // Suggest a filename based on report type and period
-      link.setAttribute(
-        "download",
-        `${reportType}_report_${reportPeriod}.${
-          response.headers["content-type"] === "text/csv" ? "csv" : "xlsx"
-        }`
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove(); // Clean up
-    } catch (error) {
-      console.error("Erreur lors du téléchargement du rapport:", error);
-    }
-  };
+  if (loading) {
+    return (
+      <Container className="py-3">
+        <div className="text-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Chargement...</span>
+          </Spinner>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-3">
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>{t("admin.reports.title", "Rapports")}</h2>
         <div className="d-flex gap-2">
-          <Form.Select
-            value={period}
-            onChange={handlePeriodChange}
-            style={{ minWidth: "120px" }}
+          <Button
+            variant="primary"
+            onClick={() => handleExport("sales")}
+            disabled={!salesData.length}
           >
-            <option value="week">{t("admin.reports.week", "Semaine")}</option>
-            <option value="month">{t("admin.reports.month", "Mois")}</option>
-            <option value="year">{t("admin.reports.year", "Année")}</option>
-          </Form.Select>
-          <Button variant="primary" onClick={() => handleExport("all")}>
             <FiDownload className="me-2" />
-            {t("admin.reports.export", "Exporter")}
+            {t("admin.reports.exportSales", "Exporter les ventes")}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handleExport("users")}
+            disabled={!userStats.length}
+          >
+            <FiDownload className="me-2" />
+            {t("admin.reports.exportUsers", "Exporter les utilisateurs")}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handleExport("cats")}
+            disabled={!catStats.length}
+          >
+            <FiDownload className="me-2" />
+            {t("admin.reports.exportCats", "Exporter les chats")}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handleExport("products")}
+            disabled={!productStats.length}
+          >
+            <FiDownload className="me-2" />
+            {t("admin.reports.exportProducts", "Exporter les produits")}
           </Button>
         </div>
       </div>
 
-      <Card className="mb-4">
-        <Card.Body>
-          <Form>
-            <Row className="align-items-end">
-              <Col md={4}>
-                <Form.Group controlId="reportType">
-                  <Form.Label>
-                    {t("admin.reports.reportType", "Type de rapport")}
-                  </Form.Label>
-                  <Form.Select
-                    value={reportType}
-                    onChange={(e) => setReportType(e.target.value)}
-                  >
-                    <option value="sales">
-                      {t("admin.reports.sales", "Ventes")}
-                    </option>
-                    <option value="users">
-                      {t("admin.reports.users", "Utilisateurs")}
-                    </option>
-                    <option value="cats">
-                      {t("admin.reports.cats", "Chats")}
-                    </option>
-                    <option value="products">
-                      {t("admin.reports.products", "Produits")}
-                    </option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group controlId="reportPeriod">
-                  <Form.Label>
-                    {t("admin.reports.period", "Période")}
-                  </Form.Label>
-                  <Form.Select
-                    value={reportPeriod}
-                    onChange={(e) => setReportPeriod(e.target.value)}
-                  >
-                    <option value="week">
-                      {t("admin.reports.period.week", "Semaine")}
-                    </option>
-                    <option value="month">
-                      {t("admin.reports.period.month", "Mois")}
-                    </option>
-                    <option value="year">
-                      {t("admin.reports.period.year", "Année")}
-                    </option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={4} className="d-flex justify-content-end">
-                <Button
-                  variant="success"
-                  onClick={handleDownload}
-                  disabled={!reportData || loading}
-                >
-                  <FiDownload className="me-2" />
-                  {t("admin.reports.export", "Exporter")}
-                </Button>
-              </Col>
-            </Row>
-          </Form>
-        </Card.Body>
-      </Card>
-
-      {loading && <p>{t("common.loading", "Chargement...")}</p>}
-
-      {reportData && !loading && (
-        <div>
-          {reportType === "sales" && (
-            <Card className="mb-4">
+      <Row className="g-4">
+        {/* Graphique des ventes */}
+        {salesData.length > 0 && (
+          <Col xs={12}>
+            <Card>
               <Card.Body>
-                <h5 className="card-title mb-4">
-                  {t("admin.reports.salesAmount", "Montant des ventes")}
-                </h5>
-                <p>
-                  {t("admin.reports.totalRevenue", "Revenus totaux")}:{" "}
-                  {new Intl.NumberFormat("fr-BE", {
-                    style: "currency",
-                    currency: "EUR",
-                  }).format(reportData.totalRevenue)}
-                </p>
-                <p>
-                  {t("admin.reports.orderCount", "Nombre de commandes")}:{" "}
-                  {reportData.orderCount}
-                </p>
-                <div style={{ width: "100%", height: 300 }}>
+                <h5 className="mb-4">{t("admin.reports.sales", "Ventes")}</h5>
+                <Row className="mb-4">
+                  <Col md={6}>
+                    <Card>
+                      <Card.Body>
+                        <h6>
+                          {t("admin.reports.totalRevenue", "Revenus totaux")}
+                        </h6>
+                        <p className="h3">
+                          {formatCurrency(
+                            salesData.reduce(
+                              (sum, item) => sum + item.amount,
+                              0
+                            )
+                          )}
+                        </p>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                  <Col md={6}>
+                    <Card>
+                      <Card.Body>
+                        <h6>
+                          {t("admin.reports.orderCount", "Nombre de commandes")}
+                        </h6>
+                        <p className="h3">
+                          {salesData.reduce(
+                            (sum, item) => sum + item.orders,
+                            0
+                          )}
+                        </p>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+                <div style={{ height: "400px" }}>
                   <ResponsiveContainer>
-                    <BarChart data={reportData.revenueByPeriod}>
+                    <LineChart data={salesData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip />
+                      <XAxis dataKey="date" />
+                      <YAxis yAxisId="left" />
+                      <YAxis yAxisId="right" orientation="right" />
+                      <Tooltip formatter={formatCurrency} />
                       <Legend />
-                      <Bar
-                        dataKey="revenue"
-                        fill="#8884d8"
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="amount"
+                        stroke="#8884d8"
                         name={t(
                           "admin.reports.salesAmount",
                           "Montant des ventes"
                         )}
                       />
-                    </BarChart>
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="orders"
+                        stroke="#82ca9d"
+                        name={t(
+                          "admin.reports.orderCount",
+                          "Nombre de commandes"
+                        )}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
               </Card.Body>
             </Card>
-          )}
+          </Col>
+        )}
 
-          {reportType === "users" && (
-            <Card className="mb-4">
+        {/* Statistiques des utilisateurs */}
+        {userStats.length > 0 && (
+          <Col xs={12} md={6}>
+            <Card>
               <Card.Body>
-                <h5 className="card-title mb-4">
+                <h5 className="mb-4">
                   {t("admin.reports.users", "Utilisateurs")}
                 </h5>
-                <p>
-                  {t("admin.reports.newUsers", "Nouveaux utilisateurs")}:{" "}
-                  {reportData.newUsers}
-                </p>
-                <p>
-                  {t("admin.reports.activeUsers", "Utilisateurs actifs")}:{" "}
-                  {reportData.activeUsers}
-                </p>
-                {/* Add more user-related data/charts as needed */}
-              </Card.Body>
-            </Card>
-          )}
-
-          {reportType === "cats" && (
-            <Card className="mb-4">
-              <Card.Body>
-                <h5 className="card-title mb-4">
-                  {t("admin.reports.cats", "Chats")}
-                </h5>
-                <div style={{ width: "100%", height: 300 }}>
+                <div style={{ height: "300px" }}>
                   <ResponsiveContainer>
                     <PieChart>
                       <Pie
-                        data={reportData.catsByStatus}
-                        dataKey="value"
-                        nameKey="name"
+                        data={userStats}
+                        dataKey="count"
+                        nameKey="gender"
                         cx="50%"
                         cy="50%"
-                        outerRadius={80}
+                        outerRadius={100}
                         label
                       >
-                        {reportData.catsByStatus.map((entry, index) => (
+                        {userStats.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
@@ -315,120 +382,80 @@ const Reports = () => {
                 </div>
               </Card.Body>
             </Card>
-          )}
-
-          {reportType === "products" && (
-            <Card className="mb-4">
-              <Card.Body>
-                <h5 className="card-title mb-4">
-                  {t("admin.reports.products", "Produits")}
-                </h5>
-                <p>{t("admin.reports.topProducts", "Meilleurs produits")}</p>
-                {/* Display top products data, maybe in a table or list */}
-              </Card.Body>
-            </Card>
-          )}
-        </div>
-      )}
-
-      <Row className="g-3">
-        {/* Graphique des ventes */}
-        <Col xs={12}>
-          <Card>
-            <Card.Body>
-              <h5 className="mb-3">{t("admin.reports.sales", "Ventes")}</h5>
-              <div style={{ height: "400px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip formatter={formatCurrency} />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="amount"
-                      stroke="#8884d8"
-                      name={t(
-                        "admin.reports.salesAmount",
-                        "Montant des ventes"
-                      )}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="orders"
-                      stroke="#82ca9d"
-                      name={t(
-                        "admin.reports.orderCount",
-                        "Nombre de commandes"
-                      )}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
+          </Col>
+        )}
 
         {/* Statistiques des chats */}
-        <Col xs={12} md={6}>
-          <Card>
-            <Card.Body>
-              <h5 className="mb-3">{t("admin.reports.cats", "Chats")}</h5>
-              <div style={{ height: "300px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={catStats}
-                      dataKey="value"
-                      nameKey="status"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {catStats.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
+        {catStats.length > 0 && (
+          <Col xs={12} md={6}>
+            <Card>
+              <Card.Body>
+                <h5 className="mb-4">{t("admin.reports.cats", "Chats")}</h5>
+                <div style={{ height: "300px" }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={catStats}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                      >
+                        {catStats.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        )}
 
-        {/* Top produits */}
-        <Col xs={12}>
-          <Card>
-            <Card.Body>
-              <h5 className="mb-3">
-                {t("admin.reports.topProducts", "Meilleurs produits")}
-              </h5>
-              <div style={{ height: "400px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={productStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={formatCurrency} />
-                    <Legend />
-                    <Bar
-                      dataKey="sales"
-                      fill="#8884d8"
-                      name={t("admin.reports.sales", "Ventes")}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
+        {/* Statistiques des produits */}
+        {productStats.length > 0 && (
+          <Col xs={12}>
+            <Card>
+              <Card.Body>
+                <h5 className="mb-4">
+                  {t("admin.reports.products", "Produits")}
+                </h5>
+                <div style={{ height: "300px" }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={productStats}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                      >
+                        {productStats.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        )}
       </Row>
     </Container>
   );
