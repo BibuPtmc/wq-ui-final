@@ -1,0 +1,36 @@
+{
+  "menu": {
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "cats": "Chats",
+    "orders": "Commandes",
+    "products": "Produits",
+    "reports": "Rapports"
+  },
+  "title": "Administration WhiskerQuest",
+  "cats": {
+    "title": "Gestion des chats",
+    "create": "Créer un chat",
+    "edit": "Modifier le chat",
+    "id": "ID",
+    "name": "Nom",
+    "breed": "Race",
+    "color": "Couleur",
+    "age": "Âge",
+    "gender": "Genre",
+    "genders": {
+      "male": "Mâle",
+      "female": "Femelle"
+    },
+    "description": "Description",
+    "status": "Statut",
+    "chipNumber": "Numéro de puce",
+    "vaccinated": "Vacciné",
+    "sterilized": "Stérilisé",
+    "actions": "Actions",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce chat ?",
+    "fetchError": "Erreur lors de la récupération des chats",
+    "saveError": "Erreur lors de la sauvegarde du chat",
+    "deleteError": "Erreur lors de la suppression du chat"
+  }
+}

@@ -1,38 +1,106 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAxios } from "../../hooks/useAxios";
 import { Button, Table } from "react-bootstrap";
 import { Container, Card, Badge, Modal, Form, Row, Col } from "react-bootstrap";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
+import { useNotification } from "../../contexts/NotificationContext";
+import { convertToEnum } from "../../utils/enumUtils";
 
-import { useCatsContext } from "../../contexts/CatsContext";
+/**
+ * Affiche une notification d'erreur API standardisée.
+ * @param {function} showNotification - Fonction de notification du contexte
+ * @param {string} contextMsg - Message d'intention (ex: "lors de la modification du chat")
+ * @param {object} error - Objet erreur capturé
+ */
+function notifyApiError(showNotification, contextMsg, error) {
+  showNotification(
+    `Erreur ${contextMsg} : ` +
+      (error?.response?.data?.message || error?.message || "Erreur inconnue"),
+    "error"
+  );
+}
+
+/**
+ * Construit un objet catDTO pour update/create à partir de données mises à jour.
+ * @param {object} formData - Données du formulaire
+ * @param {object} selectedCat - Chat sélectionné (si modification)
+ * @returns {object}
+ */
+function buildCatDTO(formData, selectedCat = null) {
+  return {
+    catId: selectedCat ? selectedCat.cat.catId : null,
+    name: formData.name,
+    breed: convertToEnum(formData.breed, selectedCat?.cat.breed || ""),
+    color: convertToEnum(formData.color, selectedCat?.cat.color || ""),
+    dateOfBirth: selectedCat?.cat.dateOfBirth || null,
+    gender: formData.gender,
+    chipNumber: formData.chipNumber || null,
+    furType: convertToEnum(formData.furType, selectedCat?.cat.furType || ""),
+    eyeColor: convertToEnum(formData.eyeColor, selectedCat?.cat.eyeColor || ""),
+    vaccinated:
+      formData.vaccinated === "" ? null : formData.vaccinated === "true",
+    sterilized:
+      formData.sterilized === "" ? null : formData.sterilized === "true",
+    statusCat: formData.available ? "OWN" : "LOST",
+  };
+}
 
 const CatsManagement = () => {
   const { t } = useTranslation();
-  const api = useAxios();
+  const axios = useAxios();
+  const { showNotification } = useNotification();
   const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [allCats, setAllCats] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     breed: "",
+    color: "",
     age: "",
     gender: "MALE",
     description: "",
     available: true,
+    chipNumber: "",
+    furType: "",
+    eyeColor: "",
+    vaccinated: null,
+    sterilized: null,
   });
 
-  // Add state for combined cats from context
-  const { reportedCats, ownedCats, loading: catsLoading } = useCatsContext();
-  const [allCats, setAllCats] = useState([]);
+  const fetchAllCats = useCallback(async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get("/cat/admin/all-current");
+      setAllCats(response || []);
+    } catch (error) {
+      notifyApiError(
+        showNotification,
+        "lors de la récupération des chats",
+        error
+      );
+      setAllCats([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [axios, showNotification]);
 
   useEffect(() => {
-    // Combine reported and owned cats and set to allCats state
-    const combinedCats = [...reportedCats, ...ownedCats];
-    // You might want to add logic here to ensure uniqueness if a cat could appear in both lists with isCurrent=true
-    setAllCats(combinedCats);
-  }, [reportedCats, ownedCats]);
+    fetchAllCats();
+  }, [fetchAllCats]);
 
   const handleOpenModal = (catStatus = null) => {
     if (catStatus) {
@@ -40,6 +108,7 @@ const CatsManagement = () => {
       setFormData({
         name: catStatus.cat.name || "",
         breed: catStatus.cat.breed || "",
+        color: catStatus.cat.color || "",
         age: calculateAge(catStatus.cat.dateOfBirth) || "",
         gender: catStatus.cat.gender || "MALE",
         description: catStatus.cat.description || "",
@@ -55,10 +124,16 @@ const CatsManagement = () => {
       setFormData({
         name: "",
         breed: "",
+        color: "",
         age: "",
         gender: "MALE",
         description: "",
         available: true,
+        chipNumber: "",
+        furType: "",
+        eyeColor: "",
+        vaccinated: null,
+        sterilized: null,
       });
     }
     setShowModal(true);
@@ -70,10 +145,16 @@ const CatsManagement = () => {
     setFormData({
       name: "",
       breed: "",
+      color: "",
       age: "",
       gender: "MALE",
       description: "",
       available: true,
+      chipNumber: "",
+      furType: "",
+      eyeColor: "",
+      vaccinated: null,
+      sterilized: null,
     });
   };
 
@@ -81,51 +162,58 @@ const CatsManagement = () => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseInt(value) : value,
+      [name]: type === "checkbox" ? e.target.checked : value,
     }));
   };
 
   const handleSubmit = async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      return;
+    }
+
     try {
-      // Prepare payload for update/create
-      const payload = {
-        catId: selectedCat ? selectedCat.cat.catId : null,
-        name: formData.name,
-        breed: formData.breed,
-        dateOfBirth: null,
-        gender: formData.gender,
-        chipNumber: formData.chipNumber,
-        furType: formData.furType,
-        eyeColor: formData.eyeColor,
-        vaccinated: formData.vaccinated,
-        sterilized: formData.sterilized,
-        statusCat: formData.available ? "OWN" : "LOST",
-      };
+      const payload = buildCatDTO(formData, selectedCat);
 
       if (selectedCat) {
-        await api.put(`/cat/status/${selectedCat.catStatusId}`, payload);
+        await axios.put(`/cat/status/${selectedCat.catStatusId}`, payload);
+        showNotification("Le chat a été modifié avec succès !", "success");
       } else {
-        await api.post("/cat/status", payload);
+        await axios.post("/cat/status", payload);
+        showNotification("Le chat a été créé avec succès !", "success");
       }
+      await fetchAllCats();
       handleCloseModal();
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      notifyApiError(showNotification, "lors de la sauvegarde du chat", error);
     }
   };
 
   const handleDelete = async (catId) => {
-    if (
-      window.confirm(
-        t(
-          "admin.cats.confirmDelete",
-          "Êtes-vous sûr de vouloir supprimer ce chat ?"
-        )
-      )
-    ) {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      return;
+    }
+
+    if (window.confirm(t("admin.cats.confirmDelete"))) {
       try {
-        await api.delete(`/cats/${catId}`);
+        await axios.delete(`/cat/delete?id=${catId}`);
+        showNotification("Le chat a été supprimé avec succès !", "success");
+        await fetchAllCats();
       } catch (error) {
-        console.error("Erreur lors de la suppression du chat:", error);
+        notifyApiError(
+          showNotification,
+          "lors de la suppression du chat",
+          error
+        );
       }
     }
   };
@@ -162,117 +250,123 @@ const CatsManagement = () => {
         </Button>
       </div>
 
-      <Card>
-        <Card.Body>
-          <Table responsive hover>
-            <thead>
-              <tr>
-                <th>{t("admin.cats.id", "ID")}</th>
-                <th>{t("admin.cats.name", "Nom")}</th>
-                <th>{t("admin.cats.breed", "Race")}</th>
-                <th>{t("admin.cats.color", "Couleur")}</th>
-                <th>{t("admin.cats.age", "Âge")}</th>
-                <th>{t("admin.cats.gender", "Genre")}</th>
-                <th>{t("admin.cats.chipNumber", "Numéro de puce")}</th>
-                <th>{t("admin.cats.vaccinated", "Vacciné")}</th>
-                <th>{t("admin.cats.sterilized", "Stérilisé")}</th>
-                <th>{t("admin.cats.status", "Statut")}</th>
-                <th>{t("admin.cats.actions", "Actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((catStatus) => (
-                <tr key={catStatus.catStatusId}>
-                  <td>{catStatus.cat.catId}</td>
-                  <td>{catStatus.cat.name}</td>
-                  <td>{catStatus.cat.breed}</td>
-                  <td>{catStatus.cat.color}</td>
-                  <td>{calculateAge(catStatus.cat.dateOfBirth)}</td>
-                  <td>
-                    {t(
-                      `admin.cats.genders.${catStatus.cat.gender?.toLowerCase()}`,
-                      catStatus.cat.gender
-                    )}
-                  </td>
-                  <td>{catStatus.cat.chipNumber || "-"}</td>
-                  <td>
-                    <Badge bg={catStatus.cat.vaccinated ? "success" : "danger"}>
-                      {catStatus.cat.vaccinated
-                        ? t("common.yes", "Oui")
-                        : t("common.no", "Non")}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Badge bg={catStatus.cat.sterilized ? "success" : "danger"}>
-                      {catStatus.cat.sterilized
-                        ? t("common.yes", "Oui")
-                        : t("common.no", "Non")}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Badge
-                      bg={
-                        catStatus.statusCat === "OWN"
-                          ? "success"
-                          : catStatus.statusCat === "LOST"
-                          ? "danger"
-                          : "warning"
-                      }
-                    >
-                      {catStatus.statusCat === "OWN"
-                        ? t("common.owned", "Possédé")
-                        : catStatus.statusCat === "LOST"
-                        ? t("common.lost", "Perdu")
-                        : t("common.found", "Trouvé")}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleOpenModal(catStatus)}
-                    >
-                      <FiEdit2 />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(catStatus.cat.catId)}
-                    >
-                      <FiTrash2 />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-
-          {/* Pagination */}
-          <div className="d-flex justify-content-center mt-3">
-            <Button
-              variant="outline-primary"
-              className="me-2"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              {t("common.previous", "Précédent")}
-            </Button>
-            <span className="mx-2 my-auto">
-              {t("common.page", "Page")} {currentPage} {t("common.of", "sur")}{" "}
-              {totalPages}
-            </span>
-            <Button
-              variant="outline-primary"
-              className="ms-2"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              {t("common.next", "Suivant")}
-            </Button>
+      {loading ? (
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Chargement...</span>
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      ) : (
+        <Table responsive hover>
+          <thead>
+            <tr>
+              <th>{t("admin.cats.id", "ID")}</th>
+              <th>{t("admin.cats.name", "Nom")}</th>
+              <th>{t("admin.cats.breed", "Race")}</th>
+              <th>{t("admin.cats.color", "Couleur")}</th>
+              <th>{t("admin.cats.age", "Âge")}</th>
+              <th>{t("admin.cats.gender", "Genre")}</th>
+              <th>{t("admin.cats.chipNumber", "Numéro de puce")}</th>
+              <th>{t("admin.cats.vaccinated", "Vacciné")}</th>
+              <th>{t("admin.cats.sterilized", "Stérilisé")}</th>
+              <th>{t("admin.cats.status", "Statut")}</th>
+              <th>{t("admin.cats.actions", "Actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.map((catStatus) => (
+              <tr key={catStatus.catStatusId}>
+                <td>{catStatus.cat.catId}</td>
+                <td>{catStatus.cat.name}</td>
+                <td>{catStatus.cat.breed}</td>
+                <td>{catStatus.cat.color}</td>
+                <td>{calculateAge(catStatus.cat.dateOfBirth)}</td>
+                <td>
+                  {t(
+                    `admin.cats.genders.${catStatus.cat.gender?.toLowerCase()}`,
+                    catStatus.cat.gender
+                  )}
+                </td>
+                <td>{catStatus.cat.chipNumber || "-"}</td>
+                <td>
+                  <Badge bg={catStatus.cat.vaccinated ? "success" : "danger"}>
+                    {catStatus.cat.vaccinated
+                      ? t("common.yes", "Oui")
+                      : t("common.no", "Non")}
+                  </Badge>
+                </td>
+                <td>
+                  <Badge bg={catStatus.cat.sterilized ? "success" : "danger"}>
+                    {catStatus.cat.sterilized
+                      ? t("common.yes", "Oui")
+                      : t("common.no", "Non")}
+                  </Badge>
+                </td>
+                <td>
+                  <Badge
+                    bg={
+                      catStatus.statusCat === "OWN"
+                        ? "success"
+                        : catStatus.statusCat === "LOST"
+                        ? "danger"
+                        : "warning"
+                    }
+                  >
+                    {catStatus.statusCat === "OWN"
+                      ? t("common.owned", "Possédé")
+                      : catStatus.statusCat === "LOST"
+                      ? t("common.lost", "Perdu")
+                      : t("common.found", "Trouvé")}
+                  </Badge>
+                </td>
+                <td>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="me-2"
+                    onClick={() => handleOpenModal(catStatus)}
+                  >
+                    <FiEdit2 />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDelete(catStatus.cat.catId)}
+                  >
+                    <FiTrash2 />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+
+      {/* Pagination */}
+      {!loading && allCats.length > 0 && (
+        <div className="d-flex justify-content-center mt-3">
+          <Button
+            variant="outline-primary"
+            className="me-2"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+          >
+            {t("common.previous", "Précédent")}
+          </Button>
+          <span className="mx-2 my-auto">
+            {t("common.page", "Page")} {currentPage} {t("common.of", "sur")}{" "}
+            {totalPages}
+          </span>
+          <Button
+            variant="outline-primary"
+            className="ms-2"
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+          >
+            {t("common.next", "Suivant")}
+          </Button>
+        </div>
+      )}
 
       {/* Modal */}
       <Modal show={showModal} onHide={handleCloseModal} size="lg">

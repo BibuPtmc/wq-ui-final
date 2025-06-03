@@ -307,6 +307,13 @@
   "navbar.profile": "Profil",
   "navbar.register": "Inscription",
   "navbar.report": "Signaler",
+  "navbar.admin": "Administration",
+  "navbar.adminDashboard": "Tableau de bord",
+  "navbar.adminUsers": "Utilisateurs",
+  "navbar.adminCats": "Chats",
+  "navbar.adminProducts": "Produits",
+  "navbar.adminOrders": "Commandes",
+  "navbar.adminReports": "Rapports",
 
   "orderHistory.allStatuses": "Tous les statuts",
   "orderHistory.filterByStatus": "Filtrer par statut",
