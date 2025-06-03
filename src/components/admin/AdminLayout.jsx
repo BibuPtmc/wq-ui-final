@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { styled } from "@mui/material/styles";
+import React, { useState, useEffect } from "react";
+import { styled, useTheme } from "@mui/material/styles";
+import { useMediaQuery } from "@mui/material";
 import {
   Box,
   Drawer,
@@ -13,7 +14,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  useTheme,
+  Tooltip,
 } from "@mui/material";
 import {
   FiMenu,
@@ -24,37 +25,89 @@ import {
   FiShoppingCart,
   FiPackage,
   FiBarChart2,
+  FiHome,
 } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const drawerWidth = 240;
+const drawerWidthMobile = 280;
 
-const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
+const Main = styled("main", {
+  shouldForwardProp: (prop) => prop !== "open" && prop !== "$isMobile",
+})(({ theme, open, $isMobile }) => ({
+  flexGrow: 1,
+  padding: theme.spacing(3),
+  transition: theme.transitions.create("margin", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  marginLeft: $isMobile ? 0 : `-${drawerWidth}px`,
+  ...(open &&
+    !$isMobile && {
       transition: theme.transitions.create("margin", {
         easing: theme.transitions.easing.easeOut,
         duration: theme.transitions.duration.enteringScreen,
       }),
       marginLeft: 0,
     }),
-  })
-);
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(2),
+  },
+}));
+
+const StyledDrawer = styled(Drawer, {
+  shouldForwardProp: (prop) => prop !== "$isMobile",
+})(({ theme, $isMobile }) => ({
+  width: $isMobile ? drawerWidthMobile : drawerWidth,
+  flexShrink: 0,
+  "& .MuiDrawer-paper": {
+    width: $isMobile ? drawerWidthMobile : drawerWidth,
+    boxSizing: "border-box",
+    backgroundColor: theme.palette.background.default,
+    borderRight: `1px solid ${theme.palette.divider}`,
+  },
+}));
+
+const StyledAppBar = styled(AppBar, {
+  shouldForwardProp: (prop) => prop !== "open" && prop !== "$isMobile",
+})(({ theme, open, $isMobile }) => ({
+  transition: theme.transitions.create(["margin", "width"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  backgroundColor: "transparent",
+  boxShadow: "none",
+  ...(open &&
+    !$isMobile && {
+      width: `calc(100% - ${drawerWidth}px)`,
+      marginLeft: `${drawerWidth}px`,
+      transition: theme.transitions.create(["margin", "width"], {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+    }),
+}));
 
 const AdminLayout = ({ children }) => {
   const [open, setOpen] = useState(true);
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation("admin");
+
+  // Fermer le drawer sur mobile lors du changement de route
+  useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  }, [location.pathname, isMobile]);
+
+  // Ajuster l'état initial du drawer selon la taille de l'écran
+  useEffect(() => {
+    setOpen(!isMobile);
+  }, [isMobile]);
 
   const menuItems = [
     {
@@ -87,73 +140,104 @@ const AdminLayout = ({ children }) => {
       icon: <FiBarChart2 />,
       path: "/admin/reports",
     },
+    {
+      text: t("admin.menu.backToSite", "Retour au site"),
+      icon: <FiHome />,
+      path: "/",
+    },
   ];
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
+  const handleDrawerToggle = () => {
+    setOpen(!open);
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <AppBar
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <StyledAppBar
         position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={open}
+        $isMobile={isMobile}
+        elevation={0}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={{ mr: 2, ...(open && { display: "none" }) }}
-          >
-            <FiMenu />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            {t("admin.title", "Administration WhiskerQuest")}
-          </Typography>
+        <Toolbar sx={{ minHeight: { xs: 48, sm: 56, md: 64 } }}>
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              aria-label="toggle drawer"
+              onClick={handleDrawerToggle}
+              edge="start"
+              sx={{ mr: 2, color: "text.primary" }}
+            >
+              <FiMenu />
+            </IconButton>
+          )}
         </Toolbar>
-      </AppBar>
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-          },
-        }}
-        variant="persistent"
+      </StyledAppBar>
+
+      <StyledDrawer
+        variant={isMobile ? "temporary" : "persistent"}
         anchor="left"
         open={open}
+        onClose={isMobile ? handleDrawerToggle : undefined}
+        $isMobile={isMobile}
+        ModalProps={{
+          keepMounted: true,
+        }}
       >
-        <Toolbar>
-          <IconButton onClick={handleDrawerClose}>
-            <FiChevronLeft />
-          </IconButton>
-        </Toolbar>
+        <Toolbar />
         <Divider />
         <List>
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => navigate(item.path)}
+              <Tooltip
+                title={!open && !isMobile ? item.text : ""}
+                placement="right"
               >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
+                <ListItemButton
+                  selected={location.pathname === item.path}
+                  onClick={() => {
+                    navigate(item.path);
+                    if (isMobile) handleDrawerToggle();
+                  }}
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? "initial" : "center",
+                    px: 2.5,
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : "auto",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    sx={{ opacity: open ? 1 : 0 }}
+                  />
+                </ListItemButton>
+              </Tooltip>
             </ListItem>
           ))}
         </List>
-      </Drawer>
-      <Main open={open}>
-        <Toolbar />
-        {children}
+      </StyledDrawer>
+
+      <Main open={open} $isMobile={isMobile}>
+        <Toolbar sx={{ minHeight: { xs: 48, sm: 56, md: 64 } }} />
+        <Box
+          sx={{
+            p: { xs: 1, sm: 2 },
+            mt: { xs: 1, sm: 2 },
+            backgroundColor: "background.paper",
+            borderRadius: 1,
+            boxShadow: 1,
+          }}
+        >
+          {children}
+        </Box>
       </Main>
     </Box>
   );

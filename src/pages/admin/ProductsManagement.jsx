@@ -13,6 +13,8 @@ import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 import { useAxios } from "../../hooks/useAxios";
 import { useNotification } from "../../contexts/NotificationContext";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 /**
  * Affiche une notification d'erreur API standardisée.
@@ -196,6 +198,10 @@ const ProductsManagement = () => {
   const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
+  // Use useTheme and useMediaQuery to detect mobile
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Detects screen size up to small
+
   return (
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -208,46 +214,92 @@ const ProductsManagement = () => {
 
       <Card>
         <Card.Body>
-          <Table responsive hover>
-            <thead>
-              <tr>
-                <th>{t("admin.products.name", "Nom")}</th>
-                <th>{t("admin.products.description", "Description")}</th>
-                <th>{t("admin.products.price", "Prix")}</th>
-                <th>{t("admin.products.stock", "Stock")}</th>
-                <th>{t("admin.products.actions", "Actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          {/* Conditional rendering based on screen size */}
+          {isMobile ? (
+            // Render as Cards on mobile
+            <div className="product-cards-list">
               {currentItems.map((product) => (
-                <tr key={product.id}>
-                  <td>{product.name}</td>
-                  <td>{product.description}</td>
-                  <td>{formatPrice(product.price)}</td>
-                  <td>{product.stockQuantity}</td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleOpenModal(product)}
-                      title={t("admin.products.edit", "Modifier")}
-                    >
-                      <FiEdit2 />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                      title={t("admin.products.delete", "Supprimer")}
-                    >
-                      <FiTrash2 />
-                    </Button>
-                  </td>
-                </tr>
+                <Card key={product.id} className="mb-3">
+                  <Card.Body>
+                    <Card.Title>{product.name}</Card.Title>
+                    <Card.Subtitle className="mb-2 text-muted">
+                      {formatPrice(product.price)}
+                    </Card.Subtitle>
+                    <Card.Text>
+                      <strong>
+                        {t("admin.products.description", "Description")}:
+                      </strong>{" "}
+                      {product.description}
+                      <br />
+                      <strong>
+                        {t("admin.products.stock", "Stock")}:
+                      </strong>{" "}
+                      {product.stockQuantity}
+                    </Card.Text>
+                    <div>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleOpenModal(product)}
+                      >
+                        <FiEdit2 /> {t("admin.products.edit", "Modifier")}
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <FiTrash2 /> {t("admin.products.delete", "Supprimer")}
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
               ))}
-            </tbody>
-          </Table>
+            </div>
+          ) : (
+            // Render as Table on larger screens
+            <Table responsive hover>
+              <thead>
+                <tr>
+                  <th>{t("admin.products.name", "Nom")}</th>
+                  <th>{t("admin.products.description", "Description")}</th>
+                  <th>{t("admin.products.price", "Prix")}</th>
+                  <th>{t("admin.products.stock", "Stock")}</th>
+                  <th>{t("admin.products.actions", "Actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((product) => (
+                  <tr key={product.id}>
+                    <td>{product.name}</td>
+                    <td>{product.description}</td>
+                    <td>{formatPrice(product.price)}</td>
+                    <td>{product.stockQuantity}</td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleOpenModal(product)}
+                        title={t("admin.products.edit", "Modifier")}
+                      >
+                        <FiEdit2 />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(product.id)}
+                        title={t("admin.products.delete", "Supprimer")}
+                      >
+                        <FiTrash2 />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
 
           {/* Pagination */}
           <div className="d-flex justify-content-center mt-3">

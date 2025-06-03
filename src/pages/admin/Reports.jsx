@@ -9,6 +9,7 @@ import {
   Alert,
   Spinner,
   Table,
+  ButtonGroup,
 } from "react-bootstrap";
 import {
   LineChart,
@@ -232,13 +233,15 @@ const Reports = () => {
 
   return (
     <Container className="py-3">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>{t("admin.reports.title", "Rapports")}</h2>
-        <div className="d-flex gap-2">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <h2 className="mb-0">{t("admin.reports.title", "Rapports")}</h2>
+        <ButtonGroup className="d-flex flex-wrap gap-2">
           <Button
             variant="primary"
             onClick={() => handleExport("sales")}
             disabled={!salesData.length}
+            size="sm"
+            className="flex-grow-1"
           >
             <FiDownload className="me-2" />
             {t("admin.reports.exportSales", "Exporter les ventes")}
@@ -247,6 +250,8 @@ const Reports = () => {
             variant="primary"
             onClick={() => handleExport("users")}
             disabled={!userStats.length}
+            size="sm"
+            className="flex-grow-1"
           >
             <FiDownload className="me-2" />
             {t("admin.reports.exportUsers", "Exporter les utilisateurs")}
@@ -255,6 +260,8 @@ const Reports = () => {
             variant="primary"
             onClick={() => handleExport("cats")}
             disabled={!catStats.length}
+            size="sm"
+            className="flex-grow-1"
           >
             <FiDownload className="me-2" />
             {t("admin.reports.exportCats", "Exporter les chats")}
@@ -263,11 +270,13 @@ const Reports = () => {
             variant="primary"
             onClick={() => handleExport("products")}
             disabled={!productStats.length}
+            size="sm"
+            className="flex-grow-1"
           >
             <FiDownload className="me-2" />
             {t("admin.reports.exportProducts", "Exporter les produits")}
           </Button>
-        </div>
+        </ButtonGroup>
       </div>
 
       <Row className="g-4">
@@ -277,14 +286,14 @@ const Reports = () => {
             <Card>
               <Card.Body>
                 <h5 className="mb-4">{t("admin.reports.sales", "Ventes")}</h5>
-                <Row className="mb-4">
-                  <Col md={6}>
-                    <Card>
+                <Row className="g-3 mb-4">
+                  <Col xs={12} sm={6}>
+                    <Card className="h-100">
                       <Card.Body>
-                        <h6>
+                        <h6 className="mb-2">
                           {t("admin.reports.totalRevenue", "Revenus totaux")}
                         </h6>
-                        <p className="h3">
+                        <p className="h3 mb-0">
                           {formatCurrency(
                             salesData.reduce(
                               (sum, item) => sum + item.amount,
@@ -295,13 +304,13 @@ const Reports = () => {
                       </Card.Body>
                     </Card>
                   </Col>
-                  <Col md={6}>
-                    <Card>
+                  <Col xs={12} sm={6}>
+                    <Card className="h-100">
                       <Card.Body>
-                        <h6>
+                        <h6 className="mb-2">
                           {t("admin.reports.orderCount", "Nombre de commandes")}
                         </h6>
-                        <p className="h3">
+                        <p className="h3 mb-0">
                           {salesData.reduce(
                             (sum, item) => sum + item.orders,
                             0
@@ -311,15 +320,35 @@ const Reports = () => {
                     </Card>
                   </Col>
                 </Row>
-                <div style={{ height: "400px" }}>
+                <div style={{ height: "min(400px, 50vh)" }} className="mt-3">
                   <ResponsiveContainer>
-                    <LineChart data={salesData}>
+                    <LineChart
+                      data={salesData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip formatter={formatCurrency} />
-                      <Legend />
+                      <XAxis
+                        dataKey="date"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip
+                        formatter={formatCurrency}
+                        contentStyle={{ fontSize: "12px" }}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: "12px" }}
+                        verticalAlign="bottom"
+                        height={36}
+                      />
                       <Line
                         yAxisId="left"
                         type="monotone"
@@ -329,6 +358,7 @@ const Reports = () => {
                           "admin.reports.salesAmount",
                           "Montant des ventes"
                         )}
+                        strokeWidth={2}
                       />
                       <Line
                         yAxisId="right"
@@ -339,6 +369,7 @@ const Reports = () => {
                           "admin.reports.orderCount",
                           "Nombre de commandes"
                         )}
+                        strokeWidth={2}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -348,77 +379,96 @@ const Reports = () => {
           </Col>
         )}
 
-        {/* Statistiques des utilisateurs */}
-        {userStats.length > 0 && (
-          <Col xs={12} md={6}>
-            <Card>
-              <Card.Body>
-                <h5 className="mb-4">
-                  {t("admin.reports.users", "Utilisateurs")}
-                </h5>
-                <div style={{ height: "300px" }}>
-                  <ResponsiveContainer>
-                    <PieChart>
-                      <Pie
-                        data={userStats}
-                        dataKey="count"
-                        nameKey="gender"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label
-                      >
-                        {userStats.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        )}
+        {/* Statistiques des utilisateurs et chats */}
+        <Row className="g-4">
+          {userStats.length > 0 && (
+            <Col xs={12} md={6}>
+              <Card className="h-100">
+                <Card.Body>
+                  <h5 className="mb-4">
+                    {t("admin.reports.users", "Utilisateurs")}
+                  </h5>
+                  <div style={{ height: "min(300px, 40vh)" }}>
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie
+                          data={userStats}
+                          dataKey="count"
+                          nameKey="gender"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius="80%"
+                          label={({ name, percent }) =>
+                            `${name} (${(percent * 100).toFixed(0)}%)`
+                          }
+                        >
+                          {userStats.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value) => [`${value} utilisateurs`, ""]}
+                          contentStyle={{ fontSize: "12px" }}
+                        />
+                        <Legend
+                          wrapperStyle={{ fontSize: "12px" }}
+                          verticalAlign="bottom"
+                          height={36}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
 
-        {/* Statistiques des chats */}
-        {catStats.length > 0 && (
-          <Col xs={12} md={6}>
-            <Card>
-              <Card.Body>
-                <h5 className="mb-4">{t("admin.reports.cats", "Chats")}</h5>
-                <div style={{ height: "300px" }}>
-                  <ResponsiveContainer>
-                    <PieChart>
-                      <Pie
-                        data={catStats}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label
-                      >
-                        {catStats.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        )}
+          {catStats.length > 0 && (
+            <Col xs={12} md={6}>
+              <Card className="h-100">
+                <Card.Body>
+                  <h5 className="mb-4">{t("admin.reports.cats", "Chats")}</h5>
+                  <div style={{ height: "min(300px, 40vh)" }}>
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie
+                          data={catStats}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius="80%"
+                          label={({ name, percent }) =>
+                            `${name} (${(percent * 100).toFixed(0)}%)`
+                          }
+                        >
+                          {catStats.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value) => [`${value} chats`, ""]}
+                          contentStyle={{ fontSize: "12px" }}
+                        />
+                        <Legend
+                          wrapperStyle={{ fontSize: "12px" }}
+                          verticalAlign="bottom"
+                          height={36}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
+        </Row>
 
         {/* Statistiques des produits */}
         {productStats.length > 0 && (
@@ -428,7 +478,7 @@ const Reports = () => {
                 <h5 className="mb-4">
                   {t("admin.reports.products", "Produits")}
                 </h5>
-                <div style={{ height: "300px" }}>
+                <div style={{ height: "min(300px, 40vh)" }}>
                   <ResponsiveContainer>
                     <PieChart>
                       <Pie
@@ -437,8 +487,10 @@ const Reports = () => {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={100}
-                        label
+                        outerRadius="80%"
+                        label={({ name, percent }) =>
+                          `${name} (${(percent * 100).toFixed(0)}%)`
+                        }
                       >
                         {productStats.map((entry, index) => (
                           <Cell
@@ -447,8 +499,15 @@ const Reports = () => {
                           />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip
+                        formatter={(value) => [`${value} produits`, ""]}
+                        contentStyle={{ fontSize: "12px" }}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: "12px" }}
+                        verticalAlign="bottom"
+                        height={36}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>

@@ -15,6 +15,8 @@ import {
   Alert,
 } from "react-bootstrap";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 /**
  * Affiche une notification d'erreur API standardisée.
@@ -285,6 +287,9 @@ const UsersManagement = () => {
     }
   };
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -304,59 +309,111 @@ const UsersManagement = () => {
       ) : (
         <Card>
           <Card.Body>
-            <Table responsive hover>
-              <thead>
-                <tr>
-                  <th>{t("admin.users.name", "Nom")}</th>
-                  <th>{t("admin.users.email", "Email")}</th>
-                  <th>{t("admin.users.role", "Rôle")}</th>
-                  <th>{t("admin.users.status", "Statut")}</th>
-                  <th>{t("admin.users.actions", "Actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            {isMobile ? (
+              <div className="user-cards-list">
                 {users
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((user) => (
-                    <tr key={user.userId}>
-                      <td>{`${user.firstName} ${user.lastName}`}</td>
-                      <td>{user.email}</td>
-                      <td>
-                        {t(
-                          `admin.users.roles.${user.role.toLowerCase()}`,
-                          user.role === "ADMIN"
-                            ? "Administrateur"
-                            : "Utilisateur"
-                        )}
-                      </td>
-                      <td>
-                        <Badge bg={user.enabled ? "success" : "danger"}>
-                          {user.enabled
-                            ? t("common.active", "Actif")
-                            : t("common.inactive", "Inactif")}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          className="me-2"
-                          onClick={() => handleOpenDialog(user)}
-                        >
-                          <FiEdit2 />
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => handleDelete(user.userId)}
-                        >
-                          <FiTrash2 />
-                        </Button>
-                      </td>
-                    </tr>
+                    <Card key={user.userId} className="mb-3">
+                      <Card.Body>
+                        <Card.Title>{`${user.firstName} ${user.lastName}`}</Card.Title>
+                        <Card.Subtitle className="mb-2 text-muted">
+                          {user.email}
+                        </Card.Subtitle>
+                        <Card.Text>
+                          <strong>{t("admin.users.role", "Rôle")}:</strong>{" "}
+                          {t(
+                            `admin.users.roles.${user.role.toLowerCase()}`,
+                            user.role === "ADMIN"
+                              ? "Administrateur"
+                              : "Utilisateur"
+                          )}
+                          <br />
+                          <strong>
+                            {t("admin.users.status", "Statut")}:
+                          </strong>{" "}
+                          <Badge bg={user.enabled ? "success" : "danger"}>
+                            {user.enabled
+                              ? t("common.active", "Actif")
+                              : t("common.inactive", "Inactif")}
+                          </Badge>
+                        </Card.Text>
+                        <div>
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleOpenDialog(user)}
+                          >
+                            <FiEdit2 /> {t("admin.users.edit", "Modifier")}
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleDelete(user.userId)}
+                          >
+                            <FiTrash2 /> {t("admin.users.delete", "Supprimer")}
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
                   ))}
-              </tbody>
-            </Table>
+              </div>
+            ) : (
+              <Table responsive hover>
+                <thead>
+                  <tr>
+                    <th>{t("admin.users.name", "Nom")}</th>
+                    <th>{t("admin.users.email", "Email")}</th>
+                    <th>{t("admin.users.role", "Rôle")}</th>
+                    <th>{t("admin.users.status", "Statut")}</th>
+                    <th>{t("admin.users.actions", "Actions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((user) => (
+                      <tr key={user.userId}>
+                        <td>{`${user.firstName} ${user.lastName}`}</td>
+                        <td>{user.email}</td>
+                        <td>
+                          {t(
+                            `admin.users.roles.${user.role.toLowerCase()}`,
+                            user.role === "ADMIN"
+                              ? "Administrateur"
+                              : "Utilisateur"
+                          )}
+                        </td>
+                        <td>
+                          <Badge bg={user.enabled ? "success" : "danger"}>
+                            {user.enabled
+                              ? t("common.active", "Actif")
+                              : t("common.inactive", "Inactif")}
+                          </Badge>
+                        </td>
+                        <td>
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleOpenDialog(user)}
+                          >
+                            <FiEdit2 />
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleDelete(user.userId)}
+                          >
+                            <FiTrash2 />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </Table>
+            )}
 
             {/* Pagination */}
             <div className="d-flex justify-content-center mt-3">

@@ -1,8 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import NavBar from "./components/layout/Navbar";
-import Footer from "./components/layout/Footer";
+import PublicLayout from "./components/layout/PublicLayout";
 import RegistrationForm from "./pages/auth/RegistrationForm";
 import RegisterCat from "./components/cats/RegisterCat";
 import LostCats from "./components/cats/LostCats";
@@ -52,71 +51,65 @@ const ProtectedRoute = ({ children, roles }) => {
 function App() {
   return (
     <CartProvider>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <NavBar />
-          <Routes>
-            <Route exact path="/" element={<HomePage />} />
-            <Route path="/register" element={<RegistrationForm />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              path="/registerCat"
-              element={
-                <ProtectedRoute>
-                  <RegisterCat />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/foundCats" element={<FoundCats />} />
-            <Route path="/lostCats" element={<LostCats />} />
-            <Route path="/gps-collars" element={<GpsCollars />} />
-            <Route path="/success" element={<PaymentSuccess />} />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute roles={["ADMIN"]}>
-                  <AdminLayout>
-                    <Routes>
-                      <Route
-                        index
-                        element={<Navigate to="dashboard" replace />}
-                      />
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="users" element={<UsersManagement />} />
-                      <Route path="reports" element={<Reports />} />
-                      <Route path="products" element={<ProductsManagement />} />
-                      <Route path="orders" element={<OrdersManagement />} />
-                      <Route path="cats" element={<CatsManagement />} />
-                    </Routes>
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
-        <Footer />
-      </div>
+      <Routes>
+        <Route
+          path="/*"
+          element={
+            <PublicLayout>
+              <Routes>
+                <Route exact path="/" element={<HomePage />} />
+                <Route path="/register" element={<RegistrationForm />} />
+                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route
+                  path="/registerCat"
+                  element={
+                    <ProtectedRoute>
+                      <RegisterCat />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/foundCats" element={<FoundCats />} />
+                <Route path="/lostCats" element={<LostCats />} />
+                <Route path="/gps-collars" element={<GpsCollars />} />
+                <Route path="/success" element={<PaymentSuccess />} />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+              <AdminLayout>
+                <Routes>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="users" element={<UsersManagement />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="products" element={<ProductsManagement />} />
+                  <Route path="orders" element={<OrdersManagement />} />
+                  <Route path="cats" element={<CatsManagement />} />
+                </Routes>
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </CartProvider>
   );
 }
-//TODO:devenir app.jsx et voir avec le provider ce que je peux retirer
+
 root.render(
   <BrowserRouter
     future={{ v7_startTransition: true, v7_relativeSplatPath: true }}

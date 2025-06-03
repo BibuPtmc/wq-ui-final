@@ -6,6 +6,8 @@ import { Container, Card, Badge, Modal, Form, Row, Col } from "react-bootstrap";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { useNotification } from "../../contexts/NotificationContext";
 import { convertToEnum } from "../../utils/enumUtils";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 /**
  * Affiche une notification d'erreur API standardisée.
@@ -240,6 +242,9 @@ const CatsManagement = () => {
       currentPage * itemsPerPage
     ) || [];
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -255,6 +260,85 @@ const CatsManagement = () => {
           <div className="spinner-border" role="status">
             <span className="visually-hidden">Chargement...</span>
           </div>
+        </div>
+      ) : isMobile ? (
+        <div className="cat-cards-list">
+          {currentItems.map((catStatus) => (
+            <Card key={catStatus.catStatusId} className="mb-3">
+              <Card.Body>
+                <Card.Title>{catStatus.cat.name}</Card.Title>
+                <Card.Subtitle className="mb-2 text-muted">
+                  {calculateAge(catStatus.cat.dateOfBirth)} -{" "}
+                  {t(
+                    `admin.cats.genders.${catStatus.cat.gender?.toLowerCase()}`,
+                    catStatus.cat.gender
+                  )}
+                </Card.Subtitle>
+                <Card.Text>
+                  <strong>{t("admin.cats.breed", "Race")}:</strong>{" "}
+                  {catStatus.cat.breed}
+                  <br />
+                  <strong>{t("admin.cats.color", "Couleur")}:</strong>{" "}
+                  {catStatus.cat.color}
+                  <br />
+                  <strong>
+                    {t("admin.cats.chipNumber", "Numéro de puce")}:
+                  </strong>{" "}
+                  {catStatus.cat.chipNumber || "-"}
+                  <br />
+                  <strong>{t("admin.cats.vaccinated", "Vacciné")}:</strong>{" "}
+                  <Badge bg={catStatus.cat.vaccinated ? "success" : "danger"}>
+                    {catStatus.cat.vaccinated
+                      ? t("common.yes", "Oui")
+                      : t("common.no", "Non")}
+                  </Badge>
+                  <br />
+                  <strong>
+                    {t("admin.cats.sterilized", "Stérilisé")}:
+                  </strong>{" "}
+                  <Badge bg={catStatus.cat.sterilized ? "success" : "danger"}>
+                    {catStatus.cat.sterilized
+                      ? t("common.yes", "Oui")
+                      : t("common.no", "Non")}
+                  </Badge>
+                  <br />
+                  <strong>{t("admin.cats.status", "Statut")}:</strong>{" "}
+                  <Badge
+                    bg={
+                      catStatus.statusCat === "OWN"
+                        ? "success"
+                        : catStatus.statusCat === "LOST"
+                        ? "danger"
+                        : "warning"
+                    }
+                  >
+                    {catStatus.statusCat === "OWN"
+                      ? t("common.owned", "Possédé")
+                      : catStatus.statusCat === "LOST"
+                      ? t("common.lost", "Perdu")
+                      : t("common.found", "Trouvé")}
+                  </Badge>
+                </Card.Text>
+                <div>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="me-2"
+                    onClick={() => handleOpenModal(catStatus)}
+                  >
+                    <FiEdit2 /> {t("admin.cats.edit", "Modifier")}
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDelete(catStatus.cat.catId)}
+                  >
+                    <FiTrash2 /> {t("admin.cats.delete", "Supprimer")}
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          ))}
         </div>
       ) : (
         <Table responsive hover>

@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
 import { useNotification } from "../../contexts/NotificationContext";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 /**
  * Affiche une notification d'erreur API standardisée.
@@ -207,6 +209,10 @@ const OrdersManagement = () => {
   const currentItems = orders.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(orders.length / itemsPerPage);
 
+  // Use useTheme and useMediaQuery to detect mobile
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Detects screen size up to small
+
   return (
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -228,57 +234,110 @@ const OrdersManagement = () => {
       ) : (
         <Card>
           <Card.Body>
-            <Table responsive hover>
-              <thead>
-                <tr>
-                  <th>{t("admin.orders.id", "ID")}</th>
-                  <th>{t("admin.orders.date", "Date")}</th>
-                  <th>{t("admin.orders.customer", "Client")}</th>
-                  <th>{t("admin.orders.total", "Total")}</th>
-                  <th>{t("admin.orders.status", "Statut")}</th>
-                  <th>{t("admin.orders.actions", "Actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            {/* Conditional rendering based on screen size */}
+            {isMobile ? (
+              // Render as Cards on mobile
+              <div className="order-cards-list">
                 {currentItems.map((order) => (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>{formatDate(order.orderDate)}</td>
-                    <td>{`${order.user?.firstName || ""} ${
-                      order.user?.lastName || ""
-                    }`}</td>
-                    <td>{formatPrice(order.totalAmount)}</td>
-                    <td>{getStatusBadge(order.status)}</td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleOpenModal(order)}
-                        title={t("admin.orders.view", "Voir les détails")}
-                      >
-                        <FiEye />
-                      </Button>
-                      {order.status === "PAID" && (
+                  <Card key={order.id} className="mb-3">
+                    <Card.Body>
+                      <Card.Title>#{order.id}</Card.Title>
+                      <Card.Subtitle className="mb-2 text-muted">
+                        {formatDate(order.orderDate)}
+                      </Card.Subtitle>
+                      <Card.Text>
+                        <strong>{t("admin.orders.customer", "Client")}:</strong>{" "}
+                        {`${order.user?.firstName || ""} ${
+                          order.user?.lastName || ""
+                        }`}
+                        <br />
+                        <strong>
+                          {t("admin.orders.total", "Total")}:
+                        </strong>{" "}
+                        {formatPrice(order.totalAmount)}
+                        <br />
+                        <strong>
+                          {t("admin.orders.status", "Statut")}:
+                        </strong>{" "}
+                        {getStatusBadge(order.status)}
+                      </Card.Text>
+                      <div>
+                        {/* Add action buttons for mobile if needed, similar to users/products */}
+                        {/* Example: */}
                         <Button
-                          variant="outline-success"
+                          variant="outline-primary"
                           size="sm"
-                          onClick={() =>
-                            handleStatusChange(order.id, "SHIPPED")
-                          }
-                          title={t(
-                            "admin.orders.ship",
-                            "Marquer comme expédiée"
-                          )}
+                          className="me-2"
+                          onClick={() => handleOpenModal(order)}
                         >
-                          <FiTruck />
+                          <FiEdit2 /> {t("admin.orders.edit", "Modifier")}
                         </Button>
-                      )}
-                    </td>
-                  </tr>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(order.id)}
+                        >
+                          <FiTrash2 /> {t("admin.orders.delete", "Supprimer")}
+                        </Button>
+                      </div>
+                    </Card.Body>
+                  </Card>
                 ))}
-              </tbody>
-            </Table>
+              </div>
+            ) : (
+              // Render as Table on larger screens
+              <Table responsive hover>
+                <thead>
+                  <tr>
+                    <th>{t("admin.orders.id", "ID")}</th>
+                    <th>{t("admin.orders.date", "Date")}</th>
+                    <th>{t("admin.orders.customer", "Client")}</th>
+                    <th>{t("admin.orders.total", "Total")}</th>
+                    <th>{t("admin.orders.status", "Statut")}</th>
+                    <th>{t("admin.orders.actions", "Actions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((order) => (
+                    <tr key={order.id}>
+                      <td>#{order.id}</td>
+                      <td>{formatDate(order.orderDate)}</td>
+                      <td>{`${order.user?.firstName || ""} ${
+                        order.user?.lastName || ""
+                      }`}</td>
+                      <td>{formatPrice(order.totalAmount)}</td>
+                      <td>{getStatusBadge(order.status)}</td>
+                      <td>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleOpenModal(order)}
+                          title={t("admin.orders.view", "Voir les détails")}
+                        >
+                          <FiEye />
+                        </Button>
+                        {order.status === "PAID" && (
+                          <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={() =>
+                              handleStatusChange(order.id, "SHIPPED")
+                            }
+                            title={t(
+                              "admin.orders.ship",
+                              "Marquer comme expédiée"
+                            )}
+                          >
+                            <FiTruck />
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            )}
 
             {/* Pagination */}
             <div className="d-flex justify-content-center mt-3">
