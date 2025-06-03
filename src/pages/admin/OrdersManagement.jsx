@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Row,
@@ -14,48 +14,68 @@ import { FiEye, FiTruck, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
+import { useNotification } from "../../contexts/NotificationContext";
+
+/**
+ * Affiche une notification d'erreur API standardisée.
+ */
+function notifyApiError(showNotification, contextMsg, error) {
+  showNotification(
+    `Erreur ${contextMsg} : ` +
+      (error?.response?.data?.message || error?.message || "Erreur inconnue"),
+    "error"
+  );
+}
 
 const OrdersManagement = () => {
   const { t } = useTranslation();
   const { token } = useAuth();
-  const { api } = useAxios();
+  const axios = useAxios();
+  const { showNotification } = useNotification();
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     status: "",
     trackingNumber: "",
   });
 
+  const fetchOrders = useCallback(async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get("/ecommerce/orders");
+      setOrders(response || []);
+    } catch (error) {
+      notifyApiError(
+        showNotification,
+        "lors de la récupération des commandes",
+        error
+      );
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [axios, showNotification]);
+
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
-  const fetchOrders = async () => {
-    try {
-      const response = await api.get("/ecommerce/orders");
-      setOrders(response.data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des commandes:", error);
-    }
-  };
-
-  const handleOpenModal = (order = null) => {
-    if (order) {
-      setSelectedOrder(order);
-      setFormData({
-        status: order.status,
-        trackingNumber: order.trackingNumber || "",
-      });
-    } else {
-      setSelectedOrder(null);
-      setFormData({
-        status: "",
-        trackingNumber: "",
-      });
-    }
+  const handleOpenModal = (order) => {
+    setSelectedOrder(order);
     setShowModal(true);
   };
 
@@ -73,19 +93,36 @@ const OrdersManagement = () => {
   };
 
   const handleSubmit = async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      return;
+    }
+
     try {
-      await api.put(`/ecommerce/orders/${selectedOrder.orderId}`, formData);
-      fetchOrders();
+      await axios.put(`/ecommerce/orders/${selectedOrder.id}`, formData);
+      showNotification(
+        "La commande a été mise à jour avec succès !",
+        "success"
+      );
+      await fetchOrders();
       handleCloseModal();
     } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
+      notifyApiError(
+        showNotification,
+        "lors de la mise à jour de la commande",
+        error
+      );
     }
   };
 
   const handleDelete = async (orderId) => {
     if (window.confirm(t("admin.orders.confirmDelete"))) {
       try {
-        await api.delete(`/ecommerce/orders/${orderId}`);
+        await axios.delete(`/ecommerce/orders/${orderId}`);
         fetchOrders();
       } catch (error) {
         console.error("Erreur lors de la suppression:", error);
@@ -93,30 +130,71 @@ const OrdersManagement = () => {
     }
   };
 
+  const handleStatusChange = async (orderId, newStatus) => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      return;
+    }
+
+    try {
+      await axios.put(`/ecommerce/orders/${orderId}/status`, {
+        status: newStatus,
+      });
+      showNotification(
+        "Le statut de la commande a été mis à jour avec succès !",
+        "success"
+      );
+      await fetchOrders();
+    } catch (error) {
+      notifyApiError(
+        showNotification,
+        "lors de la mise à jour du statut de la commande",
+        error
+      );
+    }
+  };
+
   const getStatusBadge = (status) => {
-    const variants = {
+    const statusColors = {
       PENDING: "warning",
-      PROCESSING: "info",
+      PAID: "info",
       SHIPPED: "primary",
       DELIVERED: "success",
       CANCELLED: "danger",
     };
+
+    const statusLabels = {
+      PENDING: t("admin.orders.status.pending", "En attente"),
+      PAID: t("admin.orders.status.paid", "Payée"),
+      SHIPPED: t("admin.orders.status.shipped", "Expédiée"),
+      DELIVERED: t("admin.orders.status.delivered", "Livrée"),
+      CANCELLED: t("admin.orders.status.cancelled", "Annulée"),
+    };
+
     return (
-      <Badge bg={variants[status] || "secondary"}>
-        {t(`admin.orders.status.${status.toLowerCase()}`)}
+      <Badge bg={statusColors[status] || "secondary"}>
+        {statusLabels[status] || status}
       </Badge>
     );
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("fr-FR", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatPrice = (price) => {
+    if (!price) return "0,00 €";
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: "EUR",
@@ -135,133 +213,166 @@ const OrdersManagement = () => {
         <h2>{t("admin.orders.title", "Gestion des commandes")}</h2>
       </div>
 
-      <Card>
-        <Card.Body>
-          <Table responsive hover>
-            <thead>
-              <tr>
-                <th>{t("admin.orders.id", "ID")}</th>
-                <th>{t("admin.orders.date", "Date")}</th>
-                <th>{t("admin.orders.customer", "Client")}</th>
-                <th>{t("admin.orders.total", "Total")}</th>
-                <th>{t("admin.orders.status", "Statut")}</th>
-                <th>{t("admin.orders.actions", "Actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((order) => (
-                <tr key={order.orderId}>
-                  <td>#{order.orderId}</td>
-                  <td>{formatDate(order.orderDate)}</td>
-                  <td>{order.customerName}</td>
-                  <td>{formatPrice(order.total)}</td>
-                  <td>{getStatusBadge(order.status)}</td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleOpenModal(order)}
-                    >
-                      <FiEye />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(order.orderId)}
-                    >
-                      <FiTrash2 />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-
-          {/* Pagination */}
-          <div className="d-flex justify-content-center mt-3">
-            <Button
-              variant="outline-primary"
-              className="me-2"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              {t("common.previous", "Précédent")}
-            </Button>
-            <span className="mx-2 my-auto">
-              {t("common.page", "Page")} {currentPage} {t("common.of", "sur")}{" "}
-              {totalPages}
-            </span>
-            <Button
-              variant="outline-primary"
-              className="ms-2"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              {t("common.next", "Suivant")}
-            </Button>
+      {loading ? (
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Chargement...</span>
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      ) : orders.length === 0 ? (
+        <Card>
+          <Card.Body className="text-center">
+            <p>{t("admin.orders.noOrders", "Aucune commande trouvée")}</p>
+          </Card.Body>
+        </Card>
+      ) : (
+        <Card>
+          <Card.Body>
+            <Table responsive hover>
+              <thead>
+                <tr>
+                  <th>{t("admin.orders.id", "ID")}</th>
+                  <th>{t("admin.orders.date", "Date")}</th>
+                  <th>{t("admin.orders.customer", "Client")}</th>
+                  <th>{t("admin.orders.total", "Total")}</th>
+                  <th>{t("admin.orders.status", "Statut")}</th>
+                  <th>{t("admin.orders.actions", "Actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.id}</td>
+                    <td>{formatDate(order.orderDate)}</td>
+                    <td>{`${order.user?.firstName || ""} ${
+                      order.user?.lastName || ""
+                    }`}</td>
+                    <td>{formatPrice(order.totalAmount)}</td>
+                    <td>{getStatusBadge(order.status)}</td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleOpenModal(order)}
+                        title={t("admin.orders.view", "Voir les détails")}
+                      >
+                        <FiEye />
+                      </Button>
+                      {order.status === "PAID" && (
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          onClick={() =>
+                            handleStatusChange(order.id, "SHIPPED")
+                          }
+                          title={t(
+                            "admin.orders.ship",
+                            "Marquer comme expédiée"
+                          )}
+                        >
+                          <FiTruck />
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
 
-      {/* Modal */}
+            {/* Pagination */}
+            <div className="d-flex justify-content-center mt-3">
+              <Button
+                variant="outline-primary"
+                className="me-2"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                {t("common.previous", "Précédent")}
+              </Button>
+              <span className="mx-2 my-auto">
+                {t("common.page", "Page")} {currentPage} {t("common.of", "sur")}{" "}
+                {totalPages}
+              </span>
+              <Button
+                variant="outline-primary"
+                className="ms-2"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                {t("common.next", "Suivant")}
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
+      )}
+
+      {/* Modal de détails de la commande */}
       <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
             {t("admin.orders.details", "Détails de la commande")} #
-            {selectedOrder?.orderId}
+            {selectedOrder?.id}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedOrder && (
             <>
-              <Row className="mb-3">
+              <Row className="mb-4">
                 <Col md={6}>
                   <h5>
                     {t("admin.orders.customerInfo", "Informations client")}
                   </h5>
                   <p>
                     <strong>{t("admin.orders.name", "Nom")}:</strong>{" "}
-                    {selectedOrder.customerName}
-                    <br />
-                    <strong>{t("admin.orders.email", "Email")}:</strong>{" "}
-                    {selectedOrder.customerEmail}
-                    <br />
-                    <strong>
-                      {t("admin.orders.phone", "Téléphone")}:
-                    </strong>{" "}
-                    {selectedOrder.customerPhone}
+                    {`${selectedOrder.user?.firstName || ""} ${
+                      selectedOrder.user?.lastName || ""
+                    }`}
                   </p>
+                  <p>
+                    <strong>{t("admin.orders.email", "Email")}:</strong>{" "}
+                    {selectedOrder.user?.email}
+                  </p>
+                  {selectedOrder.user?.phone && (
+                    <p>
+                      <strong>{t("admin.orders.phone", "Téléphone")}:</strong>{" "}
+                      {selectedOrder.user.phone}
+                    </p>
+                  )}
                 </Col>
                 <Col md={6}>
                   <h5>
-                    {t(
-                      "admin.orders.shippingInfo",
-                      "Informations de livraison"
-                    )}
+                    {t("admin.orders.orderInfo", "Informations commande")}
                   </h5>
                   <p>
-                    <strong>{t("admin.orders.address", "Adresse")}:</strong>
-                    <br />
-                    {selectedOrder.shippingAddress}
+                    <strong>{t("admin.orders.date", "Date")}:</strong>{" "}
+                    {formatDate(selectedOrder.orderDate)}
+                  </p>
+                  <p>
+                    <strong>{t("admin.orders.status", "Statut")}:</strong>{" "}
+                    {getStatusBadge(selectedOrder.status)}
+                  </p>
+                  <p>
+                    <strong>{t("admin.orders.total", "Total")}:</strong>{" "}
+                    {formatPrice(selectedOrder.totalAmount)}
                   </p>
                 </Col>
               </Row>
 
-              <h5 className="mb-3">{t("admin.orders.items", "Articles")}</h5>
+              <h5>{t("admin.orders.items", "Articles commandés")}</h5>
               <Table responsive>
                 <thead>
                   <tr>
                     <th>{t("admin.orders.product", "Produit")}</th>
                     <th>{t("admin.orders.quantity", "Quantité")}</th>
-                    <th>{t("admin.orders.price", "Prix")}</th>
+                    <th>{t("admin.orders.price", "Prix unitaire")}</th>
                     <th>{t("admin.orders.subtotal", "Sous-total")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedOrder.items.map((item) => (
-                    <tr key={item.productId}>
-                      <td>{item.productName}</td>
+                  {selectedOrder.orderItems?.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.product?.name}</td>
                       <td>{item.quantity}</td>
                       <td>{formatPrice(item.price)}</td>
                       <td>{formatPrice(item.price * item.quantity)}</td>
@@ -274,7 +385,7 @@ const OrdersManagement = () => {
                       <strong>{t("admin.orders.total", "Total")}:</strong>
                     </td>
                     <td>
-                      <strong>{formatPrice(selectedOrder.total)}</strong>
+                      <strong>{formatPrice(selectedOrder.totalAmount)}</strong>
                     </td>
                   </tr>
                 </tfoot>

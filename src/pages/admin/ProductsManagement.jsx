@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Row,
@@ -11,18 +11,33 @@ import {
 } from "react-bootstrap";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
+import { useNotification } from "../../contexts/NotificationContext";
+
+/**
+ * Affiche une notification d'erreur API standardisée.
+ * @param {function} showNotification - Fonction de notification du contexte
+ * @param {string} contextMsg - Message d'intention (ex: "lors de la modification du produit")
+ * @param {object} error - Objet erreur capturé
+ */
+function notifyApiError(showNotification, contextMsg, error) {
+  showNotification(
+    `Erreur ${contextMsg} : ` +
+      (error?.response?.data?.message || error?.message || "Erreur inconnue"),
+    "error"
+  );
+}
 
 const ProductsManagement = () => {
   const { t } = useTranslation();
-  const { token } = useAuth();
-  const { api } = useAxios();
+  const axios = useAxios();
+  const { showNotification } = useNotification();
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -31,18 +46,36 @@ const ProductsManagement = () => {
     imageUrl: "",
   });
 
+  const fetchProducts = useCallback(async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get("/ecommerce/products");
+      setProducts(response || []);
+    } catch (error) {
+      notifyApiError(
+        showNotification,
+        "lors de la récupération des produits",
+        error
+      );
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [axios, showNotification]);
+
   useEffect(() => {
     fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await api.get("/ecommerce/products");
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des produits:", error);
-    }
-  };
+  }, [fetchProducts]);
 
   const handleOpenModal = (product = null) => {
     if (product) {
@@ -81,35 +114,71 @@ const ProductsManagement = () => {
   };
 
   const handleSubmit = async () => {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      return;
+    }
+
     try {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
+        stockQuantity: parseInt(formData.stock),
       };
 
       if (selectedProduct) {
-        await api.put(
-          `/ecommerce/products/${selectedProduct.productId}`,
+        await axios.put(
+          `/ecommerce/products/${selectedProduct.id}`,
           productData
         );
+        showNotification("Le produit a été modifié avec succès !", "success");
       } else {
-        await api.post("/ecommerce/products", productData);
+        await axios.post("/ecommerce/products", productData);
+        showNotification("Le produit a été créé avec succès !", "success");
       }
-      fetchProducts();
+      await fetchProducts();
       handleCloseModal();
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      notifyApiError(
+        showNotification,
+        "lors de la sauvegarde du produit",
+        error
+      );
     }
   };
 
   const handleDelete = async (productId) => {
-    if (window.confirm(t("admin.products.confirmDelete"))) {
+    if (!axios) {
+      notifyApiError(
+        showNotification,
+        "de connexion à l'API",
+        new Error("API non disponible")
+      );
+      return;
+    }
+
+    if (
+      window.confirm(
+        t(
+          "admin.products.confirmDelete",
+          "Êtes-vous sûr de vouloir supprimer ce produit ?"
+        )
+      )
+    ) {
       try {
-        await api.delete(`/ecommerce/products/${productId}`);
-        fetchProducts();
+        await axios.delete(`/ecommerce/products/${productId}`);
+        showNotification("Le produit a été supprimé avec succès !", "success");
+        await fetchProducts();
       } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
+        notifyApiError(
+          showNotification,
+          "lors de la suppression du produit",
+          error
+        );
       }
     }
   };
@@ -151,24 +220,26 @@ const ProductsManagement = () => {
             </thead>
             <tbody>
               {currentItems.map((product) => (
-                <tr key={product.productId}>
+                <tr key={product.id}>
                   <td>{product.name}</td>
                   <td>{product.description}</td>
                   <td>{formatPrice(product.price)}</td>
-                  <td>{product.stock}</td>
+                  <td>{product.stockQuantity}</td>
                   <td>
                     <Button
                       variant="outline-primary"
                       size="sm"
                       className="me-2"
                       onClick={() => handleOpenModal(product)}
+                      title={t("admin.products.edit", "Modifier")}
                     >
                       <FiEdit2 />
                     </Button>
                     <Button
                       variant="outline-danger"
                       size="sm"
-                      onClick={() => handleDelete(product.productId)}
+                      onClick={() => handleDelete(product.id)}
+                      title={t("admin.products.delete", "Supprimer")}
                     >
                       <FiTrash2 />
                     </Button>
@@ -225,6 +296,10 @@ const ProductsManagement = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
+                    placeholder={t(
+                      "admin.products.namePlaceholder",
+                      "Entrez le nom du produit"
+                    )}
                   />
                 </Form.Group>
               </Col>
@@ -242,6 +317,10 @@ const ProductsManagement = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     required
+                    placeholder={t(
+                      "admin.products.descriptionPlaceholder",
+                      "Entrez la description du produit"
+                    )}
                   />
                 </Form.Group>
               </Col>
@@ -252,10 +331,16 @@ const ProductsManagement = () => {
                   <Form.Label>{t("admin.products.price", "Prix")}</Form.Label>
                   <Form.Control
                     type="number"
+                    step="0.01"
+                    min="0"
                     name="price"
                     value={formData.price}
                     onChange={handleInputChange}
                     required
+                    placeholder={t(
+                      "admin.products.pricePlaceholder",
+                      "Entrez le prix"
+                    )}
                   />
                 </Form.Group>
               </Col>
@@ -264,32 +349,35 @@ const ProductsManagement = () => {
                   <Form.Label>{t("admin.products.stock", "Stock")}</Form.Label>
                   <Form.Control
                     type="number"
-                    name="stock"
+                    min="0"
+                    name="stockQuantity"
                     value={formData.stock}
                     onChange={handleInputChange}
                     required
+                    placeholder={t(
+                      "admin.products.stockPlaceholder",
+                      "Entrez la quantité en stock"
+                    )}
                   />
                 </Form.Group>
               </Col>
             </Row>
-            <Row>
+            <Row className="mb-3">
               <Col>
                 <Form.Group>
                   <Form.Label>
                     {t("admin.products.imageUrl", "URL de l'image")}
                   </Form.Label>
                   <Form.Control
-                    type="text"
+                    type="url"
                     name="imageUrl"
                     value={formData.imageUrl}
                     onChange={handleInputChange}
-                  />
-                  <Form.Text className="text-muted">
-                    {t(
-                      "admin.products.imageUrlHelp",
-                      "URL d'une image pour le produit"
+                    placeholder={t(
+                      "admin.products.imageUrlPlaceholder",
+                      "Entrez l'URL de l'image du produit"
                     )}
-                  </Form.Text>
+                  />
                 </Form.Group>
               </Col>
             </Row>
