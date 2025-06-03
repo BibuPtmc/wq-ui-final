@@ -1,361 +1,398 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  Typography,
-  Chip,
-  Grid,
-} from "@mui/material";
-import { FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
+import { Button, Table } from "react-bootstrap";
+import { Container, Card, Badge, Modal, Form, Row, Col } from "react-bootstrap";
+import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
+
+import { useCatsContext } from "../../contexts/CatsContext";
 
 const CatsManagement = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const api = useAxios();
-  const [cats, setCats] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
-    status: "LOST",
     breed: "",
-    color: "",
-    gender: "",
     age: "",
-    location: {
-      address: "",
-      city: "",
-      postalCode: "",
-    },
+    gender: "MALE",
+    description: "",
+    available: true,
   });
 
+  // Add state for combined cats from context
+  const { reportedCats, ownedCats, loading: catsLoading } = useCatsContext();
+  const [allCats, setAllCats] = useState([]);
+
   useEffect(() => {
-    fetchCats();
-  }, []);
+    // Combine reported and owned cats and set to allCats state
+    const combinedCats = [...reportedCats, ...ownedCats];
+    // You might want to add logic here to ensure uniqueness if a cat could appear in both lists with isCurrent=true
+    setAllCats(combinedCats);
+  }, [reportedCats, ownedCats]);
 
-  const fetchCats = async () => {
-    try {
-      const response = await api.get("/cat/list", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      setCats(response.data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des chats:", error);
-    }
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleOpenDialog = (cat = null) => {
-    if (cat) {
-      setSelectedCat(cat);
+  const handleOpenModal = (catStatus = null) => {
+    if (catStatus) {
+      setSelectedCat(catStatus);
       setFormData({
-        name: cat.name,
-        description: cat.description,
-        status: cat.status,
-        breed: cat.breed,
-        color: cat.color,
-        gender: cat.gender,
-        age: cat.age,
-        location: cat.location || {
-          address: "",
-          city: "",
-          postalCode: "",
-        },
+        name: catStatus.cat.name || "",
+        breed: catStatus.cat.breed || "",
+        age: calculateAge(catStatus.cat.dateOfBirth) || "",
+        gender: catStatus.cat.gender || "MALE",
+        description: catStatus.cat.description || "",
+        available: catStatus.statusCat === "OWN",
+        chipNumber: catStatus.cat.chipNumber || "",
+        furType: catStatus.cat.furType || "",
+        eyeColor: catStatus.cat.eyeColor || "",
+        vaccinated: catStatus.cat.vaccinated ?? null,
+        sterilized: catStatus.cat.sterilized ?? null,
       });
     } else {
       setSelectedCat(null);
       setFormData({
         name: "",
-        description: "",
-        status: "LOST",
         breed: "",
-        color: "",
-        gender: "",
         age: "",
-        location: {
-          address: "",
-          city: "",
-          postalCode: "",
-        },
+        gender: "MALE",
+        description: "",
+        available: true,
       });
     }
-    setOpenDialog(true);
+    setShowModal(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
     setSelectedCat(null);
+    setFormData({
+      name: "",
+      breed: "",
+      age: "",
+      gender: "MALE",
+      description: "",
+      available: true,
+    });
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name.startsWith("location.")) {
-      const locationField = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        location: {
-          ...prev.location,
-          [locationField]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "number" ? parseInt(value) : value,
+    }));
   };
 
   const handleSubmit = async () => {
     try {
+      // Prepare payload for update/create
+      const payload = {
+        catId: selectedCat ? selectedCat.cat.catId : null,
+        name: formData.name,
+        breed: formData.breed,
+        dateOfBirth: null,
+        gender: formData.gender,
+        chipNumber: formData.chipNumber,
+        furType: formData.furType,
+        eyeColor: formData.eyeColor,
+        vaccinated: formData.vaccinated,
+        sterilized: formData.sterilized,
+        statusCat: formData.available ? "OWN" : "LOST",
+      };
+
       if (selectedCat) {
-        await api.put(`/cat/${selectedCat.catId}`, formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await api.put(`/cat/status/${selectedCat.catStatusId}`, payload);
       } else {
-        await api.post("/cat", formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await api.post("/cat/status", payload);
       }
-      fetchCats();
-      handleCloseDialog();
+      handleCloseModal();
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
     }
   };
 
   const handleDelete = async (catId) => {
-    if (window.confirm(t("admin.cats.confirmDelete"))) {
+    if (
+      window.confirm(
+        t(
+          "admin.cats.confirmDelete",
+          "Êtes-vous sûr de vouloir supprimer ce chat ?"
+        )
+      )
+    ) {
       try {
-        await api.delete(`/cat/${catId}`, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        fetchCats();
+        await api.delete(`/cats/${catId}`);
       } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
+        console.error("Erreur lors de la suppression du chat:", error);
       }
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "LOST":
-        return "error";
-      case "FOUND":
-        return "success";
-      case "REUNITED":
-        return "info";
-      default:
-        return "default";
+  // Fonction pour calculer l'âge à partir de la date de naissance
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return "N/A";
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
     }
+    return age > 0
+      ? `${age} an${age > 1 ? "s" : ""}`
+      : t("common.lessThanOneYear", "< 1 an");
   };
 
+  const totalPages = Math.ceil((allCats?.length || 0) / itemsPerPage);
+  const currentItems =
+    allCats?.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    ) || [];
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-        <Typography variant="h4">{t("admin.cats.title")}</Typography>
-      </Box>
+    <Container className="py-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>{t("admin.cats.title", "Gestion des chats")}</h2>
+        <Button variant="primary" onClick={() => handleOpenModal()}>
+          <FiPlus className="me-2" />
+          {t("admin.cats.create", "Créer un chat")}
+        </Button>
+      </div>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t("admin.cats.name")}</TableCell>
-              <TableCell>{t("admin.cats.breed")}</TableCell>
-              <TableCell>{t("admin.cats.status")}</TableCell>
-              <TableCell>{t("admin.cats.location")}</TableCell>
-              <TableCell>{t("admin.cats.owner")}</TableCell>
-              <TableCell>{t("admin.cats.actions")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {cats
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((cat) => (
-                <TableRow key={cat.catId}>
-                  <TableCell>{cat.name}</TableCell>
-                  <TableCell>{cat.breed}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={t(`cat.status.${cat.status.toLowerCase()}`)}
-                      color={getStatusColor(cat.status)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {cat.location
-                      ? `${cat.location.city}, ${cat.location.postalCode}`
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {cat.owner
-                      ? `${cat.owner.firstName} ${cat.owner.lastName}`
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenDialog(cat)}>
+      <Card>
+        <Card.Body>
+          <Table responsive hover>
+            <thead>
+              <tr>
+                <th>{t("admin.cats.id", "ID")}</th>
+                <th>{t("admin.cats.name", "Nom")}</th>
+                <th>{t("admin.cats.breed", "Race")}</th>
+                <th>{t("admin.cats.color", "Couleur")}</th>
+                <th>{t("admin.cats.age", "Âge")}</th>
+                <th>{t("admin.cats.gender", "Genre")}</th>
+                <th>{t("admin.cats.chipNumber", "Numéro de puce")}</th>
+                <th>{t("admin.cats.vaccinated", "Vacciné")}</th>
+                <th>{t("admin.cats.sterilized", "Stérilisé")}</th>
+                <th>{t("admin.cats.status", "Statut")}</th>
+                <th>{t("admin.cats.actions", "Actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((catStatus) => (
+                <tr key={catStatus.catStatusId}>
+                  <td>{catStatus.cat.catId}</td>
+                  <td>{catStatus.cat.name}</td>
+                  <td>{catStatus.cat.breed}</td>
+                  <td>{catStatus.cat.color}</td>
+                  <td>{calculateAge(catStatus.cat.dateOfBirth)}</td>
+                  <td>
+                    {t(
+                      `admin.cats.genders.${catStatus.cat.gender?.toLowerCase()}`,
+                      catStatus.cat.gender
+                    )}
+                  </td>
+                  <td>{catStatus.cat.chipNumber || "-"}</td>
+                  <td>
+                    <Badge bg={catStatus.cat.vaccinated ? "success" : "danger"}>
+                      {catStatus.cat.vaccinated
+                        ? t("common.yes", "Oui")
+                        : t("common.no", "Non")}
+                    </Badge>
+                  </td>
+                  <td>
+                    <Badge bg={catStatus.cat.sterilized ? "success" : "danger"}>
+                      {catStatus.cat.sterilized
+                        ? t("common.yes", "Oui")
+                        : t("common.no", "Non")}
+                    </Badge>
+                  </td>
+                  <td>
+                    <Badge
+                      bg={
+                        catStatus.statusCat === "OWN"
+                          ? "success"
+                          : catStatus.statusCat === "LOST"
+                          ? "danger"
+                          : "warning"
+                      }
+                    >
+                      {catStatus.statusCat === "OWN"
+                        ? t("common.owned", "Possédé")
+                        : catStatus.statusCat === "LOST"
+                        ? t("common.lost", "Perdu")
+                        : t("common.found", "Trouvé")}
+                    </Badge>
+                  </td>
+                  <td>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleOpenModal(catStatus)}
+                    >
                       <FiEdit2 />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(cat.catId)}>
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDelete(catStatus.cat.catId)}
+                    >
                       <FiTrash2 />
-                    </IconButton>
-                    <IconButton>
-                      <FiEye />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
+                    </Button>
+                  </td>
+                </tr>
               ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={cats.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
+            </tbody>
+          </Table>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedCat ? t("admin.cats.edit") : t("admin.cats.create")}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ pt: 2 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="name"
-                label={t("admin.cats.name")}
-                value={formData.name}
-                onChange={handleInputChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="breed"
-                label={t("admin.cats.breed")}
-                value={formData.breed}
-                onChange={handleInputChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="status"
-                label={t("admin.cats.status")}
-                select
-                value={formData.status}
-                onChange={handleInputChange}
-                fullWidth
-              >
-                <MenuItem value="LOST">{t("cat.status.lost")}</MenuItem>
-                <MenuItem value="FOUND">{t("cat.status.found")}</MenuItem>
-                <MenuItem value="REUNITED">{t("cat.status.reunited")}</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="gender"
-                label={t("admin.cats.gender")}
-                select
-                value={formData.gender}
-                onChange={handleInputChange}
-                fullWidth
-              >
-                <MenuItem value="MALE">{t("common.male")}</MenuItem>
-                <MenuItem value="FEMALE">{t("common.female")}</MenuItem>
-                <MenuItem value="UNKNOWN">{t("common.unknown")}</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="description"
-                label={t("admin.cats.description")}
-                value={formData.description}
-                onChange={handleInputChange}
-                multiline
-                rows={4}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                {t("admin.cats.location")}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                name="location.address"
-                label={t("admin.cats.address")}
-                value={formData.location.address}
-                onChange={handleInputChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                name="location.city"
-                label={t("admin.cats.city")}
-                value={formData.location.city}
-                onChange={handleInputChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                name="location.postalCode"
-                label={t("admin.cats.postalCode")}
-                value={formData.location.postalCode}
-                onChange={handleInputChange}
-                fullWidth
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t("common.cancel")}</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {t("common.save")}
+          {/* Pagination */}
+          <div className="d-flex justify-content-center mt-3">
+            <Button
+              variant="outline-primary"
+              className="me-2"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              {t("common.previous", "Précédent")}
+            </Button>
+            <span className="mx-2 my-auto">
+              {t("common.page", "Page")} {currentPage} {t("common.of", "sur")}{" "}
+              {totalPages}
+            </span>
+            <Button
+              variant="outline-primary"
+              className="ms-2"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              {t("common.next", "Suivant")}
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Modal */}
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedCat
+              ? t("admin.cats.edit", "Modifier le chat")
+              : t("admin.cats.create", "Créer un chat")}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.cats.name", "Nom")}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.cats.breed", "Race")}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="breed"
+                    value={formData.breed}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.cats.age", "Âge")}</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    required
+                    min="0"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.cats.gender", "Genre")}</Form.Label>
+                  <Form.Select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="MALE">
+                      {t("admin.cats.genders.male", "Mâle")}
+                    </option>
+                    <option value="FEMALE">
+                      {t("admin.cats.genders.female", "Femelle")}
+                    </option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col>
+                <Form.Group>
+                  <Form.Label>
+                    {t("admin.cats.description", "Description")}
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Form.Group>
+                  <Form.Label>{t("admin.cats.status", "Statut")}</Form.Label>
+                  <Form.Select
+                    name="available"
+                    value={formData.available}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value={true}>
+                      {t("common.available", "Disponible")}
+                    </option>
+                    <option value={false}>
+                      {t("common.unavailable", "Indisponible")}
+                    </option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            {t("common.cancel", "Annuler")}
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <Button variant="primary" onClick={handleSubmit}>
+            {t("common.save", "Enregistrer")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 

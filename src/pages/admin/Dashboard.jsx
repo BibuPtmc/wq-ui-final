@@ -1,28 +1,10 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Grid,
-  Paper,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-} from "@mui/material";
-import {
-  FiUsers,
-  FiHeart,
-  FiShoppingCart,
-  FiPackage,
-  FiBell,
-} from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
+import { Container, Row, Col, Card } from "react-bootstrap";
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -33,254 +15,196 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import {
+  FiUsers,
+  FiShoppingBag,
+  FiPackage,
+  FiDollarSign,
+} from "react-icons/fi";
 
 const Dashboard = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const axios = useAxios();
+  const { api } = useAxios();
   const [stats, setStats] = useState({
     totalUsers: 0,
-    totalCats: 0,
     totalOrders: 0,
     totalProducts: 0,
+    totalRevenue: 0,
+    ordersByStatus: [],
+    productsByCategory: [],
+    revenueByMonth: [],
   });
-  const [activityData, setActivityData] = useState([]);
-  const [catStatusData, setCatStatusData] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
-
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchStats();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchStats = async () => {
     try {
-      // Récupérer les statistiques générales
-      const statsResponse = await axios.get("/admin/stats");
-      setStats(statsResponse.data);
-
-      // Récupérer les données d'activité
-      const activityResponse = await axios.get("/admin/activity");
-      setActivityData(activityResponse.data);
-
-      // Récupérer les statistiques des chats
-      const catStatsResponse = await axios.get("/admin/cat-stats");
-      setCatStatusData(catStatsResponse.data);
-
-      // Récupérer les activités récentes
-      const activitiesResponse = await axios.get("/admin/recent-activities");
-      setRecentActivities(activitiesResponse.data);
+      const response = await api.get("/admin/stats");
+      setStats(response.data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des données:", error);
+      console.error("Erreur lors de la récupération des statistiques:", error);
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {t("admin.dashboard.title")}
-      </Typography>
+    <Container className="py-3">
+      <h2 className="mb-4">{t("admin.dashboard.title", "Tableau de bord")}</h2>
 
-      <Grid container spacing={3}>
-        {/* Statistiques générales */}
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{ p: 2, display: "flex", flexDirection: "column", height: 140 }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <FiUsers
-                color="primary"
-                style={{ marginRight: 8, fontSize: 24 }}
-              />
-              <Typography component="h2" variant="h6" color="primary">
-                {t("admin.dashboard.totalUsers")}
-              </Typography>
-            </Box>
-            <Typography component="p" variant="h4">
-              {stats.totalUsers}
-            </Typography>
-          </Paper>
-        </Grid>
+      {/* Statistiques générales */}
+      <Row className="mb-4">
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <FiUsers className="fs-1 text-primary me-3" />
+                <div>
+                  <h6 className="text-muted mb-1">
+                    {t("admin.dashboard.totalUsers", "Utilisateurs")}
+                  </h6>
+                  <h3 className="mb-0">{stats.totalUsers}</h3>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <FiShoppingBag className="fs-1 text-success me-3" />
+                <div>
+                  <h6 className="text-muted mb-1">
+                    {t("admin.dashboard.totalOrders", "Commandes")}
+                  </h6>
+                  <h3 className="mb-0">{stats.totalOrders}</h3>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <FiPackage className="fs-1 text-warning me-3" />
+                <div>
+                  <h6 className="text-muted mb-1">
+                    {t("admin.dashboard.totalProducts", "Produits")}
+                  </h6>
+                  <h3 className="mb-0">{stats.totalProducts}</h3>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <FiDollarSign className="fs-1 text-danger me-3" />
+                <div>
+                  <h6 className="text-muted mb-1">
+                    {t("admin.dashboard.totalRevenue", "Revenus")}
+                  </h6>
+                  <h3 className="mb-0">
+                    {new Intl.NumberFormat("fr-BE", {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(stats.totalRevenue)}
+                  </h3>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{ p: 2, display: "flex", flexDirection: "column", height: 140 }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <FiHeart
-                color="primary"
-                style={{ marginRight: 8, fontSize: 24 }}
-              />
-              <Typography component="h2" variant="h6" color="primary">
-                {t("admin.dashboard.totalCats")}
-              </Typography>
-            </Box>
-            <Typography component="p" variant="h4">
-              {stats.totalCats}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{ p: 2, display: "flex", flexDirection: "column", height: 140 }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <FiShoppingCart
-                color="primary"
-                style={{ marginRight: 8, fontSize: 24 }}
-              />
-              <Typography component="h2" variant="h6" color="primary">
-                {t("admin.dashboard.totalOrders")}
-              </Typography>
-            </Box>
-            <Typography component="p" variant="h4">
-              {stats.totalOrders}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{ p: 2, display: "flex", flexDirection: "column", height: 140 }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <FiPackage
-                color="primary"
-                style={{ marginRight: 8, fontSize: 24 }}
-              />
-              <Typography component="h2" variant="h6" color="primary">
-                {t("admin.dashboard.totalProducts")}
-              </Typography>
-            </Box>
-            <Typography component="p" variant="h4">
-              {stats.totalProducts}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        {/* Graphiques */}
-        <Grid item xs={12} md={8}>
-          <Paper
-            sx={{ p: 2, display: "flex", flexDirection: "column", height: 400 }}
-          >
-            <Typography
-              component="h2"
-              variant="h6"
-              color="primary"
-              gutterBottom
-            >
-              {t("admin.dashboard.activityChart")}
-            </Typography>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={activityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="users"
-                  stroke="#8884d8"
-                  name={t("admin.dashboard.newUsers")}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="cats"
-                  stroke="#82ca9d"
-                  name={t("admin.dashboard.newCats")}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="orders"
-                  stroke="#ffc658"
-                  name={t("admin.dashboard.newOrders")}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{ p: 2, display: "flex", flexDirection: "column", height: 400 }}
-          >
-            <Typography
-              component="h2"
-              variant="h6"
-              color="primary"
-              gutterBottom
-            >
-              {t("admin.dashboard.catStatus")}
-            </Typography>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={catStatusData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label
-                >
-                  {catStatusData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-
-        {/* Activités récentes */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography
-              component="h2"
-              variant="h6"
-              color="primary"
-              gutterBottom
-            >
-              {t("admin.dashboard.recentActivity")}
-            </Typography>
-            <List>
-              {recentActivities.map((activity, index) => (
-                <React.Fragment key={activity.id}>
-                  <ListItem>
-                    <ListItemIcon>
-                      <FiBell />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={activity.description}
-                      secondary={formatDate(activity.date)}
-                    />
-                  </ListItem>
-                  {index < recentActivities.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+      {/* Graphiques */}
+      <Row>
+        <Col md={6} className="mb-4">
+          <Card>
+            <Card.Body>
+              <h5 className="card-title mb-4">
+                {t("admin.dashboard.ordersByStatus", "Commandes par statut")}
+              </h5>
+              <div style={{ width: "100%", height: 300 }}>
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={stats.ordersByStatus}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label
+                    >
+                      {stats.ordersByStatus.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={6} className="mb-4">
+          <Card>
+            <Card.Body>
+              <h5 className="card-title mb-4">
+                {t(
+                  "admin.dashboard.productsByCategory",
+                  "Produits par catégorie"
+                )}
+              </h5>
+              <div style={{ width: "100%", height: 300 }}>
+                <ResponsiveContainer>
+                  <BarChart data={stats.productsByCategory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={12}>
+          <Card>
+            <Card.Body>
+              <h5 className="card-title mb-4">
+                {t("admin.dashboard.revenueByMonth", "Revenus par mois")}
+              </h5>
+              <div style={{ width: "100%", height: 300 }}>
+                <ResponsiveContainer>
+                  <BarChart data={stats.revenueByMonth}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

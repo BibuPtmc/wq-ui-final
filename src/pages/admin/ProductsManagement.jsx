@@ -1,41 +1,27 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box,
-  Paper,
+  Container,
+  Row,
+  Col,
+  Card,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Typography,
-  Grid,
-  InputAdornment,
-} from "@mui/material";
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
-} from "@mui/icons-material";
+  Modal,
+  Form,
+} from "react-bootstrap";
+import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthProvider";
-import { api } from "../../utils/api";
+import { useAxios } from "../../hooks/useAxios";
 
 const ProductsManagement = () => {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { api } = useAxios();
   const [products, setProducts] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -51,25 +37,14 @@ const ProductsManagement = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get("/ecommerce/products", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/ecommerce/products");
       setProducts(response.data);
     } catch (error) {
       console.error("Erreur lors de la récupération des produits:", error);
     }
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleOpenDialog = (product = null) => {
+  const handleOpenModal = (product = null) => {
     if (product) {
       setSelectedProduct(product);
       setFormData({
@@ -89,11 +64,11 @@ const ProductsManagement = () => {
         imageUrl: "",
       });
     }
-    setOpenDialog(true);
+    setShowModal(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
     setSelectedProduct(null);
   };
 
@@ -116,18 +91,13 @@ const ProductsManagement = () => {
       if (selectedProduct) {
         await api.put(
           `/ecommerce/products/${selectedProduct.productId}`,
-          productData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          productData
         );
       } else {
-        await api.post("/ecommerce/products", productData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/ecommerce/products", productData);
       }
       fetchProducts();
-      handleCloseDialog();
+      handleCloseModal();
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
     }
@@ -136,9 +106,7 @@ const ProductsManagement = () => {
   const handleDelete = async (productId) => {
     if (window.confirm(t("admin.products.confirmDelete"))) {
       try {
-        await api.delete(`/ecommerce/products/${productId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/ecommerce/products/${productId}`);
         fetchProducts();
       } catch (error) {
         console.error("Erreur lors de la suppression:", error);
@@ -153,144 +121,190 @@ const ProductsManagement = () => {
     }).format(price);
   };
 
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-        <Typography variant="h4">{t("admin.products.title")}</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          {t("admin.products.create")}
+    <Container className="py-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>{t("admin.products.title", "Gestion des produits")}</h2>
+        <Button variant="primary" onClick={() => handleOpenModal()}>
+          <FiPlus className="me-2" />
+          {t("admin.products.create", "Ajouter un produit")}
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t("admin.products.name")}</TableCell>
-              <TableCell>{t("admin.products.description")}</TableCell>
-              <TableCell>{t("admin.products.price")}</TableCell>
-              <TableCell>{t("admin.products.stock")}</TableCell>
-              <TableCell>{t("admin.products.actions")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((product) => (
-                <TableRow key={product.productId}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.description}</TableCell>
-                  <TableCell>{formatPrice(product.price)}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenDialog(product)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(product.productId)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
+      <Card>
+        <Card.Body>
+          <Table responsive hover>
+            <thead>
+              <tr>
+                <th>{t("admin.products.name", "Nom")}</th>
+                <th>{t("admin.products.description", "Description")}</th>
+                <th>{t("admin.products.price", "Prix")}</th>
+                <th>{t("admin.products.stock", "Stock")}</th>
+                <th>{t("admin.products.actions", "Actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((product) => (
+                <tr key={product.productId}>
+                  <td>{product.name}</td>
+                  <td>{product.description}</td>
+                  <td>{formatPrice(product.price)}</td>
+                  <td>{product.stock}</td>
+                  <td>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleOpenModal(product)}
+                    >
+                      <FiEdit2 />
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDelete(product.productId)}
+                    >
+                      <FiTrash2 />
+                    </Button>
+                  </td>
+                </tr>
               ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={products.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
+            </tbody>
+          </Table>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedProduct
-            ? t("admin.products.edit")
-            : t("admin.products.create")}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ pt: 2 }}>
-            <Grid item xs={12}>
-              <TextField
-                name="name"
-                label={t("admin.products.name")}
-                value={formData.name}
-                onChange={handleInputChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="description"
-                label={t("admin.products.description")}
-                value={formData.description}
-                onChange={handleInputChange}
-                multiline
-                rows={4}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="price"
-                label={t("admin.products.price")}
-                value={formData.price}
-                onChange={handleInputChange}
-                type="number"
-                fullWidth
-                required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="stock"
-                label={t("admin.products.stock")}
-                value={formData.stock}
-                onChange={handleInputChange}
-                type="number"
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="imageUrl"
-                label={t("admin.products.imageUrl")}
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                fullWidth
-                helperText={t("admin.products.imageUrlHelp")}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t("common.cancel")}</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {t("common.save")}
+          {/* Pagination */}
+          <div className="d-flex justify-content-center mt-3">
+            <Button
+              variant="outline-primary"
+              className="me-2"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              {t("common.previous", "Précédent")}
+            </Button>
+            <span className="mx-2 my-auto">
+              {t("common.page", "Page")} {currentPage} {t("common.of", "sur")}{" "}
+              {totalPages}
+            </span>
+            <Button
+              variant="outline-primary"
+              className="ms-2"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              {t("common.next", "Suivant")}
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Modal */}
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedProduct
+              ? t("admin.products.edit", "Modifier le produit")
+              : t("admin.products.create", "Ajouter un produit")}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Row className="mb-3">
+              <Col>
+                <Form.Group>
+                  <Form.Label>{t("admin.products.name", "Nom")}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col>
+                <Form.Group>
+                  <Form.Label>
+                    {t("admin.products.description", "Description")}
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.products.price", "Prix")}</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.products.stock", "Stock")}</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Form.Group>
+                  <Form.Label>
+                    {t("admin.products.imageUrl", "URL de l'image")}
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleInputChange}
+                  />
+                  <Form.Text className="text-muted">
+                    {t(
+                      "admin.products.imageUrlHelp",
+                      "URL d'une image pour le produit"
+                    )}
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            {t("common.cancel", "Annuler")}
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <Button variant="primary" onClick={handleSubmit}>
+            {t("common.save", "Enregistrer")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 

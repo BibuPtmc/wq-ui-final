@@ -1,34 +1,22 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  Typography,
-  Chip,
-} from "@mui/material";
-import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthProvider";
 import { useAxios } from "../../hooks/useAxios";
+import {
+  Button,
+  Table,
+  Container,
+  Card,
+  Badge,
+  Modal,
+  Form,
+  Row,
+  Col,
+} from "react-bootstrap";
+import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 
 const UsersManagement = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const api = useAxios();
+  const { api } = useAxios();
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -49,10 +37,8 @@ const UsersManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get("/users/list", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      setUsers(response.data);
+      const response = await api.get("/users/list");
+      setUsers(response);
     } catch (error) {
       console.error("Erreur lors de la récupération des utilisateurs:", error);
     }
@@ -108,13 +94,9 @@ const UsersManagement = () => {
   const handleSubmit = async () => {
     try {
       if (selectedUser) {
-        await api.put(`/users/${selectedUser.userId}`, formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await api.put(`/users/${selectedUser.userId}`, formData);
       } else {
-        await api.post("/users", formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await api.post("/users", formData);
       }
       fetchUsers();
       handleCloseDialog();
@@ -126,9 +108,7 @@ const UsersManagement = () => {
   const handleDelete = async (userId) => {
     if (window.confirm(t("admin.users.confirmDelete"))) {
       try {
-        await api.delete(`/users/${userId}`, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await api.delete(`/users/${userId}`);
         fetchUsers();
       } catch (error) {
         console.error("Erreur lors de la suppression:", error);
@@ -137,130 +117,220 @@ const UsersManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-        <Typography variant="h4">{t("admin.users.title")}</Typography>
-        <Button
-          variant="contained"
-          startIcon={<FiPlus />}
-          onClick={() => handleOpenDialog()}
-        >
-          {t("admin.users.create")}
+    <Container className="py-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>{t("admin.users.title", "Gestion des utilisateurs")}</h2>
+        <Button variant="primary" onClick={() => handleOpenDialog()}>
+          <FiPlus className="me-2" />
+          {t("admin.users.create", "Créer un utilisateur")}
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t("admin.users.userName")}</TableCell>
-              <TableCell>{t("admin.users.email")}</TableCell>
-              <TableCell>{t("admin.users.name")}</TableCell>
-              <TableCell>{t("admin.users.role")}</TableCell>
-              <TableCell>{t("admin.users.status")}</TableCell>
-              <TableCell>{t("admin.users.actions")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((user) => (
-                <TableRow key={user.userId}>
-                  <TableCell>{user.userName}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={user.role}
-                      color={user.role === "ADMIN" ? "secondary" : "primary"}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={
-                        user.enabled ? t("common.active") : t("common.inactive")
-                      }
-                      color={user.enabled ? "success" : "error"}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenDialog(user)}>
-                      <FiEdit2 />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(user.userId)}>
-                      <FiTrash2 />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={users.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
+      <Card>
+        <Card.Body>
+          <Table responsive hover>
+            <thead>
+              <tr>
+                <th>{t("admin.users.name", "Nom")}</th>
+                <th>{t("admin.users.email", "Email")}</th>
+                <th>{t("admin.users.role", "Rôle")}</th>
+                <th>{t("admin.users.status", "Statut")}</th>
+                <th>{t("admin.users.actions", "Actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((user) => (
+                  <tr key={user.userId}>
+                    <td>{`${user.firstName} ${user.lastName}`}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      {t(
+                        `admin.users.roles.${user.role.toLowerCase()}`,
+                        user.role
+                      )}
+                    </td>
+                    <td>
+                      <Badge bg={user.enabled ? "success" : "danger"}>
+                        {user.enabled
+                          ? t("common.active", "Actif")
+                          : t("common.inactive", "Inactif")}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleOpenDialog(user)}
+                      >
+                        <FiEdit2 />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(user.userId)}
+                      >
+                        <FiTrash2 />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </Table>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {selectedUser ? t("admin.users.edit") : t("admin.users.create")}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-            <TextField
-              name="userName"
-              label={t("admin.users.userName")}
-              value={formData.userName}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="email"
-              label={t("admin.users.email")}
-              value={formData.email}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="firstName"
-              label={t("admin.users.firstName")}
-              value={formData.firstName}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="lastName"
-              label={t("admin.users.lastName")}
-              value={formData.lastName}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="role"
-              label={t("admin.users.role")}
-              select
-              value={formData.role}
-              onChange={handleInputChange}
-              fullWidth
+          {/* Pagination */}
+          <div className="d-flex justify-content-center mt-3">
+            <Button
+              variant="outline-primary"
+              className="me-2"
+              disabled={page === 0}
+              onClick={(event) => {
+                event.preventDefault();
+                handleChangePage(event, page - 1);
+              }}
             >
-              <MenuItem value="USER">USER</MenuItem>
-              <MenuItem value="ADMIN">ADMIN</MenuItem>
-            </TextField>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t("common.cancel")}</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {t("common.save")}
+              {t("common.previous", "Précédent")}
+            </Button>
+            <span className="mx-2 my-auto">
+              {t("common.page", "Page")} {page + 1} {t("common.of", "sur")}{" "}
+              {Math.ceil(users.length / rowsPerPage)}
+            </span>
+            <Button
+              variant="outline-primary"
+              className="ms-2"
+              disabled={page >= Math.ceil(users.length / rowsPerPage) - 1}
+              onClick={(event) => {
+                event.preventDefault();
+                handleChangePage(event, page + 1);
+              }}
+            >
+              {t("common.next", "Suivant")}
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Modal */}
+      <Modal show={openDialog} onHide={handleCloseDialog} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedUser
+              ? t("admin.users.edit", "Modifier l'utilisateur")
+              : t("admin.users.create", "Créer un utilisateur")}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>
+                    {t("admin.users.firstName", "Prénom")}
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.users.lastName", "Nom")}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col>
+                <Form.Group>
+                  <Form.Label>{t("admin.users.email", "Email")}</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.users.role", "Rôle")}</Form.Label>
+                  <Form.Select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="USER">
+                      {t("admin.users.roles.user", "Utilisateur")}
+                    </option>
+                    <option value="ADMIN">
+                      {t("admin.users.roles.admin", "Administrateur")}
+                    </option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>{t("admin.users.status", "Statut")}</Form.Label>
+                  <Form.Select
+                    name="enabled"
+                    value={formData.enabled}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value={true}>{t("common.active", "Actif")}</option>
+                    <option value={false}>
+                      {t("common.inactive", "Inactif")}
+                    </option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+            {!selectedUser && (
+              <Row>
+                <Col>
+                  <Form.Group>
+                    <Form.Label>
+                      {t("admin.users.password", "Mot de passe")}
+                    </Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            )}
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDialog}>
+            {t("common.cancel", "Annuler")}
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <Button variant="primary" onClick={handleSubmit}>
+            {t("common.save", "Enregistrer")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 

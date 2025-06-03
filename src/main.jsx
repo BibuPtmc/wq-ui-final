@@ -26,16 +26,24 @@ import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import UsersManagement from "./pages/admin/UsersManagement";
 import CatsManagement from "./pages/admin/CatsManagement";
+import OrdersManagement from "./pages/admin/OrdersManagement";
+import ProductsManagement from "./pages/admin/ProductsManagement";
+import Reports from "./pages/admin/Reports";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
 
 // Composant pour protéger les routes qui nécessitent une connexion
-const ProtectedRoute = ({ children }) => {
-  const { isLoggedIn } = useAuth();
+const ProtectedRoute = ({ children, roles }) => {
+  const { isLoggedIn, userData } = useAuth();
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
+  }
+
+  if (roles && !roles.includes(userData?.role)) {
+    // Redirection vers la page d'accueil si l'utilisateur n'a pas le bon rôle
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -81,30 +89,21 @@ function App() {
               }
             />
             <Route
-              path="/admin"
+              path="/admin/*"
               element={
                 <ProtectedRoute roles={["ADMIN"]}>
                   <AdminLayout>
                     <Routes>
-                      <Route index element={<Dashboard />} />
+                      <Route
+                        index
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                      <Route path="dashboard" element={<Dashboard />} />
                       <Route path="users" element={<UsersManagement />} />
+                      <Route path="reports" element={<Reports />} />
+                      <Route path="products" element={<ProductsManagement />} />
+                      <Route path="orders" element={<OrdersManagement />} />
                       <Route path="cats" element={<CatsManagement />} />
-                      <Route
-                        path="orders"
-                        element={
-                          <div>Gestion des commandes (à implémenter)</div>
-                        }
-                      />
-                      <Route
-                        path="products"
-                        element={
-                          <div>Gestion des produits (à implémenter)</div>
-                        }
-                      />
-                      <Route
-                        path="reports"
-                        element={<div>Rapports (à implémenter)</div>}
-                      />
                     </Routes>
                   </AdminLayout>
                 </ProtectedRoute>

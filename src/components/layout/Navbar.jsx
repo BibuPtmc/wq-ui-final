@@ -12,7 +12,16 @@ import {
   FaUser,
   FaSignOutAlt,
   FaTag,
+  FaCog,
 } from "react-icons/fa";
+import {
+  FiLayout,
+  FiUsers,
+  FiHeart,
+  FiPackage,
+  FiShoppingCart,
+  FiBarChart2,
+} from "react-icons/fi";
 import { motion } from "framer-motion";
 import Cart from "../ecommerce/Cart";
 import LanguageSwitcher from "../common/LanguageSwitcher";
@@ -191,6 +200,43 @@ const NavBar = () => {
                       <FaUser className="me-2" />{" "}
                       {t("navbar.profile", "Profil")}
                     </Dropdown.Item>
+
+                    {/* Ajout du menu admin */}
+                    {userData?.role === "ADMIN" && (
+                      <>
+                        <Dropdown.Divider />
+                        <Dropdown.Header>
+                          <FaCog className="me-2" />{" "}
+                          {t("navbar.admin", "Administration")}
+                        </Dropdown.Header>
+                        <Dropdown.Item as={Link} to="/admin/dashboard">
+                          <FiLayout className="me-2" />{" "}
+                          {t("navbar.adminDashboard", "Tableau de bord")}
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/admin/users">
+                          <FiUsers className="me-2" />{" "}
+                          {t("navbar.adminUsers", "Utilisateurs")}
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/admin/cats">
+                          <FiHeart className="me-2" />{" "}
+                          {t("navbar.adminCats", "Chats")}
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/admin/products">
+                          <FiPackage className="me-2" />{" "}
+                          {t("navbar.adminProducts", "Produits")}
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/admin/orders">
+                          <FiShoppingCart className="me-2" />{" "}
+                          {t("navbar.adminOrders", "Commandes")}
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/admin/reports">
+                          <FiBarChart2 className="me-2" />{" "}
+                          {t("navbar.adminReports", "Rapports")}
+                        </Dropdown.Item>
+                        <Dropdown.Divider />
+                      </>
+                    )}
+
                     <Dropdown.Item onClick={handleLogout}>
                       <FaSignOutAlt className="me-2" />{" "}
                       {t("navbar.logout", "Déconnexion")}

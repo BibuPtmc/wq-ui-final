@@ -72,7 +72,28 @@
     "orderNumber": "Commande #",
     "shippingAddress": "Adresse de livraison",
     "paymentStatus": "Statut du paiement",
-    "shippingStatus": "Statut de l'expédition"
+    "shippingStatus": "Statut de l'expédition",
+    "id": "ID",
+    "customerInfo": "Informations client",
+    "shippingInfo": "Informations de livraison",
+    "name": "Nom",
+    "email": "Email",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "product": "Produit",
+    "quantity": "Quantité",
+    "price": "Prix",
+    "subtotal": "Sous-total",
+    "trackingNumber": "Numéro de suivi",
+    "trackingNumberPlaceholder": "Entrez le numéro de suivi",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette commande ?",
+    "status": {
+      "pending": "En attente",
+      "processing": "En traitement",
+      "shipped": "Expédiée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
+    }
   },
   "products": {
     "title": "Gestion des produits",

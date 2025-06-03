@@ -54,36 +54,36 @@ const AdminLayout = ({ children }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t } = useTranslation("admin");
 
   const menuItems = [
     {
-      text: t("admin.menu.dashboard"),
+      text: t("admin.menu.dashboard", "Tableau de bord"),
       icon: <FiLayout />,
       path: "/admin",
     },
     {
-      text: t("admin.menu.users"),
+      text: t("admin.menu.users", "Utilisateurs"),
       icon: <FiUsers />,
       path: "/admin/users",
     },
     {
-      text: t("admin.menu.cats"),
+      text: t("admin.menu.cats", "Chats"),
       icon: <FiHeart />,
       path: "/admin/cats",
     },
     {
-      text: t("admin.menu.orders"),
+      text: t("admin.menu.orders", "Commandes"),
       icon: <FiShoppingCart />,
       path: "/admin/orders",
     },
     {
-      text: t("admin.menu.products"),
+      text: t("admin.menu.products", "Produits"),
       icon: <FiPackage />,
       path: "/admin/products",
     },
     {
-      text: t("admin.menu.reports"),
+      text: t("admin.menu.reports", "Rapports"),
       icon: <FiBarChart2 />,
       path: "/admin/reports",
     },
@@ -114,7 +114,7 @@ const AdminLayout = ({ children }) => {
             <FiMenu />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {t("admin.title")}
+            {t("admin.title", "Administration WhiskerQuest")}
           </Typography>
         </Toolbar>
       </AppBar>
