@@ -256,9 +256,12 @@ const RegistrationForm = () => {
             <Card className="shadow-sm">
               <Card.Body className="p-4">
                 <div className="text-center mb-4">
-                  <h2>Inscription</h2>
+                  <h2>{t("register.title", "Inscription")}</h2>
                   <p className="text-muted">
-                    Rejoignez la communauté WhiskerQuest
+                    {t(
+                      "register.subtitle",
+                      "Rejoignez la communauté WhiskerQuest"
+                    )}
                   </p>
                 </div>
 
@@ -269,26 +272,36 @@ const RegistrationForm = () => {
                 )}
                 {registrationSuccess && (
                   <Alert variant="success" className="mb-4">
-                    Inscription réussie ! Redirection vers la page de
-                    connexion...
+                    {t(
+                      "register.successMessage",
+                      "Inscription réussie ! Redirection vers la page de connexion..."
+                    )}
                   </Alert>
                 )}
 
                 <Form onSubmit={handleSubmit}>
                   <Card className="mb-4">
                     <Card.Body>
-                      <h5 className="mb-3">Informations de connexion</h5>
+                      <h5 className="mb-3">
+                        {t(
+                          "register.loginInfoTitle",
+                          "Informations de connexion"
+                        )}
+                      </h5>
                       <Form.Group className="mb-3">
                         <Form.Label>
                           <FaUser className="me-2" />
-                          Nom d'utilisateur
+                          {t("register.usernameLabel", "Nom d'utilisateur")}
                         </Form.Label>
                         <Form.Control
                           type="text"
                           name="userName"
                           value={formData.userName}
                           onChange={handleChange}
-                          placeholder="Choisissez un nom d'utilisateur"
+                          placeholder={t(
+                            "register.usernamePlaceholder",
+                            "Choisissez un nom d'utilisateur"
+                          )}
                           required
                         />
                       </Form.Group>
@@ -296,14 +309,17 @@ const RegistrationForm = () => {
                       <Form.Group className="mb-3">
                         <Form.Label>
                           <FaEnvelope className="me-2" />
-                          Email
+                          {t("auth.email", "Email")}
                         </Form.Label>
                         <Form.Control
                           type="email"
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
-                          placeholder="Entrez votre email"
+                          placeholder={t(
+                            "register.emailPlaceholder",
+                            "Entrez votre email"
+                          )}
                           required
                           isInvalid={!!emailError}
                         />
@@ -319,7 +335,7 @@ const RegistrationForm = () => {
                           <Form.Group className="mb-3">
                             <Form.Label>
                               <FaLock className="me-2" />
-                              Mot de passe
+                              {t("register.passwordLabel", "Mot de passe")}
                             </Form.Label>
                             <InputGroup>
                               <Form.Control
@@ -327,7 +343,10 @@ const RegistrationForm = () => {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                placeholder="Créez votre mot de passe"
+                                placeholder={t(
+                                  "register.passwordPlaceholder",
+                                  "Créez votre mot de passe"
+                                )}
                                 required
                                 isInvalid={
                                   !passwordsMatch || passwordComplexityError
@@ -347,7 +366,10 @@ const RegistrationForm = () => {
                               </Button>
                               <Form.Control.Feedback type="invalid">
                                 {passwordComplexityError &&
-                                  "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre ou caractère spécial."}
+                                  t(
+                                    "register.passwordComplexityError",
+                                    "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre ou caractère spécial."
+                                  )}
                               </Form.Control.Feedback>
                             </InputGroup>
                           </Form.Group>
@@ -356,7 +378,7 @@ const RegistrationForm = () => {
                           <Form.Group className="mb-3">
                             <Form.Label>
                               <FaLock className="me-2" />
-                              Confirmer
+                              {t("register.confirmLabel", "Confirmer")}
                             </Form.Label>
                             <InputGroup>
                               <Form.Control
@@ -364,7 +386,10 @@ const RegistrationForm = () => {
                                 name="matchingPassword"
                                 value={formData.matchingPassword}
                                 onChange={handleChange}
-                                placeholder="Confirmez le mot de passe"
+                                placeholder={t(
+                                  "register.confirmPlaceholder",
+                                  "Confirmez le mot de passe"
+                                )}
                                 required
                                 isInvalid={!passwordsMatch}
                               />
@@ -385,7 +410,10 @@ const RegistrationForm = () => {
                               </Button>
                               {!passwordsMatch && (
                                 <Form.Control.Feedback type="invalid">
-                                  Les mots de passe ne correspondent pas
+                                  {t(
+                                    "register.passwordsNotMatch",
+                                    "Les mots de passe ne correspondent pas"
+                                  )}
                                 </Form.Control.Feedback>
                               )}
                             </InputGroup>
@@ -397,30 +425,45 @@ const RegistrationForm = () => {
 
                   <Card className="mb-4">
                     <Card.Body>
-                      <h5 className="mb-3">Informations personnelles</h5>
+                      <h5 className="mb-3">
+                        {t(
+                          "register.personalInfoTitle",
+                          "Informations personnelles"
+                        )}
+                      </h5>
                       <Row>
                         <Col md={6}>
                           <Form.Group className="mb-3">
-                            <Form.Label>Prénom</Form.Label>
+                            <Form.Label>
+                              {t("register.firstNameLabel", "Prénom")}
+                            </Form.Label>
                             <Form.Control
                               type="text"
                               name="firstName"
                               value={formData.firstName}
                               onChange={handleChange}
-                              placeholder="Votre prénom"
+                              placeholder={t(
+                                "register.firstNamePlaceholder",
+                                "Votre prénom"
+                              )}
                               required
                             />
                           </Form.Group>
                         </Col>
                         <Col md={6}>
                           <Form.Group className="mb-3">
-                            <Form.Label>Nom</Form.Label>
+                            <Form.Label>
+                              {t("register.lastNameLabel", "Nom")}
+                            </Form.Label>
                             <Form.Control
                               type="text"
                               name="lastName"
                               value={formData.lastName}
                               onChange={handleChange}
-                              placeholder="Votre nom"
+                              placeholder={t(
+                                "register.lastNamePlaceholder",
+                                "Votre nom"
+                              )}
                               required
                             />
                           </Form.Group>
@@ -432,7 +475,10 @@ const RegistrationForm = () => {
                           <Form.Group className="mb-3">
                             <Form.Label>
                               <FaCalendar className="me-2" />
-                              Date de naissance
+                              {t(
+                                "register.birthDateLabel",
+                                "Date de naissance"
+                              )}
                             </Form.Label>
                             <Form.Control
                               type="date"
@@ -454,7 +500,7 @@ const RegistrationForm = () => {
                           <Form.Group className="mb-3">
                             <Form.Label>
                               <FaVenusMars className="me-2" />
-                              Genre
+                              {t("auth.gender", "Genre")}
                             </Form.Label>
                             <Form.Select
                               name="gender"
@@ -463,7 +509,12 @@ const RegistrationForm = () => {
                               required
                               disabled={enumsLoading || enumsError}
                             >
-                              <option value="">Sélectionnez le genre</option>
+                              <option value="">
+                                {t(
+                                  "register.selectGenderPlaceholder",
+                                  "Sélectionnez le genre"
+                                )}
+                              </option>
                               {enums &&
                                 enums.gender.map((g) => (
                                   <option key={g.value} value={g.value}>
@@ -473,7 +524,10 @@ const RegistrationForm = () => {
                             </Form.Select>
                             {enumsError && (
                               <div className="text-danger">
-                                Erreur lors du chargement des genres
+                                {t(
+                                  "register.genderLoadError",
+                                  "Erreur lors du chargement des genres"
+                                )}
                               </div>
                             )}
                           </Form.Group>
